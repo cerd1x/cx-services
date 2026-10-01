@@ -1,4 +1,4 @@
-import { paymentSchema } from "../../adapters/driven/drizzle/payment.entity";
+import { paymentSchema } from "../entity/payment.entity";
 
 const VALID_TRANSITIONS = {
   pending: ["processing", "cancelled"],

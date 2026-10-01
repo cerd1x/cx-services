@@ -1,2 +1,2 @@
 export { createUserService, UserService, userService, type UserAdapters } from "./user.composition";
-export type { UserType } from "./adapters/driven/drizzle/user.entity";
+export type { UserType } from "./core/entity/user.entity";

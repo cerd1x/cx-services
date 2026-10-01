@@ -1,4 +1,4 @@
-import type { Contact } from "../../../adapters/driven/drizzle/contact.entity";
+import type { Contact } from "../../entity/contact.entity";
 import type { PageQuery, PageWindow } from "../../model/contact-page.model";
 
 export abstract class ContactRepository {

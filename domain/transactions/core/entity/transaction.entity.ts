@@ -1,4 +1,4 @@
-import { Balance } from "../../../../assets/core/value-objects/balance.vo";
+import { Balance } from "../../../assets/core/value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 import { z } from "zod";
 

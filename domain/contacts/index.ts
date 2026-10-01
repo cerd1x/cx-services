@@ -1,6 +1,6 @@
 export { contactService, createContactService, ContactService } from "./contacts.composition";
 export type { ContactAdapters } from "./contacts.composition";
-export type { ContactType } from "./adapters/driven/drizzle/contact.entity";
+export type { ContactType } from "./core/entity/contact.entity";
 export {
   Cursor,
   DEFAULT_PAGE_SIZE,

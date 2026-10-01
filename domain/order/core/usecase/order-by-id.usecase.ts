@@ -1,6 +1,6 @@
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { OrderRepository } from "../ports/out/order-repository.port";
-import { Order } from "../../adapters/driven/drizzle/order.entity";
+import { Order } from "../entity/order.entity";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

@@ -1,8 +1,8 @@
 import { z } from "zod";
 import * as Currencies from "dinero.js/currencies";
-import { Balance, isoCodeList, type CurrencyMetaType } from "../../../core/value-objects/balance.vo";
+import { Balance, isoCodeList, type CurrencyMetaType } from "../value-objects/balance.vo";
 import { ID, isMybe } from "$services/shared/kernel";
-import { myUserID } from "../../../../user/adapters/driven/drizzle/user.entity";
+import { myUserID } from "../../../user/core/entity/user.entity";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
 
 export const AssetType = {

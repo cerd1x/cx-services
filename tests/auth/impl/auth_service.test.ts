@@ -9,10 +9,10 @@ import {
   mock,
   spyOn,
 } from "bun:test";
-import { User } from "$services/domain/user/adapters/driven/drizzle/user.entity";
+import { User } from "$services/domain/user/core/entity/user.entity";
 import { createAuthService, AuthService, type UserServiceLike } from "$services/domain/auth";
 import { AssetService } from "$services/domain/assets";
-import type { Asset } from "$services/domain/assets/adapters/driven/drizzle/asset.entity";
+import type { Asset } from "$services/domain/assets/core/entity/asset.entity";
 import { Token } from "$services/domain/auth/core/value-objects/token.vo";
 import {
   AuthenticationError,
@@ -121,11 +121,7 @@ describe("AuthService", () => {
       expect(result.session).toBe("mock-session-token");
       expect(result.refreshToken).toBe("mock-refresh-token");
 
-      expect(userService.createUser).toHaveBeenCalledWith(
-        "Test",
-        "testuser",
-        "password123",
-      );
+      expect(userService.createUser).toHaveBeenCalledWith("Test", "testuser", "password123");
 
       expect(authRepo.saveToken).toHaveBeenCalledWith(
         1,
@@ -148,9 +144,7 @@ describe("AuthService", () => {
         password: "password123",
       });
 
-      await expect(AuthService.getInstance().signUp(user)).rejects.toThrow(
-        "username taken",
-      );
+      await expect(AuthService.getInstance().signUp(user)).rejects.toThrow("username taken");
       expect(authRepo.saveToken).not.toHaveBeenCalled();
     });
 
@@ -171,9 +165,7 @@ describe("AuthService", () => {
         password: "password123",
       });
 
-      await expect(AuthService.getInstance().signUp(user)).rejects.toThrow(
-        "userId is required",
-      );
+      await expect(AuthService.getInstance().signUp(user)).rejects.toThrow("userId is required");
     });
   });
 
@@ -204,10 +196,7 @@ describe("AuthService", () => {
 
       spyOn(Token.prototype, "generate").mockReturnValue("mock-token");
 
-      const result = await AuthService.getInstance().signIn(
-        "testuser",
-        "password123",
-      );
+      const result = await AuthService.getInstance().signIn("testuser", "password123");
 
       expect(result.user.id?.toNumb).toBe(1);
       expect(result.session).toBe("mock-token");
@@ -225,9 +214,9 @@ describe("AuthService", () => {
       foundUser.id = ID.new(1);
       userService.userByUsername.mockResolvedValue(foundUser);
 
-      await expect(
-        AuthService.getInstance().signIn("testuser", "wrong-password"),
-      ).rejects.toThrow("Invalid password");
+      await expect(AuthService.getInstance().signIn("testuser", "wrong-password")).rejects.toThrow(
+        "Invalid password",
+      );
     });
 
     it("throws when user has no id", async () => {
@@ -239,9 +228,9 @@ describe("AuthService", () => {
       });
       userService.userByUsername.mockResolvedValue(foundUser);
 
-      await expect(
-        AuthService.getInstance().signIn("testuser", "password123"),
-      ).rejects.toThrow("userId is required");
+      await expect(AuthService.getInstance().signIn("testuser", "password123")).rejects.toThrow(
+        "userId is required",
+      );
     });
   });
 
@@ -376,9 +365,7 @@ describe("AuthService", () => {
       });
       userService.user.mockResolvedValue(foundUser);
 
-      const result = await AuthService.getInstance().authorize(
-        "valid-session-token",
-      );
+      const result = await AuthService.getInstance().authorize("valid-session-token");
 
       expect(result.user.id?.toNumb).toBe(1);
       expect(result.token).toBeNull();
@@ -386,18 +373,16 @@ describe("AuthService", () => {
     });
 
     it("throws AuthenticationError on empty token", async () => {
-      await expect(AuthService.getInstance().authorize("")).rejects.toThrow(
-        AuthenticationError,
-      );
+      await expect(AuthService.getInstance().authorize("")).rejects.toThrow(AuthenticationError);
       expect(authRepo.findToken).not.toHaveBeenCalled();
     });
 
     it("throws UnauthorizedError on token not found", async () => {
       authRepo.findToken.mockResolvedValue(null);
 
-      await expect(
-        AuthService.getInstance().authorize("invalid-token"),
-      ).rejects.toThrow(UnauthorizedError);
+      await expect(AuthService.getInstance().authorize("invalid-token")).rejects.toThrow(
+        UnauthorizedError,
+      );
     });
 
     it("returns new session token when session expired and refresh token valid", async () => {
@@ -429,19 +414,13 @@ describe("AuthService", () => {
       };
 
       const fromSpy = spyOn(Token, "from");
-      fromSpy.mockImplementationOnce(
-        () => mockRefreshToken as unknown as Token,
-      );
-      fromSpy.mockImplementationOnce(
-        () => mockSessionToken as unknown as Token,
-      );
+      fromSpy.mockImplementationOnce(() => mockRefreshToken as unknown as Token);
+      fromSpy.mockImplementationOnce(() => mockSessionToken as unknown as Token);
 
       userService.user.mockResolvedValue(foundUser);
       authRepo.updateToken.mockResolvedValue({} as any);
 
-      const result = await AuthService.getInstance().authorize(
-        "expired-session-token",
-      );
+      const result = await AuthService.getInstance().authorize("expired-session-token");
 
       expect(result.user.id?.toNumb).toBe(1);
       expect(result.token?.session).toBe("new-session-token");
@@ -464,9 +443,9 @@ describe("AuthService", () => {
         refreshToken: null,
       });
 
-      await expect(
-        AuthService.getInstance().authorize("expired-session-token"),
-      ).rejects.toThrow(UnauthorizedError);
+      await expect(AuthService.getInstance().authorize("expired-session-token")).rejects.toThrow(
+        UnauthorizedError,
+      );
       expect(authRepo.updateToken).not.toHaveBeenCalled();
     });
 
@@ -483,13 +462,11 @@ describe("AuthService", () => {
         isExpired: mock(() => true),
       };
 
-      spyOn(Token, "from").mockImplementationOnce(
-        () => mockRefreshToken as unknown as Token,
-      );
+      spyOn(Token, "from").mockImplementationOnce(() => mockRefreshToken as unknown as Token);
 
-      await expect(
-        AuthService.getInstance().authorize("expired-session-token"),
-      ).rejects.toThrow(UnauthorizedError);
+      await expect(AuthService.getInstance().authorize("expired-session-token")).rejects.toThrow(
+        UnauthorizedError,
+      );
       expect(authRepo.updateToken).not.toHaveBeenCalled();
     });
   });

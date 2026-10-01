@@ -1,5 +1,5 @@
 import { OrderRepository } from "../ports/out/order-repository.port";
-import type { Order as OrderType } from "../../adapters/driven/drizzle/order.entity";
+import type { Order as OrderType } from "../entity/order.entity";
 import { ID } from "$services/shared/kernel";
 import { OrderByIdUseCase } from "./order-by-id.usecase";
 import { CoreUsecase } from "$services/shared/base";
@@ -28,8 +28,7 @@ export class UpdateOrderUseCase extends CoreUsecase<OrderType, UpdateOrderInput>
     const existing = await this.deps.get(OrderByIdUseCase).execute({ id, userId });
 
     if (data.status !== undefined) existing.status = data.status;
-    if (data.paymentMethod !== undefined)
-      existing.paymentMethod = data.paymentMethod;
+    if (data.paymentMethod !== undefined) existing.paymentMethod = data.paymentMethod;
 
     if (data.description !== undefined) existing.description = data.description;
     if (data.customerId !== undefined) existing.customerId = data.customerId;

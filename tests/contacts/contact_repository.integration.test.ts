@@ -5,9 +5,13 @@ import { setDB, setD1 } from "$services/shared/infra/db";
 import { userTable } from "$services/shared/infra/db/drizzle-schema/user.schema";
 import { contactTable } from "$services/shared/infra/db/drizzle-schema/contact.schema";
 import { ContactRepositoryImpl } from "$services/domain/contacts/adapters/driven/drizzle/contact.repository";
-import { Contact } from "$services/domain/contacts/adapters/driven/drizzle/contact.entity";
+import { Contact } from "$services/domain/contacts/core/entity/contact.entity";
 import { ID } from "$services/shared/kernel";
-import { Cursor, resolvePageQuery, toContactPage } from "$services/domain/contacts/core/model/contact-page.model";
+import {
+  Cursor,
+  resolvePageQuery,
+  toContactPage,
+} from "$services/domain/contacts/core/model/contact-page.model";
 
 describe("ContactRepository integration", () => {
   let sqlite: any;
@@ -24,12 +28,15 @@ describe("ContactRepository integration", () => {
     setD1(env.d1 as any);
     repo = new ContactRepositoryImpl();
 
-    const seed = await db.insert(userTable).values({
-      name: "Contact User",
-      username: `contact_user_${Date.now()}`,
-      email: "contact@test.com",
-      password: "hash",
-    }).returning({ id: userTable.id });
+    const seed = await db
+      .insert(userTable)
+      .values({
+        name: "Contact User",
+        username: `contact_user_${Date.now()}`,
+        email: "contact@test.com",
+        password: "hash",
+      })
+      .returning({ id: userTable.id });
     userId = seed[0].id!;
   });
 
@@ -58,14 +65,16 @@ describe("ContactRepository integration", () => {
     );
     const b = await repo.save(
       userId,
-      Contact.new({ name: "SharedB", userId: ID.new(userId), phones: ["08333333333", "08444444444"] }),
+      Contact.new({
+        name: "SharedB",
+        userId: ID.new(userId),
+        phones: ["08333333333", "08444444444"],
+      }),
     );
 
     const matches = await repo.findByPhone(userId, "08333333333");
 
-    expect(matches.map((m) => m.id!.toNumb).sort()).toEqual(
-      [a.id!.toNumb, b.id!.toNumb].sort(),
-    );
+    expect(matches.map((m) => m.id!.toNumb).sort()).toEqual([a.id!.toNumb, b.id!.toNumb].sort());
     expect(matches.find((m) => m.id!.toNumb === b.id!.toNumb)?.phones).toEqual([
       "08333333333",
       "08444444444",
@@ -97,12 +106,15 @@ describe("ContactRepository integration", () => {
   });
 
   it("scopes findByPhone to the owner", async () => {
-    const other = await db.insert(userTable).values({
-      name: "Other User",
-      username: `contact_other_${Date.now()}`,
-      email: "other@test.com",
-      password: "hash",
-    }).returning({ id: userTable.id });
+    const other = await db
+      .insert(userTable)
+      .values({
+        name: "Other User",
+        username: `contact_other_${Date.now()}`,
+        email: "other@test.com",
+        password: "hash",
+      })
+      .returning({ id: userTable.id });
     const otherUserId = other[0].id!;
     await repo.save(
       otherUserId,
@@ -118,12 +130,15 @@ describe("ContactRepository integration", () => {
     let ids: number[] = [];
 
     beforeAll(async () => {
-      const owner = await db.insert(userTable).values({
-        name: "Pager",
-        username: `contact_pager_${Date.now()}`,
-        email: "pager@test.com",
-        password: "hash",
-      }).returning({ id: userTable.id });
+      const owner = await db
+        .insert(userTable)
+        .values({
+          name: "Pager",
+          username: `contact_pager_${Date.now()}`,
+          email: "pager@test.com",
+          password: "hash",
+        })
+        .returning({ id: userTable.id });
       pageUserId = owner[0].id!;
 
       for (let i = 1; i <= 25; i++) {
@@ -158,7 +173,9 @@ describe("ContactRepository integration", () => {
     it("reports no next page on the last window", async () => {
       const result = await page({ first: 10, after: Cursor.encode(ids[15]) });
 
-      expect(result.items.map((c) => c.id?.toNumb)).toEqual(ids.slice(0, 15).reverse().slice(0, 10));
+      expect(result.items.map((c) => c.id?.toNumb)).toEqual(
+        ids.slice(0, 15).reverse().slice(0, 10),
+      );
       expect(result.hasNextPage).toBe(true);
     });
 
@@ -211,12 +228,15 @@ describe("ContactRepository integration", () => {
     });
 
     it("never exposes another user's contacts", async () => {
-      const outsider = await db.insert(userTable).values({
-        name: "Outsider",
-        username: `contact_outsider_${Date.now()}`,
-        email: "outsider@test.com",
-        password: "hash",
-      }).returning({ id: userTable.id });
+      const outsider = await db
+        .insert(userTable)
+        .values({
+          name: "Outsider",
+          username: `contact_outsider_${Date.now()}`,
+          email: "outsider@test.com",
+          password: "hash",
+        })
+        .returning({ id: userTable.id });
 
       const window = await repo.findPage(outsider[0].id!, resolvePageQuery({ first: 50 }));
       expect(window.items).toEqual([]);
@@ -254,12 +274,15 @@ describe("ContactRepository integration", () => {
 
     describe("overflow probing", () => {
       async function seedExactly(count: number): Promise<{ userId: number; ids: number[] }> {
-        const owner = await db.insert(userTable).values({
-          name: "Overflow",
-          username: `contact_overflow_${count}_${Date.now()}`,
-          email: `overflow${count}@test.com`,
-          password: "hash",
-        }).returning({ id: userTable.id });
+        const owner = await db
+          .insert(userTable)
+          .values({
+            name: "Overflow",
+            username: `contact_overflow_${count}_${Date.now()}`,
+            email: `overflow${count}@test.com`,
+            password: "hash",
+          })
+          .returning({ id: userTable.id });
         const ownerId = owner[0].id!;
 
         const seeded: number[] = [];

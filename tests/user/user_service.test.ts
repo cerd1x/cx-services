@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { ConflictError } from "$services/shared/kernel/errors/service-error";
 import { createUserService, UserService } from "$services/domain/user";
-import { User } from "$services/domain/user/adapters/driven/drizzle/user.entity";
+import { User } from "$services/domain/user/core/entity/user.entity";
 import { ID } from "$services/shared/kernel/id";
 describe("UserService", () => {
   const userRepo = {

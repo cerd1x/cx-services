@@ -1,7 +1,7 @@
 import {
   Transaction as TransactionType,
   type TransactionUpdateData,
-} from "./adapters/driven/drizzle/transaction.entity";
+} from "./core/entity/transaction.entity";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ID } from "$services/shared/kernel";

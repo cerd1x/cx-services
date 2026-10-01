@@ -1,4 +1,4 @@
-import { Asset } from "../../adapters/driven/drizzle/asset.entity";
+import { Asset } from "../entity/asset.entity";
 import { Balance } from "../value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";
@@ -13,10 +13,7 @@ export type MutateTransactionAssetInput = {
   description?: string;
 };
 
-export class MutateTransactionAssetUseCase extends CoreUsecase<
-  Asset,
-  MutateTransactionAssetInput
-> {
+export class MutateTransactionAssetUseCase extends CoreUsecase<Asset, MutateTransactionAssetInput> {
   @logMethod(logger)
   async execute(input: MutateTransactionAssetInput): Promise<Asset> {
     const { userId, assetId, amount, description } = input;

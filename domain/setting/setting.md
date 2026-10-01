@@ -9,37 +9,41 @@ Melakukan kontrol terhadap **pengaturan/setting** user dalam sistem. Module ini 
 ### Struktur Direktori & File [L9-38]
 
 ```text
-services/domain/setting/
-├── app/
-│   └── setting_service.ts           # Application service (orchestrasi use case)
+domain/setting/
 ├── core/
+│   ├── entity/
+│   │   └── setting.entity.ts
 │   ├── model/
-│   │   └── setting.model.ts         # Model bisnis (data + behavior)
+│   │   ├── index.ts
+│   │   └── setting.model.ts
+│   ├── ports/
+│   │   └── out/
+│   │       └── setting-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── setting-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── create-default-settings.usecase.ts
+│   │   ├── setting-by-user-id.usecase.ts
+│   │   └── update-setting.usecase.ts
+│   └── value-objects/
+│       └── logger.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── setting.gql          # SDL GraphQL
-│   │       └── setting.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── setting.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── setting.repository.ts    # Implementasi repository
-└── setting.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       └── setting.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── setting.gql
+│           └── setting.resolver.ts
+├── index.ts
+└── setting.composition.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File [L39-125]
 
-#### 1. `adapters/driven/drizzle/setting.entity.ts` [L41-65]
+#### 1. `core/entity/setting.entity.ts` [L41-65]
 
-[`services/domain/setting/adapters/driven/drizzle/setting.entity.ts`](./adapters/driven/drizzle/setting.entity.ts)
+[`core/entity/setting.entity.ts`](core/entity/setting.entity.ts)
 
 - **`settingSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

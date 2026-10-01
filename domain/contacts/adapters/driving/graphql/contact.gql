@@ -3,12 +3,8 @@ type Query {
   contacts: [Contact!]! @authorized
   # Keyset paginated list, ordered by id DESC (newest first).
   # Forward: (first, after)  Backward: (last, before)
-  contactConnection(
-    first: Int
-    after: String
-    last: Int
-    before: String
-  ): ContactConnection! @authorized
+  contactConnection(first: Int, after: String, last: Int, before: String): ContactConnection!
+    @authorized
 }
 
 type ContactEdge {

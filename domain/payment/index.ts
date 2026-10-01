@@ -4,16 +4,12 @@ export {
   paymentService,
   type PaymentAdapters,
 } from "./payment.composition";
-export { Payment } from "./adapters/driven/drizzle/payment.entity";
-export type { PaymentData, PaymentUpdateData } from "./adapters/driven/drizzle/payment.entity";
-export { Invoice } from "./adapters/driven/drizzle/invoice.entity";
-export type {
-  InvoiceData,
-  InvoiceItem,
-  InvoiceUpdateData,
-} from "./adapters/driven/drizzle/invoice.entity";
-export { PaymentStatus, PaymentMethodType } from "./adapters/driven/drizzle/payment.entity";
-export { InvoiceStatus } from "./adapters/driven/drizzle/invoice.entity";
+export { Payment } from "./core/entity/payment.entity";
+export type { PaymentData, PaymentUpdateData } from "./core/entity/payment.entity";
+export { Invoice } from "./core/entity/invoice.entity";
+export type { InvoiceData, InvoiceItem, InvoiceUpdateData } from "./core/entity/invoice.entity";
+export { PaymentStatus, PaymentMethodType } from "./core/entity/payment.entity";
+export { InvoiceStatus } from "./core/entity/invoice.entity";
 export { RetryPolicy } from "./core/value-objects/retry-policy.vo";
 export type { RetryPolicyConfig } from "./core/value-objects/retry-policy.vo";
 export type {

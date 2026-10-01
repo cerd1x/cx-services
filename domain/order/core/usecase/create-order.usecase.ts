@@ -1,6 +1,6 @@
 import { OrderRepository } from "../ports/out/order-repository.port";
-import { Order } from "../../adapters/driven/drizzle/order.entity";
-import type { Order as OrderType } from "../../adapters/driven/drizzle/order.entity";
+import { Order } from "../entity/order.entity";
+import type { Order as OrderType } from "../entity/order.entity";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

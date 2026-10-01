@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { createProductService, ProductService } from "$services/domain/products";
-import { Product } from "$services/domain/products/adapters/driven/drizzle/product.entity";
+import { Product } from "$services/domain/products/core/entity/product.entity";
 import { ID } from "$services/shared/kernel/id";
 
 describe("ProductService", () => {

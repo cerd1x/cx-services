@@ -58,37 +58,59 @@ Melakukan kontrol terhadap **pembayaran (payment)** dan **tagihan (invoice)** da
 ### Struktur Direktori & File
 
 ```text
-services/domain/payment/
-├── app/
-│   └── payment_service.ts           # Application service (orchestrasi use case)
+domain/payment/
 ├── core/
+│   ├── entity/
+│   │   ├── invoice.entity.ts
+│   │   └── payment.entity.ts
+│   ├── errors/
+│   │   └── payment-error.ts
 │   ├── model/
-│   │   └── payment.model.ts         # Model bisnis (data + behavior)
+│   │   ├── index.ts
+│   │   └── payment.model.ts
+│   ├── ports/
+│   │   └── out/
+│   │       ├── invoice-repository.port.ts
+│   │       ├── payment-gateway.port.ts
+│   │       └── payment-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── payment-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── cancel-invoice.usecase.ts
+│   │   ├── create-invoice.use-case.ts
+│   │   ├── get-invoice.usecase.ts
+│   │   ├── get-payment.usecase.ts
+│   │   ├── issue-invoice.usecase.ts
+│   │   ├── list-invoices-by-status.usecase.ts
+│   │   ├── list-invoices.usecase.ts
+│   │   ├── list-payments-by-status.usecase.ts
+│   │   ├── list-payments.usecase.ts
+│   │   ├── process-payment.use-case.ts
+│   │   └── retry-payment.use-case.ts
+│   └── value-objects/
+│       ├── logger.ts
+│       └── retry-policy.vo.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── payment.gql          # SDL GraphQL
-│   │       └── payment.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── payment.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── payment.repository.ts    # Implementasi repository
-└── payment.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   ├── drizzle/
+│   │   │   ├── invoice.repository.ts
+│   │   │   └── payment.repository.ts
+│   │   └── payment-gateway/
+│   │       ├── asset-gateway.adapter.ts
+│   │       └── mock-gateway.adapter.ts
+│   └── driving/
+│       └── graphql/
+│           ├── payment.gql
+│           └── payment.resolver.ts
+├── index.ts
+└── payment.composition.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File
 
-#### 1. `adapters/driven/drizzle/payment.entity.ts`
+#### 1. `core/entity/payment.entity.ts`
 
-[`services/domain/payment/adapters/driven/drizzle/payment.entity.ts`](./adapters/driven/drizzle/payment.entity.ts)
+[`core/entity/payment.entity.ts`](core/entity/payment.entity.ts)
 
 - **`PaymentStatus`** — enum: `pending`, `processing`, `completed`, `failed`, `refunded`, `cancelled`
 - **`PaymentMethodType`** — enum: `cash`, `bank_transfer`, `ewallet`, `credit_card`, `debit_card`, `credit` (selaras dengan module `transactions`)
@@ -120,9 +142,9 @@ services/domain/payment/
   - `incrementRetry()` — naikkan `retryCount` lalu reset status ke `"pending"`.
   - Validation methods (chainable): `validateAmount()`, `validateCurrency()`, `validateStatus()`, `validateMethod()`, `validateAll()`.
 
-#### 2. `adapters/driven/drizzle/invoice.entity.ts`
+#### 2. `core/entity/invoice.entity.ts`
 
-[`services/domain/payment/adapters/driven/drizzle/invoice.entity.ts`](./adapters/driven/drizzle/invoice.entity.ts)
+[`core/entity/invoice.entity.ts`](core/entity/invoice.entity.ts)
 
 - **`InvoiceStatus`** — enum: `draft`, `issued`, `paid`, `partially_paid`, `overdue`, `cancelled`
 - **`InvoiceItem`** — `{ description, quantity (int+), unitPrice (positif) }`

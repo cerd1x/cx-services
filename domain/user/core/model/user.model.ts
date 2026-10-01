@@ -1,4 +1,4 @@
-import { userSchema } from "../../adapters/driven/drizzle/user.entity";
+import { userSchema } from "../entity/user.entity";
 
 export class UserRules {
   static validateName(name: string): void {

@@ -9,37 +9,39 @@ Melakukan kontrol terhadap **statistik/keuangan** user dalam sistem. Module ini 
 ### Struktur Direktori & File [L9-38]
 
 ```text
-services/domain/statistic/
-├── app/
-│   └── statistic_service.ts           # Application service (orchestrasi use case)
+domain/statistic/
 ├── core/
+│   ├── entity/
+│   │   └── statistic.entity.ts
 │   ├── model/
-│   │   └── statistic.model.ts         # Model bisnis (data + behavior)
+│   │   ├── index.ts
+│   │   └── statistic.model.ts
+│   ├── ports/
+│   │   └── out/
+│   │       └── statistic-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── statistic-repository.port.ts   # Abstract port (repository contract)
+│   │   └── get-statistic.usecase.ts
+│   └── value-objects/
+│       └── logger.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── statistic.gql          # SDL GraphQL
-│   │       └── statistic.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── statistic.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── statistic.repository.ts    # Implementasi repository
-└── statistic.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       └── statistic.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── statistic.gql
+│           └── statistic.resolver.ts
+├── index.ts
+└── statistic.composition.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File [L39-112]
 
-#### 1. `adapters/driven/drizzle/statistic.entity.ts` [L41-53]
+#### 1. `core/entity/statistic.entity.ts` [L41-53]
 
-[`services/domain/statistic/adapters/driven/drizzle/statistic.entity.ts`](./adapters/driven/drizzle/statistic.entity.ts)
+[`core/entity/statistic.entity.ts`](core/entity/statistic.entity.ts)
 
 - **`StatisticData` type** — Type definition untuk data statistik:
   - `totalIncome`: number — total income dari transaksi

@@ -1,5 +1,5 @@
 import type { ID } from "$services/shared/kernel";
-import type { InvoiceData, InvoiceUpdateData } from "../../../adapters/driven/drizzle/invoice.entity";
+import type { InvoiceData, InvoiceUpdateData } from "../../entity/invoice.entity";
 
 export abstract class InvoiceRepository {
   abstract save(invoice: InvoiceData): Promise<InvoiceData>;

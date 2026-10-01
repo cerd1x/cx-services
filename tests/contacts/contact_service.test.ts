@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { NotFoundError, ValidationError } from "$services/shared/kernel/errors/service-error";
 import { createContactService, ContactService } from "$services/domain/contacts";
-import { Contact } from "$services/domain/contacts/adapters/driven/drizzle/contact.entity";
+import { Contact } from "$services/domain/contacts/core/entity/contact.entity";
 import { ID } from "$services/shared/kernel/id";
 import { Cursor } from "$services/domain/contacts/core/model/contact-page.model";
 
@@ -269,10 +269,7 @@ describe("ContactService", () => {
       contactRepo.delete.mockResolvedValue(undefined);
       contactRepo.update.mockImplementation(async (_userId: number, c) => c);
 
-      const result = await ContactService.getInstance().mergeContacts(
-        ID.new(1),
-        "08111111111",
-      );
+      const result = await ContactService.getInstance().mergeContacts(ID.new(1), "08111111111");
 
       expect(result.merged).toBe(1);
       expect(result.primary.name).toBe("Alice");

@@ -9,37 +9,52 @@ Melakukan kontrol terhadap **transaksi keuangan** dalam sistem. Module ini berta
 ### Struktur Direktori & File [L9-38]
 
 ```text
-services/domain/transactions/
-├── app/
-│   └── transactions_service.ts           # Application service (orchestrasi use case)
+domain/transactions/
 ├── core/
+│   ├── entity/
+│   │   └── transaction.entity.ts
 │   ├── model/
-│   │   └── transactions.model.ts         # Model bisnis (data + behavior)
+│   │   ├── index.ts
+│   │   ├── transaction-page.model.ts
+│   │   └── transaction.model.ts
+│   ├── ports/
+│   │   └── out/
+│   │       ├── asset-swap-gateway.port.ts
+│   │       └── transaction-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── transactions-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── asset-swap-gateway.ctx.ts
+│   │   ├── create-transaction.usecase.ts
+│   │   ├── delete-transaction.usecase.ts
+│   │   ├── list-transactions-page.usecase.ts
+│   │   ├── list-transactions.usecase.ts
+│   │   ├── request-form-transaction.usecase.ts
+│   │   ├── swap-balance.usecase.ts
+│   │   ├── transaction-by-id.usecase.ts
+│   │   ├── transactions-by-date-range.usecase.ts
+│   │   ├── transactions-by-type.usecase.ts
+│   │   ├── update-transaction.usecase.ts
+│   │   └── validate-csrf-token.usecase.ts
+│   └── value-objects/
+│       └── logger.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── transactions.gql          # SDL GraphQL
-│   │       └── transactions.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── transactions.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── transactions.repository.ts    # Implementasi repository
-└── transactions.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       └── transaction.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── transaction.gql
+│           └── transaction.resolver.ts
+├── index.ts
+└── transactions.composition.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File [L39-148]
 
-#### 1. `adapters/driven/drizzle/transaction.entity.ts` [L41-76]
+#### 1. `core/entity/transaction.entity.ts` [L41-76]
 
-[`services/domain/transactions/adapters/driven/drizzle/transaction.entity.ts`](./adapters/driven/drizzle/transaction.entity.ts)
+[`core/entity/transaction.entity.ts`](core/entity/transaction.entity.ts)
 
 - **`TransactionType`** — Enum: `income`, `expense`, `transfer`, `outcome`
 - **`TransactionStatus`** — Enum: `pending`, `success`, `failed`

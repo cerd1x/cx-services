@@ -1,4 +1,4 @@
-import { settingSchema } from "../../adapters/driven/drizzle/setting.entity";
+import { settingSchema } from "../entity/setting.entity";
 
 export class SettingRules {
   static validateCurrency(currency: string): void {

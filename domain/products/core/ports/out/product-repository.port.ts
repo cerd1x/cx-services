@@ -1,4 +1,4 @@
-import type { Product } from "../../../adapters/driven/drizzle/product.entity";
+import type { Product } from "../../entity/product.entity";
 
 export abstract class ProductRepository {
   abstract save(product: Product): Promise<Product>;

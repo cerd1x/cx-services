@@ -1,7 +1,7 @@
 import { AuthenticationError } from "$services/shared/kernel/errors/service-error";
 import { UserServiceLikeCtx, PasskeyServiceCtx } from "./ctx";
 import { ID } from "$services/shared/kernel";
-import type { User } from "../../../user/adapters/driven/drizzle/user.entity";
+import type { User } from "../../../user/core/entity/user.entity";
 import type { PasskeyService } from "$services/domain/auth";
 import { IssueSessionUseCase } from "./issue-session.usecase";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";

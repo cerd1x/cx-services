@@ -9,37 +9,46 @@ Melakukan kontrol terhadap **user** dan **management** user dalam sistem. Module
 ### Struktur Direktori & File [L9-38]
 
 ```text
-services/domain/user/
-├── app/
-│   └── user_service.ts           # Application service (orchestrasi use case)
+domain/user/
 ├── core/
+│   ├── entity/
+│   │   └── user.entity.ts
 │   ├── model/
-│   │   └── user.model.ts         # Model bisnis (data + behavior)
+│   │   ├── index.ts
+│   │   └── user.model.ts
+│   ├── ports/
+│   │   └── out/
+│   │       └── user-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── user-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── create-user.usecase.ts
+│   │   ├── delete-user.usecase.ts
+│   │   ├── is-user-id-taken.usecase.ts
+│   │   ├── is-username-taken.usecase.ts
+│   │   ├── list-users.usecase.ts
+│   │   ├── update-user-avatar.usecase.ts
+│   │   ├── user-by-id.usecase.ts
+│   │   └── user-by-username.usecase.ts
+│   └── value-objects/
+│       └── logger.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── user.gql          # SDL GraphQL
-│   │       └── user.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── user.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── user.repository.ts    # Implementasi repository
-└── user.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       └── user.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── user.gql
+│           └── user.resolver.ts
+├── index.ts
+└── user.composition.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File [L39-137]
 
-#### 1. `adapters/driven/drizzle/user.entity.ts` [L41-66]
+#### 1. `core/entity/user.entity.ts` [L41-66]
 
-[`services/domain/user/adapters/driven/drizzle/user.entity.ts`](./adapters/driven/drizzle/user.entity.ts)
+[`core/entity/user.entity.ts`](core/entity/user.entity.ts)
 
 - **`userSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

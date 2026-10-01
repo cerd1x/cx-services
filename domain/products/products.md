@@ -9,37 +9,45 @@ Melakukan kontrol terhadap **produk** dalam sistem. Module ini bertanggung jawab
 ### Struktur Direktori & File [L9-38]
 
 ```text
-services/domain/products/
-├── app/
-│   └── products_service.ts           # Application service (orchestrasi use case)
+domain/products/
 ├── core/
+│   ├── entity/
+│   │   └── product.entity.ts
 │   ├── model/
-│   │   └── products.model.ts         # Model bisnis (data + behavior)
+│   │   ├── index.ts
+│   │   └── product.model.ts
+│   ├── ports/
+│   │   └── out/
+│   │       └── product-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── products-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── buy-product.usecase.ts
+│   │   ├── create-product.usecase.ts
+│   │   ├── delete-product.usecase.ts
+│   │   ├── import-products-from-file.usecase.ts
+│   │   ├── list-products.usecase.ts
+│   │   ├── product-by-id.usecase.ts
+│   │   └── update-product.usecase.ts
+│   └── value-objects/
+│       └── logger.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── products.gql          # SDL GraphQL
-│   │       └── products.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── products.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── products.repository.ts    # Implementasi repository
-└── products.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       └── product.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── product.gql
+│           └── product.resolver.ts
+├── index.ts
+└── products.composition.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File [L39-119]
 
-#### 1. `adapters/driven/drizzle/product.entity.ts` [L41-72]
+#### 1. `core/entity/product.entity.ts` [L41-72]
 
-[`services/domain/products/adapters/driven/drizzle/product.entity.ts`](./adapters/driven/drizzle/product.entity.ts)
+[`core/entity/product.entity.ts`](core/entity/product.entity.ts)
 
 - **`productSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

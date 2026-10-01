@@ -1,7 +1,7 @@
 import { TransactionRepository } from "../ports/out/transaction-repository.port";
-import { Transaction } from "../../adapters/driven/drizzle/transaction.entity";
-import type { Transaction as TransactionType } from "../../adapters/driven/drizzle/transaction.entity";
-import type { PaymentMethod } from "../../adapters/driven/drizzle/transaction.entity";
+import { Transaction } from "../entity/transaction.entity";
+import type { Transaction as TransactionType } from "../entity/transaction.entity";
+import type { PaymentMethod } from "../entity/transaction.entity";
 import { Balance } from "../../../assets/core/value-objects/balance.vo";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
@@ -22,10 +22,7 @@ export type TransactionInput = {
   payToAssetId?: number;
 };
 
-export class CreateTransactionUseCase extends CoreUsecase<
-  TransactionType,
-  TransactionInput
-> {
+export class CreateTransactionUseCase extends CoreUsecase<TransactionType, TransactionInput> {
   @logMethod(logger)
   async execute(input: TransactionInput): Promise<TransactionType> {
     const txRepo = this.deps.get(TransactionRepository);

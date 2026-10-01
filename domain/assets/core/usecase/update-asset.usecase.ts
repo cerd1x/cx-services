@@ -1,7 +1,7 @@
 import { AssetRepository } from "../ports/out/asset-repository.port";
-import { Asset, type AssetUpdate } from "../../adapters/driven/drizzle/asset.entity";
+import { Asset, type AssetUpdate } from "../entity/asset.entity";
 import type { Balance } from "../value-objects/balance.vo";
-import type { AssetInput } from "../../adapters/driven/drizzle/asset.entity";
+import type { AssetInput } from "../entity/asset.entity";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

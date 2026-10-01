@@ -1,5 +1,5 @@
 import { InvoiceRepository } from "../ports/out/invoice-repository.port";
-import type { InvoiceData } from "../../adapters/driven/drizzle/invoice.entity";
+import type { InvoiceData } from "../entity/invoice.entity";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

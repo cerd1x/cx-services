@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { Asset } from "$services/domain/assets/adapters/driven/drizzle/asset.entity";
+import { Asset } from "$services/domain/assets/core/entity/asset.entity";
 import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 

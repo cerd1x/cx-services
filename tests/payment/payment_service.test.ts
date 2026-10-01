@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import type {
   PaymentData,
   PaymentUpdateData,
-} from "$services/domain/payment/adapters/driven/drizzle/payment.entity";
-import type { InvoiceData } from "$services/domain/payment/adapters/driven/drizzle/invoice.entity";
+} from "$services/domain/payment/core/entity/payment.entity";
+import type { InvoiceData } from "$services/domain/payment/core/entity/invoice.entity";
 import { PaymentRepository } from "$services/domain/payment/core/ports/out/payment-repository.port";
 import { InvoiceRepository } from "$services/domain/payment/core/ports/out/invoice-repository.port";
 import { PaymentGateway } from "$services/domain/payment/core/ports/out/payment-gateway.port";
@@ -45,9 +45,7 @@ class MockPaymentRepo extends PaymentRepository {
   }
 
   async findById(id: number, userId: ID): Promise<PaymentData | null> {
-    return (
-      this.store.find((p) => p.id === id && p.userId === userId.toNumb) ?? null
-    );
+    return this.store.find((p) => p.id === id && p.userId === userId.toNumb) ?? null;
   }
 
   async findAll(userId: ID): Promise<PaymentData[]> {
@@ -55,36 +53,21 @@ class MockPaymentRepo extends PaymentRepository {
   }
 
   async findByStatus(status: string, userId: ID): Promise<PaymentData[]> {
-    return this.store.filter(
-      (p) => p.userId === userId.toNumb && p.status === status,
-    );
+    return this.store.filter((p) => p.userId === userId.toNumb && p.status === status);
   }
 
   async findByInvoiceId(invoiceId: number, userId: ID): Promise<PaymentData[]> {
-    return this.store.filter(
-      (p) => p.userId === userId.toNumb && p.invoiceId === invoiceId,
-    );
+    return this.store.filter((p) => p.userId === userId.toNumb && p.invoiceId === invoiceId);
   }
 
-  async findByGatewayRef(
-    gatewayRef: string,
-    userId: ID,
-  ): Promise<PaymentData | null> {
+  async findByGatewayRef(gatewayRef: string, userId: ID): Promise<PaymentData | null> {
     return (
-      this.store.find(
-        (p) => p.userId === userId.toNumb && p.gatewayRef === gatewayRef,
-      ) ?? null
+      this.store.find((p) => p.userId === userId.toNumb && p.gatewayRef === gatewayRef) ?? null
     );
   }
 
-  async update(
-    id: number,
-    data: PaymentUpdateData,
-    userId: ID,
-  ): Promise<PaymentData> {
-    const idx = this.store.findIndex(
-      (p) => p.id === id && p.userId === userId.toNumb,
-    );
+  async update(id: number, data: PaymentUpdateData, userId: ID): Promise<PaymentData> {
+    const idx = this.store.findIndex((p) => p.id === id && p.userId === userId.toNumb);
     if (idx === -1) throw new Error("payment not found");
     this.store[idx] = { ...this.store[idx], ...data };
     return this.store[idx];
@@ -106,19 +89,13 @@ class MockInvoiceRepo extends InvoiceRepository {
   }
 
   async findById(id: number, userId: ID): Promise<InvoiceData | null> {
-    return (
-      this.store.find((i) => i.id === id && i.userId === userId.toNumb) ?? null
-    );
+    return this.store.find((i) => i.id === id && i.userId === userId.toNumb) ?? null;
   }
 
-  async findByInvoiceNumber(
-    invoiceNumber: string,
-    userId: ID,
-  ): Promise<InvoiceData | null> {
+  async findByInvoiceNumber(invoiceNumber: string, userId: ID): Promise<InvoiceData | null> {
     return (
-      this.store.find(
-        (i) => i.invoiceNumber === invoiceNumber && i.userId === userId.toNumb,
-      ) ?? null
+      this.store.find((i) => i.invoiceNumber === invoiceNumber && i.userId === userId.toNumb) ??
+      null
     );
   }
 
@@ -127,19 +104,11 @@ class MockInvoiceRepo extends InvoiceRepository {
   }
 
   async findByStatus(status: string, userId: ID): Promise<InvoiceData[]> {
-    return this.store.filter(
-      (i) => i.userId === userId.toNumb && i.status === status,
-    );
+    return this.store.filter((i) => i.userId === userId.toNumb && i.status === status);
   }
 
-  async update(
-    id: number,
-    data: Partial<InvoiceData>,
-    userId: ID,
-  ): Promise<InvoiceData> {
-    const idx = this.store.findIndex(
-      (i) => i.id === id && i.userId === userId.toNumb,
-    );
+  async update(id: number, data: Partial<InvoiceData>, userId: ID): Promise<InvoiceData> {
+    const idx = this.store.findIndex((i) => i.id === id && i.userId === userId.toNumb);
     if (idx === -1) throw new Error("invoice not found");
     this.store[idx] = { ...this.store[idx], ...data, updatedAt: new Date() };
     return this.store[idx];
@@ -197,14 +166,10 @@ function buildService(
   const retry = new RetryPaymentUseCase().setContext(container);
   const getPayment = new GetPaymentUseCase().setContext(container);
   const listPayments = new ListPaymentsUseCase().setContext(container);
-  const listPaymentsByStatus = new ListPaymentsByStatusUseCase().setContext(
-    container,
-  );
+  const listPaymentsByStatus = new ListPaymentsByStatusUseCase().setContext(container);
   const getInvoice = new GetInvoiceUseCase().setContext(container);
   const listInvoices = new ListInvoicesUseCase().setContext(container);
-  const listInvoicesByStatus = new ListInvoicesByStatusUseCase().setContext(
-    container,
-  );
+  const listInvoicesByStatus = new ListInvoicesByStatusUseCase().setContext(container);
   const issueInvoice = new IssueInvoiceUseCase().setContext(container);
   const cancelInvoice = new CancelInvoiceUseCase().setContext(container);
 
@@ -344,15 +309,15 @@ describe("PaymentService", () => {
         await service.retryPayment(ID.new(failed.id!), ID.new(1));
       }
 
-      await expect(
-        service.retryPayment(ID.new(failed.id!), ID.new(1)),
-      ).rejects.toThrow(PaymentRetryExhaustedError);
+      await expect(service.retryPayment(ID.new(failed.id!), ID.new(1))).rejects.toThrow(
+        PaymentRetryExhaustedError,
+      );
     });
 
     it("throws when payment does not exist", async () => {
-      await expect(
-        service.retryPayment(ID.new(999), ID.new(1)),
-      ).rejects.toThrow(PaymentRetryExhaustedError);
+      await expect(service.retryPayment(ID.new(999), ID.new(1))).rejects.toThrow(
+        PaymentRetryExhaustedError,
+      );
     });
 
     it("throws when retrying a completed payment", async () => {
@@ -363,9 +328,9 @@ describe("PaymentService", () => {
         method: "cash",
       });
 
-      await expect(
-        service.retryPayment(ID.new(ok.id!), ID.new(1)),
-      ).rejects.toThrow(PaymentRetryExhaustedError);
+      await expect(service.retryPayment(ID.new(ok.id!), ID.new(1))).rejects.toThrow(
+        PaymentRetryExhaustedError,
+      );
     });
   });
 
@@ -397,10 +362,7 @@ describe("PaymentService", () => {
       const issued = await service.issueInvoice(ID.new(invoice.id!), ID.new(1));
       expect(issued.status).toBe("issued");
 
-      const cancelled = await service.cancelInvoice(
-        ID.new(invoice.id!),
-        ID.new(1),
-      );
+      const cancelled = await service.cancelInvoice(ID.new(invoice.id!), ID.new(1));
       expect(cancelled.status).toBe("cancelled");
     });
 
@@ -413,17 +375,15 @@ describe("PaymentService", () => {
       await service.issueInvoice(ID.new(invoice.id!), ID.new(1));
       await service.cancelInvoice(ID.new(invoice.id!), ID.new(1));
 
-      await expect(
-        service.issueInvoice(ID.new(invoice.id!), ID.new(1)),
-      ).rejects.toThrow(/Cannot issue/);
+      await expect(service.issueInvoice(ID.new(invoice.id!), ID.new(1))).rejects.toThrow(
+        /Cannot issue/,
+      );
     });
   });
 
   describe("queries", () => {
     it("getPayment throws when missing", async () => {
-      await expect(service.getPayment(ID.new(999), ID.new(1))).rejects.toThrow(
-        /not found/,
-      );
+      await expect(service.getPayment(ID.new(999), ID.new(1))).rejects.toThrow(/not found/);
     });
 
     it("lists payments and filters by status", async () => {
@@ -446,17 +406,11 @@ describe("PaymentService", () => {
       const all = await service.listPayments(ID.new(1));
       expect(all).toHaveLength(2);
 
-      const completed = await service.listPaymentsByStatus(
-        "completed",
-        ID.new(1),
-      );
+      const completed = await service.listPaymentsByStatus("completed", ID.new(1));
       expect(completed).toHaveLength(1);
       expect(completed[0].amount).toBe(2000);
 
-      const badStatus = await service.listPaymentsByStatus(
-        "pending",
-        ID.new(1),
-      );
+      const badStatus = await service.listPaymentsByStatus("pending", ID.new(1));
       expect(badStatus).toHaveLength(0);
     });
 

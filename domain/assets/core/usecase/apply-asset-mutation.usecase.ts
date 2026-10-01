@@ -1,9 +1,9 @@
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
-import { Asset } from "../../adapters/driven/drizzle/asset.entity";
+import { Asset } from "../entity/asset.entity";
 import { Balance } from "../value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
-import {UnitOfWork} from "$services/shared/kernel/uow.port";
+import { UnitOfWork } from "$services/shared/kernel/uow.port";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
@@ -52,12 +52,7 @@ export class ApplyAssetMutationUseCase extends CoreUsecase<Asset, ApplyAssetMuta
         tx,
       );
 
-      await assetRepo.update(
-        userId,
-        assetId.toNumb,
-        { balance: current },
-        tx,
-      );
+      await assetRepo.update(userId, assetId.toNumb, { balance: current }, tx);
     });
 
     return Asset.new({

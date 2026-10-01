@@ -1,11 +1,9 @@
-import {
-  NotFoundError,
-} from "$services/shared/kernel/errors/service-error";
+import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
-import { Asset } from "../../adapters/driven/drizzle/asset.entity";
+import { Asset } from "../entity/asset.entity";
 import { Balance } from "../value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
-import {UnitOfWork} from "$services/shared/kernel/uow.port";
+import { UnitOfWork } from "$services/shared/kernel/uow.port";
 import { OutboxRepository } from "$services/shared/kernel/outbox/outbox-repository.port";
 import { EventBus } from "$services/shared/kernel/outbox/event-bus";
 import { CoreUsecase } from "$services/shared/base";
@@ -88,18 +86,8 @@ export class MutateSwapAssetUseCase extends CoreUsecase<
         tx,
       );
 
-      await assetRepo.update(
-        userId,
-        fromAssetId.toNumb,
-        { balance: fromCurrent },
-        tx,
-      );
-      await assetRepo.update(
-        userId,
-        toAssetId.toNumb,
-        { balance: toCurrent },
-        tx,
-      );
+      await assetRepo.update(userId, fromAssetId.toNumb, { balance: fromCurrent }, tx);
+      await assetRepo.update(userId, toAssetId.toNumb, { balance: toCurrent }, tx);
 
       await outboxRepo.save(
         {

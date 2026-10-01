@@ -1,5 +1,5 @@
 import { UserRepository } from "../ports/out/user-repository.port";
-import type { User as UserType } from "../../adapters/driven/drizzle/user.entity";
+import type { User as UserType } from "../entity/user.entity";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

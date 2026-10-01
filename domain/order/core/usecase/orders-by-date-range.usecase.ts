@@ -1,5 +1,5 @@
 import { OrderRepository } from "../ports/out/order-repository.port";
-import type { Order as OrderType } from "../../adapters/driven/drizzle/order.entity";
+import type { Order as OrderType } from "../entity/order.entity";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
@@ -11,10 +11,7 @@ export type OrdersByDateRangeInput = {
   userId: ID;
 };
 
-export class OrdersByDateRangeUseCase extends CoreUsecase<
-  OrderType[],
-  OrdersByDateRangeInput
-> {
+export class OrdersByDateRangeUseCase extends CoreUsecase<OrderType[], OrdersByDateRangeInput> {
   @logMethod(logger)
   async execute(input: OrdersByDateRangeInput): Promise<OrderType[]> {
     const orderRepo = this.deps.get(OrderRepository);

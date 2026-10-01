@@ -1,5 +1,5 @@
 import { ContactRepository } from "../ports/out/contact-repository.port";
-import { Contact, normalizePhones } from "../../adapters/driven/drizzle/contact.entity";
+import { Contact, normalizePhones } from "../entity/contact.entity";
 import { ID } from "$services/shared/kernel";
 import { ContactByIdUseCase } from "./contact-by-id.usecase";
 import { CoreUsecase } from "$services/shared/base";

@@ -1,4 +1,4 @@
-import type { User } from "../../../adapters/driven/drizzle/user.entity";
+import type { User } from "../../entity/user.entity";
 
 export abstract class UserRepository {
   abstract isWithUsername(username: string): Promise<boolean>;

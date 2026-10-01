@@ -57,7 +57,7 @@ services/domain/auth/
 │   │       └── auth.resolver.ts  # Resolvers GraphQL
 │   └── driven/
 │       └── drizzle/
-│           ├── auth.entity.ts    # Drizzle schema + Zod + Entity (persistence)
+│           ├── auth.entity.ts    # Zod schema + Entity class (inti domain)
 │           └── auth.repository.ts    # Implementasi repository
 └── auth.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
 ```

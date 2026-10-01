@@ -4,4 +4,4 @@ export {
   productService,
   type ProductAdapters,
 } from "./products.composition";
-export type { ProductType } from "./adapters/driven/drizzle/product.entity";
+export type { ProductType } from "./core/entity/product.entity";

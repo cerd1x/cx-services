@@ -1,6 +1,6 @@
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { UserRepository } from "../ports/out/user-repository.port";
-import type { User as UserType } from "../../adapters/driven/drizzle/user.entity";
+import type { User as UserType } from "../entity/user.entity";
 import { ID } from "$services/shared/kernel/id";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

@@ -1,7 +1,7 @@
 import type { Resolvers, Asset, AssetType } from "$gql/types.generated";
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
 import { Balance } from "../../../core/value-objects/balance.vo";
-import type { AssetInput } from "../../driven/drizzle/asset.entity";
+import type { AssetInput } from "../../../core/entity/asset.entity";
 import { ID } from "$services/shared/kernel";
 import typeDefs from "./asset.gql?raw";
 

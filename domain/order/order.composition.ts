@@ -1,4 +1,4 @@
-import { Order, type Order as OrderType } from "./adapters/driven/drizzle/order.entity";
+import { Order, type Order as OrderType } from "./core/entity/order.entity";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ID } from "$services/shared/kernel";

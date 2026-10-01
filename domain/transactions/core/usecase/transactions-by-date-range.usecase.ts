@@ -1,5 +1,5 @@
 import { TransactionRepository } from "../ports/out/transaction-repository.port";
-import type { Transaction as TransactionType } from "../../adapters/driven/drizzle/transaction.entity";
+import type { Transaction as TransactionType } from "../entity/transaction.entity";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
@@ -16,9 +16,7 @@ export class TransactionsByDateRangeUseCase extends CoreUsecase<
   TransactionsByDateRangeInput
 > {
   @logMethod(logger)
-  async execute(
-    input: TransactionsByDateRangeInput,
-  ): Promise<TransactionType[]> {
+  async execute(input: TransactionsByDateRangeInput): Promise<TransactionType[]> {
     const txRepo = this.deps.get(TransactionRepository);
     return txRepo.findByDateRange(input.start, input.end, input.userId);
   }

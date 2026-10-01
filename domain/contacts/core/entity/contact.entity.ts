@@ -8,7 +8,9 @@ const phoneSchema = z
   .min(8, "Phone must be at least 8 characters")
   .max(20, "Phone must be at most 20 characters");
 
-const phonesSchema = z.array(phoneSchema).max(MAX_PHONES, `A contact can hold at most ${MAX_PHONES} phone numbers`);
+const phonesSchema = z
+  .array(phoneSchema)
+  .max(MAX_PHONES, `A contact can hold at most ${MAX_PHONES} phone numbers`);
 
 export const contactSchema = z.object({
   id: z.number().optional(),
@@ -26,14 +28,10 @@ export const contactSchema = z.object({
 export type ContactType = z.infer<typeof contactSchema>;
 
 // Normalize arbitrary phone input into a deduplicated array (max MAX_PHONES).
-export function normalizePhones(
-  input: string | string[] | undefined | null,
-): string[] | undefined {
+export function normalizePhones(input: string | string[] | undefined | null): string[] | undefined {
   if (input === undefined || input === null) return undefined;
   const list = Array.isArray(input) ? input : [input];
-  const cleaned = list
-    .map((p) => p?.trim() ?? "")
-    .filter((p) => p.length > 0);
+  const cleaned = list.map((p) => p?.trim() ?? "").filter((p) => p.length > 0);
   const unique = [...new Set(cleaned)];
   return unique.length > 0 ? unique.slice(0, MAX_PHONES) : undefined;
 }
@@ -166,8 +164,7 @@ export class Contact {
   }
 
   validateAll(): Contact {
-    return this
-      .validateName()
+    return this.validateName()
       .validateEmail()
       .validatePhone()
       .validatePhones()

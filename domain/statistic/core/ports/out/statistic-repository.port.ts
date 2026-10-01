@@ -1,4 +1,4 @@
-import type { StatisticData } from "../../../adapters/driven/drizzle/statistic.entity";
+import type { StatisticData } from "../../entity/statistic.entity";
 
 export abstract class StatisticRepository {
   abstract getStatistic(userId: number): Promise<StatisticData>;

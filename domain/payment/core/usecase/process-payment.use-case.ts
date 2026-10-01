@@ -1,7 +1,4 @@
-import {
-  Payment,
-  type PaymentData,
-} from "../../adapters/driven/drizzle/payment.entity";
+import { Payment, type PaymentData } from "../entity/payment.entity";
 import { PaymentRepository } from "../ports/out/payment-repository.port";
 import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { RetryPolicy, RetryPolicyToken } from "../value-objects/retry-policy.vo";
@@ -21,10 +18,7 @@ export type ProcessPaymentInput = {
   metadata?: Record<string, unknown>;
 };
 
-export class ProcessPaymentUseCase extends CoreUsecase<
-  PaymentData,
-  ProcessPaymentInput
-> {
+export class ProcessPaymentUseCase extends CoreUsecase<PaymentData, ProcessPaymentInput> {
   @logMethod(logger)
   async execute(input: ProcessPaymentInput): Promise<PaymentData> {
     const paymentRepo = this.deps.get(PaymentRepository);
@@ -100,8 +94,7 @@ export class ProcessPaymentUseCase extends CoreUsecase<
       entity.transitionTo("failed");
       entity.metadata = {
         ...entity.metadata,
-        lastError:
-          error instanceof Error ? error.message : "Unknown gateway error",
+        lastError: error instanceof Error ? error.message : "Unknown gateway error",
       };
     }
 

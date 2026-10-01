@@ -1,4 +1,4 @@
-import type { Order } from "../../../adapters/driven/drizzle/order.entity";
+import type { Order } from "../../entity/order.entity";
 
 export abstract class OrderRepository {
   abstract save(order: Order): Promise<Order>;

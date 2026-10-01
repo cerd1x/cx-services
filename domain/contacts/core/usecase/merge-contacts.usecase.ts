@@ -1,6 +1,6 @@
 import { NotFoundError, ValidationError } from "$services/shared/kernel/errors/service-error";
 import { ContactRepository } from "../ports/out/contact-repository.port";
-import { Contact, MAX_PHONES } from "../../adapters/driven/drizzle/contact.entity";
+import { Contact, MAX_PHONES } from "../entity/contact.entity";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

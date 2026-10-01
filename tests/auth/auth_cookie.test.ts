@@ -1,9 +1,19 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
-import { User } from "$services/domain/user/adapters/driven/drizzle/user.entity";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
+import { User } from "$services/domain/user/core/entity/user.entity";
 import { createUserService, UserService } from "$services/domain/user";
 import { createAuthService, AuthService } from "$services/domain/auth";
 import { AssetService } from "$services/domain/assets";
-import type { Asset } from "$services/domain/assets/adapters/driven/drizzle/asset.entity";
+import type { Asset } from "$services/domain/assets/core/entity/asset.entity";
 import { ID } from "$services/shared/kernel";
 import type { UserRepository } from "$services/domain/user/core/ports/out/user-repository.port";
 

@@ -2,7 +2,7 @@ import { eq, and } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { transactionTable } from "$services/shared/infra/db/drizzle-schema/transaction.schema";
 import { assetTable } from "$services/shared/infra/db/drizzle-schema/asset.schema";
-import type { StatisticData } from "./statistic.entity";
+import type { StatisticData } from "../../../core/entity/statistic.entity";
 import { StatisticRepository } from "../../../core/ports/out/statistic-repository.port";
 
 function parseAmountValue(amount: string): number {

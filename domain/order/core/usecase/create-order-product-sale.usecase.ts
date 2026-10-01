@@ -1,6 +1,6 @@
 import { OrderRepository } from "../ports/out/order-repository.port";
-import { Order } from "../../adapters/driven/drizzle/order.entity";
-import type { Order as OrderType } from "../../adapters/driven/drizzle/order.entity";
+import { Order } from "../entity/order.entity";
+import type { Order as OrderType } from "../entity/order.entity";
 import { ID } from "$services/shared/kernel";
 import { Balance } from "../../../assets/core/value-objects/balance.vo";
 import { ProductService } from "$services/domain/products";
@@ -8,7 +8,7 @@ import { TransactionService } from "$services/domain/transactions";
 import { PaymentService } from "$services/domain/payment";
 import { PaymentServiceCtx } from "./payment-service.ctx";
 import { AssetService } from "$services/domain/assets";
-import type { PaymentMethodType } from "../../../transactions/adapters/driven/drizzle/transaction.entity";
+import type { PaymentMethodType } from "../../../transactions/core/entity/transaction.entity";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
@@ -49,9 +49,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
     const appliedPrice = data.price ?? product.price;
     const saleAmount = appliedPrice * data.itemCount;
     const currency = data.currency.toUpperCase();
-    const capital = Balance.new(
-      `${currency} ${(product.capital ?? 0) * data.itemCount}`,
-    );
+    const capital = Balance.new(`${currency} ${(product.capital ?? 0) * data.itemCount}`);
     const amount = Balance.new(`${currency} ${saleAmount}`);
     const description = data.description ?? `Sale: ${product.name} x${data.itemCount}`;
     const paymentMethod = data.paymentMethod ?? "cash";

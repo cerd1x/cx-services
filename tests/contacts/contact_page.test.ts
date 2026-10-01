@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
-import { Contact } from "$services/domain/contacts/adapters/driven/drizzle/contact.entity";
+import { Contact } from "$services/domain/contacts/core/entity/contact.entity";
 import { ID } from "$services/shared/kernel";
 import {
   Cursor,
@@ -92,7 +92,11 @@ describe("normalizeLimit", () => {
 
 describe("resolvePageQuery", () => {
   it("defaults to a forward page of the default size", () => {
-    expect(resolvePageQuery({})).toEqual({ limit: DEFAULT_PAGE_SIZE, cursor: null, direction: "forward" });
+    expect(resolvePageQuery({})).toEqual({
+      limit: DEFAULT_PAGE_SIZE,
+      cursor: null,
+      direction: "forward",
+    });
   });
 
   it("maps first/after onto a forward keyset query", () => {
@@ -119,7 +123,9 @@ describe("resolvePageQuery", () => {
   });
 
   it("rejects the first/last combination the Relay spec forbids", () => {
-    expect(() => resolvePageQuery({ first: 5, last: 5 })).toThrow("Cannot combine 'first' with 'last'");
+    expect(() => resolvePageQuery({ first: 5, last: 5 })).toThrow(
+      "Cannot combine 'first' with 'last'",
+    );
   });
 
   it("rejects a malformed cursor", () => {

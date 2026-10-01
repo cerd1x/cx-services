@@ -23,11 +23,6 @@
       "$gql/*": ["./shared/infra/graphql/types/*"]
     }
   },
-  "include": [
-    "./**/*.ts",
-    "./app.config.ts",
-    "./drizzle.config.ts",
-    "./codegen.ts"
-  ],
+  "include": ["./**/*.ts", "./app.config.ts", "./drizzle.config.ts", "./codegen.ts"],
   "exclude": ["node_modules", "build", "drizzle"]
 }

@@ -3,7 +3,7 @@ import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
 import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
-import { Asset } from "$services/domain/assets/adapters/driven/drizzle/asset.entity";
+import { Asset } from "$services/domain/assets/core/entity/asset.entity";
 import { ID } from "$services/shared/kernel";
 import { mockAssetSwapGateway, InMemoryOutboxRepository } from "../utils/outbox.mock";
 

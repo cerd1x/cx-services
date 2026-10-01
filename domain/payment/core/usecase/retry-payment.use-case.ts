@@ -1,5 +1,5 @@
-import { Payment } from "../../adapters/driven/drizzle/payment.entity";
-import type { PaymentData } from "../../adapters/driven/drizzle/payment.entity";
+import { Payment } from "../entity/payment.entity";
+import type { PaymentData } from "../entity/payment.entity";
 import { PaymentRepository } from "../ports/out/payment-repository.port";
 import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { PaymentRetryExhaustedError } from "../errors/payment-error";
@@ -9,28 +9,19 @@ import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
 import { ID } from "$services/shared/kernel";
 
-export class RetryPaymentUseCase extends CoreUsecase<
-  PaymentData,
-  { paymentId: ID; userId: ID }
-> {
+export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: ID; userId: ID }> {
   @logMethod(logger)
   async execute(input: { paymentId: ID; userId: ID }): Promise<PaymentData> {
     const paymentRepo = this.deps.get(PaymentRepository);
     const gateway = this.deps.get(PaymentGateway);
     const retryPolicy = this.deps.get(RetryPolicyToken);
 
-    const existing = await paymentRepo.findById(
-      input.paymentId.toNumb,
-      input.userId,
-    );
+    const existing = await paymentRepo.findById(input.paymentId.toNumb, input.userId);
     if (!existing) {
       throw new PaymentRetryExhaustedError(input.paymentId.toNumb, 0);
     }
     if (!existing.id) {
-      throw new PaymentRetryExhaustedError(
-        input.paymentId.toNumb,
-        existing.maxRetries,
-      );
+      throw new PaymentRetryExhaustedError(input.paymentId.toNumb, existing.maxRetries);
     }
 
     const payment = new Payment({
@@ -51,10 +42,7 @@ export class RetryPaymentUseCase extends CoreUsecase<
     });
 
     if (!payment.canRetry() || !retryPolicy.shouldRetry(payment.retryCount)) {
-      throw new PaymentRetryExhaustedError(
-        input.paymentId.toNumb,
-        retryPolicy.maxRetries,
-      );
+      throw new PaymentRetryExhaustedError(input.paymentId.toNumb, retryPolicy.maxRetries);
     }
 
     payment.incrementRetry();
@@ -95,8 +83,7 @@ export class RetryPaymentUseCase extends CoreUsecase<
       payment.transitionTo("failed");
       payment.metadata = {
         ...payment.metadata,
-        lastError:
-          error instanceof Error ? error.message : "Unknown gateway error",
+        lastError: error instanceof Error ? error.message : "Unknown gateway error",
         nextRetryDelayMs: retryPolicy.getNextRetryDelay(payment.retryCount),
       };
     }

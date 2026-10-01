@@ -1,4 +1,4 @@
-import { orderSchema } from "../../adapters/driven/drizzle/order.entity";
+import { orderSchema } from "../entity/order.entity";
 
 export class OrderRules {
   static validatePrice(price: number): void {

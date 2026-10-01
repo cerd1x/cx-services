@@ -1,8 +1,4 @@
-import {
-  Invoice,
-  type InvoiceData,
-  type InvoiceItem,
-} from "../../adapters/driven/drizzle/invoice.entity";
+import { Invoice, type InvoiceData, type InvoiceItem } from "../entity/invoice.entity";
 import { InvoiceRepository } from "../ports/out/invoice-repository.port";
 import { InvoiceValidationError } from "../errors/payment-error";
 import { CoreUsecase } from "$services/shared/base";
@@ -20,10 +16,7 @@ export type CreateInvoiceInput = {
   description?: string;
 };
 
-export class CreateInvoiceUseCase extends CoreUsecase<
-  InvoiceData,
-  CreateInvoiceInput
-> {
+export class CreateInvoiceUseCase extends CoreUsecase<InvoiceData, CreateInvoiceInput> {
   @logMethod(logger)
   async execute(input: CreateInvoiceInput): Promise<InvoiceData> {
     const invoiceRepo = this.deps.get(InvoiceRepository);

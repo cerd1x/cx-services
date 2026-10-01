@@ -1,5 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { Contact, MAX_PHONES, normalizePhones } from "$services/domain/contacts/adapters/driven/drizzle/contact.entity";
+import {
+  Contact,
+  MAX_PHONES,
+  normalizePhones,
+} from "$services/domain/contacts/core/entity/contact.entity";
 import { ID } from "$services/shared/kernel/id";
 
 describe("normalizePhones", () => {

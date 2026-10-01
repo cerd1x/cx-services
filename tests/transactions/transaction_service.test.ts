@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
-import { Transaction } from "$services/domain/transactions/adapters/driven/drizzle/transaction.entity";
+import { Transaction } from "$services/domain/transactions/core/entity/transaction.entity";
 import { ID } from "$services/shared/kernel/id";
 import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
 import { mockAssetSwapGateway } from "../utils/outbox.mock";

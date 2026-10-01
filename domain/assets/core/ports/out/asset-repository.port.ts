@@ -1,10 +1,7 @@
 import { ID } from "$services/shared/kernel";
-import type { Asset, AssetData, AssetUpdate } from "../../../adapters/driven/drizzle/asset.entity";
+import type { Asset, AssetData, AssetUpdate } from "../../entity/asset.entity";
 import type { Balance } from "../../value-objects/balance.vo";
-import type {
-  AssetMutationInput,
-  AssetMutationData,
-} from "../../../adapters/driven/drizzle/asset-mutation.entity";
+import type { AssetMutationInput, AssetMutationData } from "../../entity/asset-mutation.entity";
 
 export abstract class AssetRepository {
   abstract save(asset: AssetData & { balance: Balance }, tx?: unknown): Promise<Asset | null>;

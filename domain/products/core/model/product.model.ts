@@ -1,4 +1,4 @@
-import { productSchema } from "../../adapters/driven/drizzle/product.entity";
+import { productSchema } from "../entity/product.entity";
 
 export class ProductRules {
   static validatePrice(price: number): void {

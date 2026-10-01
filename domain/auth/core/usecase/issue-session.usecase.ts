@@ -1,6 +1,6 @@
 import { AuthRepository } from "../ports/out/auth-repository.port";
 import { Token } from "../value-objects/token.vo";
-import type { User } from "../../../user/adapters/driven/drizzle/user.entity";
+import type { User } from "../../../user/core/entity/user.entity";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
@@ -21,12 +21,10 @@ export class IssueSessionUseCase extends CoreUsecase<
 
     if (existing) {
       const refreshStillValid =
-        existing.refreshToken &&
-        Date.now() < existing.expiredAtRefresh.getTime();
+        existing.refreshToken && Date.now() < existing.expiredAtRefresh.getTime();
 
       if (refreshStillValid) {
-        const sessionExpired =
-          Date.now() >= existing.expiredAtSession.getTime();
+        const sessionExpired = Date.now() >= existing.expiredAtSession.getTime();
 
         if (sessionExpired) {
           const t = Token.create({ userId: user.id!.toNumb });

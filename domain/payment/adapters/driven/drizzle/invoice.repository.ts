@@ -1,4 +1,4 @@
-import type { InvoiceData } from "./invoice.entity";
+import type { InvoiceData } from "../../../core/entity/invoice.entity";
 import { invoiceTable } from "$services/shared/infra/db/drizzle-schema";
 import { ID } from "$services/shared/kernel";
 import { eq, and } from "drizzle-orm";

@@ -1,7 +1,7 @@
 import { ConflictError } from "$services/shared/kernel/errors/service-error";
 import { UserRepository } from "../ports/out/user-repository.port";
-import { User } from "../../adapters/driven/drizzle/user.entity";
-import type { User as UserType } from "../../adapters/driven/drizzle/user.entity";
+import { User } from "../entity/user.entity";
+import type { User as UserType } from "../entity/user.entity";
 import { PasswordUtils } from "$services/shared/kernel/password-utils";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

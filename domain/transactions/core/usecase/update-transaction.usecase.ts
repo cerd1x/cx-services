@@ -2,7 +2,7 @@ import { TransactionRepository } from "../ports/out/transaction-repository.port"
 import type {
   Transaction as TransactionType,
   TransactionUpdateData,
-} from "../../adapters/driven/drizzle/transaction.entity";
+} from "../entity/transaction.entity";
 import { ID } from "$services/shared/kernel";
 import { TransactionByIdUseCase } from "./transaction-by-id.usecase";
 import { CoreUsecase } from "$services/shared/base";
@@ -15,17 +15,12 @@ export type UpdateTransactionInput = {
   userId: ID;
 };
 
-export class UpdateTransactionUseCase extends CoreUsecase<
-  TransactionType,
-  UpdateTransactionInput
-> {
+export class UpdateTransactionUseCase extends CoreUsecase<TransactionType, UpdateTransactionInput> {
   @logMethod(logger)
   async execute(input: UpdateTransactionInput): Promise<TransactionType> {
     const txRepo = this.deps.get(TransactionRepository);
     const { id, data, userId } = input;
-    const existing = await this.deps
-      .get(TransactionByIdUseCase)
-      .execute({ id, userId });
+    const existing = await this.deps.get(TransactionByIdUseCase).execute({ id, userId });
 
     if (data.type !== undefined) existing.type = data.type;
 

@@ -1,12 +1,16 @@
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
 import typeDefs from "./transaction.gql?raw";
-import { TransactionType, TransactionStatus, AssetType } from "$services/shared/infra/graphql/types";
+import {
+  TransactionType,
+  TransactionStatus,
+  AssetType,
+} from "$services/shared/infra/graphql/types";
 import type { Resolvers, Transaction as TxType } from "$services/shared/infra/graphql/types";
-import { Transaction } from "../../driven/drizzle/transaction.entity";
+import { Transaction } from "../../../core/entity/transaction.entity";
 import type {
   TransactionType as EntityTransactionType,
   PaymentMethod as EntityPaymentMethod,
-} from "../../driven/drizzle/transaction.entity";
+} from "../../../core/entity/transaction.entity";
 import { Balance } from "../../../../assets/core/value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 

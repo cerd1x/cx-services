@@ -1,5 +1,5 @@
-import { Asset } from "../../adapters/driven/drizzle/asset.entity";
-import { AssetMutation, type AssetMutationInput } from "../../adapters/driven/drizzle/asset-mutation.entity";
+import { Asset } from "../entity/asset.entity";
+import { AssetMutation, type AssetMutationInput } from "../entity/asset-mutation.entity";
 import { Balance } from "../value-objects/balance.vo";
 import { BalanceModel } from "./balance.model";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
@@ -27,7 +27,11 @@ export class AssetRules {
     }
   }
 
-  static validateBalanceForMutation(currentBalance: Balance, amount: Balance, type: "add" | "subtract"): void {
+  static validateBalanceForMutation(
+    currentBalance: Balance,
+    amount: Balance,
+    type: "add" | "subtract",
+  ): void {
     if (type === "subtract") {
       BalanceModel.canSubtract(currentBalance, amount);
     }

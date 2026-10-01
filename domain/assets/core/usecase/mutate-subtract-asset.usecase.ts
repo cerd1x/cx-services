@@ -1,4 +1,4 @@
-import { Asset } from "../../adapters/driven/drizzle/asset.entity";
+import { Asset } from "../entity/asset.entity";
 import { Balance } from "../value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 import { TransactionService } from "$services/domain/transactions";

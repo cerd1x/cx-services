@@ -1,7 +1,7 @@
 import { AuthenticationError } from "$services/shared/kernel/errors/service-error";
 import { UserServiceLikeCtx } from "./ctx";
 import { PasswordUtils } from "$services/shared/kernel/password-utils";
-import type { User } from "../../../user/adapters/driven/drizzle/user.entity";
+import type { User } from "../../../user/core/entity/user.entity";
 import { IssueSessionUseCase } from "./issue-session.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
@@ -36,9 +36,7 @@ export class SignInUseCase extends CoreUsecase<
       throw new AuthenticationError("Invalid password");
     }
 
-    log
-      .child("validate")
-      .success("success", { id: user.id?.toNumb, name: user.name });
+    log.child("validate").success("success", { id: user.id?.toNumb, name: user.name });
 
     if (!user.id) throw new AuthenticationError("userId is required");
 

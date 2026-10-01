@@ -1,4 +1,4 @@
-import { contactSchema, MAX_PHONES, normalizePhones } from "../../adapters/driven/drizzle/contact.entity";
+import { contactSchema, MAX_PHONES, normalizePhones } from "../entity/contact.entity";
 
 export class ContactRules {
   static validateName(name: string): void {
@@ -30,7 +30,9 @@ export class ContactRules {
 
   static canCombinePhones(total: number): void {
     if (total > MAX_PHONES) {
-      throw new Error(`Cannot merge contacts: combined phone numbers exceed the limit of ${MAX_PHONES}`);
+      throw new Error(
+        `Cannot merge contacts: combined phone numbers exceed the limit of ${MAX_PHONES}`,
+      );
     }
   }
 }

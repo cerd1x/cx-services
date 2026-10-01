@@ -4,8 +4,8 @@ import {
   Payment,
   PaymentStatus,
   PaymentMethodType,
-} from "$services/domain/payment/adapters/driven/drizzle/payment.entity";
-import { Invoice } from "$services/domain/payment/adapters/driven/drizzle/invoice.entity";
+} from "$services/domain/payment/core/entity/payment.entity";
+import { Invoice } from "$services/domain/payment/core/entity/invoice.entity";
 
 describe("RetryPolicy", () => {
   it("uses default config when constructed without args", () => {

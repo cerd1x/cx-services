@@ -9,37 +9,48 @@ Melakukan kontrol terhadap **order/pesanan** dalam sistem. Module ini bertanggun
 ### Struktur Direktori & File [L9-38]
 
 ```text
-services/domain/order/
-├── app/
-│   └── order_service.ts           # Application service (orchestrasi use case)
+domain/order/
 ├── core/
+│   ├── entity/
+│   │   └── order.entity.ts
 │   ├── model/
-│   │   └── order.model.ts         # Model bisnis (data + behavior)
+│   │   ├── index.ts
+│   │   └── order.model.ts
+│   ├── ports/
+│   │   └── out/
+│   │       └── order-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── order-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── create-order-expense.usecase.ts
+│   │   ├── create-order-loan.usecase.ts
+│   │   ├── create-order-product-sale.usecase.ts
+│   │   ├── create-order.usecase.ts
+│   │   ├── delete-order.usecase.ts
+│   │   ├── list-orders.usecase.ts
+│   │   ├── order-by-id.usecase.ts
+│   │   ├── orders-by-date-range.usecase.ts
+│   │   ├── payment-service.ctx.ts
+│   │   └── update-order.usecase.ts
+│   └── value-objects/
+│       └── logger.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── order.gql          # SDL GraphQL
-│   │       └── order.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── order.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── order.repository.ts    # Implementasi repository
-└── order.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       └── order.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── order.gql
+│           └── order.resolver.ts
+├── index.ts
+└── order.composition.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File [L39-140]
 
-#### 1. `adapters/driven/drizzle/order.entity.ts` [L41-75]
+#### 1. `core/entity/order.entity.ts` [L41-75]
 
-[`services/domain/order/adapters/driven/drizzle/order.entity.ts`](./adapters/driven/drizzle/order.entity.ts)
+[`core/entity/order.entity.ts`](core/entity/order.entity.ts)
 
 - **`orderSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

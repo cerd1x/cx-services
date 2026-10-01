@@ -1,5 +1,5 @@
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
-import { User } from "../../../../user/adapters/driven/drizzle/user.entity";
+import { User } from "../../../../user/core/entity/user.entity";
 import typeDefs from "./auth.gql?raw";
 import type { Resolvers } from "$services/shared/infra/graphql/types";
 import { appConfigs } from "$config";
@@ -33,11 +33,7 @@ const resolvers: Resolvers<YogaContext> = {
       };
     },
     checkAuthorized: (_parent, _args, { userAuth }) => userAuth !== null,
-    passkeyRegistrationOptions: async (
-      _parent,
-      _args,
-      { auth, userAuth, request },
-    ) => {
+    passkeyRegistrationOptions: async (_parent, _args, { auth, userAuth, request }) => {
       if (!userAuth) throw new Error("Unauthorized");
       const { rpID } = getRpContext(request);
       const result = await auth.passkeyRegistrationOptions({
@@ -100,10 +96,7 @@ const resolvers: Resolvers<YogaContext> = {
     },
 
     signIn: async (_parent, args, { auth, cookie }) => {
-      const result = await auth.signIn(
-        args.input.username,
-        args.input.password,
-      );
+      const result = await auth.signIn(args.input.username, args.input.password);
 
       cookie[appConfigs.cookie.sessionKey].set({
         value: result.session,

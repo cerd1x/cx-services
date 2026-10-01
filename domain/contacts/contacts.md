@@ -9,37 +9,47 @@ Melakukan kontrol terhadap **kontak/contact** user dalam sistem. Module ini bert
 ### Struktur Direktori & File [L9-38]
 
 ```text
-services/domain/contacts/
-├── app/
-│   └── contacts_service.ts           # Application service (orchestrasi use case)
+domain/contacts/
 ├── core/
+│   ├── entity/
+│   │   └── contact.entity.ts
 │   ├── model/
-│   │   └── contacts.model.ts         # Model bisnis (data + behavior)
+│   │   ├── contact-page.model.ts
+│   │   ├── contact.model.ts
+│   │   └── index.ts
+│   ├── ports/
+│   │   └── out/
+│   │       └── contact-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── contacts-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── contact-by-id.usecase.ts
+│   │   ├── create-contact.usecase.ts
+│   │   ├── delete-contact.usecase.ts
+│   │   ├── import-contacts-from-file.usecase.ts
+│   │   ├── list-contacts-page.usecase.ts
+│   │   ├── list-contacts.usecase.ts
+│   │   ├── merge-contacts.usecase.ts
+│   │   └── update-contact.usecase.ts
+│   └── value-objects/
+│       └── logger.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── contacts.gql          # SDL GraphQL
-│   │       └── contacts.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── contacts.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── contacts.repository.ts    # Implementasi repository
-└── contacts.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       └── contact.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── contact.gql
+│           └── contact.resolver.ts
+├── contacts.composition.ts
+└── index.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File [L39-129]
 
-#### 1. `adapters/driven/drizzle/contact.entity.ts` [L41-68]
+#### 1. `core/entity/contact.entity.ts` [L41-68]
 
-[`services/domain/contacts/adapters/driven/drizzle/contact.entity.ts`](./adapters/driven/drizzle/contact.entity.ts)
+[`core/entity/contact.entity.ts`](core/entity/contact.entity.ts)
 
 - **`contactSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

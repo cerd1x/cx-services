@@ -7,11 +7,11 @@ import {
   type AssetData,
   type AssetType,
   type AssetUpdate,
-} from "$services/domain/assets/adapters/driven/drizzle/asset.entity";
+} from "$services/domain/assets/core/entity/asset.entity";
 import type {
   AssetMutationData,
   AssetMutationInput,
-} from "$services/domain/assets/adapters/driven/drizzle/asset-mutation.entity";
+} from "$services/domain/assets/core/entity/asset-mutation.entity";
 import { AssetRepository } from "$services/domain/assets/core/ports/out/asset-repository.port";
 import { OutboxRepository } from "$services/shared/kernel/outbox/outbox-repository.port";
 import { EventBus } from "$services/shared/kernel/outbox/event-bus";
@@ -75,16 +75,12 @@ class InMemoryAssetRepository extends AssetRepository {
   }
 
   async findByName(name: string, userId: ID): Promise<Asset | null> {
-    const row = this.assets.find(
-      (r) => r.name === name && r.userId === userId.toNumb,
-    );
+    const row = this.assets.find((r) => r.name === name && r.userId === userId.toNumb);
     return row ? this.#toEntity(row) : null;
   }
 
   async findById(userId: ID, assetId: ID): Promise<Asset | null> {
-    const row = this.assets.find(
-      (r) => r.id === assetId.toNumb && r.userId === userId.toNumb,
-    );
+    const row = this.assets.find((r) => r.id === assetId.toNumb && r.userId === userId.toNumb);
     return row ? this.#toEntity(row) : null;
   }
 
@@ -102,15 +98,10 @@ class InMemoryAssetRepository extends AssetRepository {
   }
 
   async delete(name: string, userId: ID): Promise<void> {
-    this.assets = this.assets.filter(
-      (r) => !(r.name === name && r.userId === userId.toNumb),
-    );
+    this.assets = this.assets.filter((r) => !(r.name === name && r.userId === userId.toNumb));
   }
 
-  async createAssetMutation(
-    assetId: ID,
-    data: AssetMutationInput,
-  ): Promise<AssetMutationData> {
+  async createAssetMutation(assetId: ID, data: AssetMutationInput): Promise<AssetMutationData> {
     const row: MutationRow = {
       id: this.#mutationSeq++,
       assetId: assetId.toNumb,
@@ -141,7 +132,13 @@ class InMemoryUnitOfWork implements UnitOfWork {
   }
 }
 
-type OutboxRow = { id: number; correlationId: string; eventType: string; payload: string; processed: boolean };
+type OutboxRow = {
+  id: number;
+  correlationId: string;
+  eventType: string;
+  payload: string;
+  processed: boolean;
+};
 
 class InMemoryOutboxRepository extends OutboxRepository {
   rows: OutboxRow[] = [];
@@ -205,7 +202,8 @@ describe("swapBalance e2e (in-memory repo)", () => {
     });
 
     EventBus.on("asset.swapped", async (payload) => {
-      const { userId, fromAssetId, toAssetId, amount, currency, fromAssetName, toAssetName } = payload;
+      const { userId, fromAssetId, toAssetId, amount, currency, fromAssetName, toAssetName } =
+        payload;
       await txService.createTransaction({
         userId: Number(userId),
         payWithAssetId: Number(fromAssetId),
@@ -224,7 +222,10 @@ describe("swapBalance e2e (in-memory repo)", () => {
     repo = new InMemoryAssetRepository();
     outboxRepo = new InMemoryOutboxRepository();
     createAssetService({ assetRepo: repo, uow: new InMemoryUnitOfWork(), outboxRepo });
-    createTransactionService({ txRepo: mockTxRepo as any, assetGateway: AssetService.getInstance() });
+    createTransactionService({
+      txRepo: mockTxRepo as any,
+      assetGateway: AssetService.getInstance(),
+    });
     for (const m of Object.values(mockTxRepo)) (m as any).mockClear();
   });
 

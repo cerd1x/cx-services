@@ -1,5 +1,5 @@
 import { SettingRepository } from "../ports/out/setting-repository.port";
-import { Setting, type SettingData, type SettingInput } from "../../adapters/driven/drizzle/setting.entity";
+import { Setting, type SettingData, type SettingInput } from "../entity/setting.entity";
 import { SettingByUserIdUseCase } from "./setting-by-user-id.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

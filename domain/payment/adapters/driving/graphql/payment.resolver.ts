@@ -8,8 +8,8 @@ import type {
   InvoiceStatusEnum,
   PaymentMethodEnum,
 } from "$services/shared/infra/graphql/types";
-import type { PaymentData } from "../../driven/drizzle/payment.entity";
-import type { InvoiceData } from "../../driven/drizzle/invoice.entity";
+import type { PaymentData } from "../../../core/entity/payment.entity";
+import type { InvoiceData } from "../../../core/entity/invoice.entity";
 import { ID } from "$services/shared/kernel";
 
 const toHashOrNull = (numb?: number): string | null =>

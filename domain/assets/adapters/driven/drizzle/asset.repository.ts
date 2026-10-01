@@ -7,14 +7,14 @@ import {
   type AssetData,
   type AssetType,
   type AssetUpdate,
-} from "./asset.entity";
+} from "../../../core/entity/asset.entity";
 import { Balance } from "../../../core/value-objects/balance.vo";
 import { AssetRepository } from "../../../core/ports/out/asset-repository.port";
 import { ID } from "$services/shared/kernel";
 import type {
   AssetMutationInput,
   AssetMutationData,
-} from "./asset-mutation.entity";
+} from "../../../core/entity/asset-mutation.entity";
 
 type DB = ReturnType<typeof getDB>;
 

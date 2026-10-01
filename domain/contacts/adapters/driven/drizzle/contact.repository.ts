@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gt, lt, or, sql, type SQL } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
-import { Contact } from "./contact.entity";
+import { Contact } from "../../../core/entity/contact.entity";
 import { ContactRepository } from "../../../core/ports/out/contact-repository.port";
 import type { PageQuery, PageWindow } from "../../../core/model/contact-page.model";
 import { contactTable } from "$services/shared/infra/db/drizzle-schema";
@@ -91,12 +91,20 @@ export class ContactRepositoryImpl implements ContactRepository {
     // `contact_user_id_id_idx` serves both the predicate and the ORDER BY, which
     // is what keeps the cost at O(limit) instead of O(offset).
     const boundary =
-      position === null ? undefined : forward ? lt(contactTable.id, position) : gt(contactTable.id, position);
+      position === null
+        ? undefined
+        : forward
+          ? lt(contactTable.id, position)
+          : gt(contactTable.id, position);
 
     const rows = await getDB()
       .select()
       .from(contactTable)
-      .where(boundary === undefined ? eq(contactTable.userId, userId) : and(eq(contactTable.userId, userId), boundary))
+      .where(
+        boundary === undefined
+          ? eq(contactTable.userId, userId)
+          : and(eq(contactTable.userId, userId), boundary),
+      )
       .orderBy(forward ? desc(contactTable.id) : asc(contactTable.id))
       .limit(limit + 1);
 

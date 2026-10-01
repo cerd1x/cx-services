@@ -1,6 +1,6 @@
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { TransactionRepository } from "../ports/out/transaction-repository.port";
-import type { Transaction as TransactionType } from "../../adapters/driven/drizzle/transaction.entity";
+import type { Transaction as TransactionType } from "../entity/transaction.entity";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
@@ -11,10 +11,7 @@ export type TransactionByIdInput = {
   userId: ID;
 };
 
-export class TransactionByIdUseCase extends CoreUsecase<
-  TransactionType,
-  TransactionByIdInput
-> {
+export class TransactionByIdUseCase extends CoreUsecase<TransactionType, TransactionByIdInput> {
   @logMethod(logger)
   async execute(input: TransactionByIdInput): Promise<TransactionType> {
     const txRepo = this.deps.get(TransactionRepository);

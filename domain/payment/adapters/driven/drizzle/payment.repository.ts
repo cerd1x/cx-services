@@ -1,4 +1,4 @@
-import type { PaymentData } from "./payment.entity";
+import type { PaymentData } from "../../../core/entity/payment.entity";
 import { paymentTable } from "$services/shared/infra/db/drizzle-schema";
 import { ID } from "$services/shared/kernel";
 import { eq, and } from "drizzle-orm";

@@ -1,6 +1,6 @@
-import { Asset, type AssetInput } from "./adapters/driven/drizzle/asset.entity";
+import { Asset, type AssetInput } from "./core/entity/asset.entity";
 import { Balance } from "./core/value-objects/balance.vo";
-import { type AssetMutationData } from "./adapters/driven/drizzle/asset-mutation.entity";
+import { type AssetMutationData } from "./core/entity/asset-mutation.entity";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ID } from "$services/shared/kernel";

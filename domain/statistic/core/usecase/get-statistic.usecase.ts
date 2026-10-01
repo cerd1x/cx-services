@@ -1,4 +1,4 @@
-import type { StatisticData } from "../../adapters/driven/drizzle/statistic.entity";
+import type { StatisticData } from "../entity/statistic.entity";
 import { StatisticRepository } from "../ports/out/statistic-repository.port";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

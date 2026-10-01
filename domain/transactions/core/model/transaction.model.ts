@@ -1,4 +1,4 @@
-import { transactionSchema } from "../../adapters/driven/drizzle/transaction.entity";
+import { transactionSchema } from "../entity/transaction.entity";
 
 export class TransactionRules {
   static validateType(type: string): void {

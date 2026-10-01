@@ -1,12 +1,6 @@
-import {
-  ServiceError,
-  ConflictError,
-} from "$services/shared/kernel/errors/service-error";
+import { ServiceError, ConflictError } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
-import {
-  Asset,
-  type AssetInput,
-} from "../../adapters/driven/drizzle/asset.entity";
+import { Asset, type AssetInput } from "../entity/asset.entity";
 import { Balance } from "../value-objects/balance.vo";
 import { isMybe } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";

@@ -9,37 +9,55 @@ Melakukan kontrol terhadap **aset/asset** user dalam sistem. Module ini bertangg
 ### Struktur Direktori & File [L9-41]
 
 ```text
-services/domain/assets/
-├── app/
-│   └── assets_service.ts           # Application service (orchestrasi use case)
+domain/assets/
 ├── core/
+│   ├── entity/
+│   │   ├── asset-mutation.entity.ts
+│   │   └── asset.entity.ts
 │   ├── model/
-│   │   └── assets.model.ts         # Model bisnis (data + behavior)
+│   │   ├── asset-rules.model.ts
+│   │   ├── balance.model.ts
+│   │   └── index.ts
+│   ├── ports/
+│   │   └── out/
+│   │       └── asset-repository.port.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── assets-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── apply-asset-mutation.usecase.ts
+│   │   ├── asset-by-id.usecase.ts
+│   │   ├── asset-by-name.usecase.ts
+│   │   ├── asset-mutations.usecase.ts
+│   │   ├── create-asset.usecase.ts
+│   │   ├── create-default-asset-cash.usecase.ts
+│   │   ├── delete-asset.usecase.ts
+│   │   ├── list-assets.usecase.ts
+│   │   ├── mutate-add-asset.usecase.ts
+│   │   ├── mutate-subtract-asset.usecase.ts
+│   │   ├── mutate-swap-asset.usecase.ts
+│   │   ├── mutate-transaction-asset.usecase.ts
+│   │   └── update-asset.usecase.ts
+│   └── value-objects/
+│       ├── balance.vo.ts
+│       └── logger.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── assets.gql          # SDL GraphQL
-│   │       └── assets.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           ├── assets.entity.ts    # Drizzle schema + Zod + Entity (persistence)
-│           └── assets.repository.ts    # Implementasi repository
-└── assets.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       ├── asset.repository.ts
+│   │       └── uow.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── asset.gql
+│           └── asset.resolver.ts
+├── assets.composition.ts
+└── index.ts
 ```
 
 ---
 
 ### Penjelasan File Per-File [L42-184]
 
-#### 1. `adapters/driven/drizzle/asset.entity.ts` [L44-67]
+#### 1. `core/entity/asset.entity.ts` [L44-67]
 
-[`services/domain/assets/adapters/driven/drizzle/asset.entity.ts`](./adapters/driven/drizzle/asset.entity.ts)
+[`core/entity/asset.entity.ts`](core/entity/asset.entity.ts)
 
 - **`AssetType`** — Enum: `bank`, `ewallet`, `cash`, `loan`, `crypto`
 - **`currencySchema`** — Zod schema untuk currency metadata: `code` (ISO code), `base`, `exponent`
@@ -61,9 +79,9 @@ services/domain/assets/
     4. `requiredBalance()` — `zBalanceSchema.safeParse(this.balance)`
     5. `requiredAll()` — chain semua method di atas
 
-#### 2. `adapters/driven/drizzle/asset-mutation.entity.ts` [L68-81]
+#### 2. `core/entity/asset-mutation.entity.ts` [L68-81]
 
-[`services/domain/assets/adapters/driven/drizzle/asset-mutation.entity.ts`](./adapters/driven/drizzle/asset-mutation.entity.ts)
+[`core/entity/asset-mutation.entity.ts`](core/entity/asset-mutation.entity.ts)
 
 - **`MutationType`** — Enum: `add`, `subtract`, `transaction`
 - **`assetMutationSchema`** — Schema validasi Zod untuk AssetMutation: `id`, `assetId`, `userId`, `type`, `amount`, `currency`, `balanceBefore`, `balanceAfter`, `description`, `createdAt`
