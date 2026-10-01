@@ -1,5 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 import type { D1Database, R2Bucket, SendEmail } from "@cloudflare/workers-types";
+// Wajib untuk `@peculiar/x509` → `tsyringe` (dependency @simplewebauthn/server).
+import "reflect-metadata";
 import { appConfigs } from "./app.config";
 import { configureBetaReport } from "$services/shared/infra/beta-report";
 import { useD1 } from "$services/shared/infra/db";

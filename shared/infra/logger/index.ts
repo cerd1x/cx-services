@@ -89,9 +89,9 @@ export class Logger {
     if (Logger.#fsLazy && Logger.#pathLazy) return;
     try {
       const [fsMod, pathMod] = await Promise.all([import("fs"), import("path")]);
-      try {
-        fsMod.existsSync("/");
-      } catch {
+      // Cloudflare Workers (nodejs_compat) mengekspos API `fs`, tetapi operasi
+      // tulis meledak (EPERM). `existsSync` tidak pernah throw, jadi periksa hasil.
+      if (!fsMod.existsSync("/")) {
         Logger.#canWriteFile = false;
         return;
       }
@@ -113,14 +113,17 @@ export class Logger {
     const logLine = formatLog(level, args, this.#name ?? undefined);
     try {
       await this.#ensureFs();
-      const fs = Logger.#fsLazy!;
-      const path = Logger.#pathLazy!;
+      if (!Logger.#canWriteFile || !Logger.#fsLazy || !Logger.#pathLazy) return;
+      const fs = Logger.#fsLazy;
+      const path = Logger.#pathLazy;
       const dir = path.dirname(this.#logFile);
       if (dir && !fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
       fs.appendFileSync(this.#logFile, logLine, { flag: "a" });
     } catch (e) {
+      // Nonaktifkan percobaan berikutnya supaya tidak spam (mis. runtime tanpa FS).
+      Logger.#canWriteFile = false;
       console.error("[Logger] File write failed:", serializeError(e));
     }
   }
@@ -176,9 +179,7 @@ export class Logger {
         ...args,
       );
 
-      if (import.meta.env.DEV) {
-        void this.#appendToFile("DBG", args);
-      }
+      void this.#appendToFile("DBG", args);
     }
   }
 
@@ -188,9 +189,7 @@ export class Logger {
         `[${this.#color("INF")}] ${this.#icon("INF")} ${this.#ts} ${this.#prefix}`,
         ...args,
       );
-      if (import.meta.env.DEV) {
-        void this.#appendToFile("INF", args);
-      }
+      void this.#appendToFile("INF", args);
     }
   }
 
@@ -200,9 +199,7 @@ export class Logger {
         `[${this.#color("SUC")}] ${this.#icon("SUC")} ${this.#ts} ${this.#prefix}`,
         ...args,
       );
-      if (import.meta.env.DEV) {
-        void this.#appendToFile("INF", args);
-      }
+      void this.#appendToFile("INF", args);
     }
   }
 
@@ -212,9 +209,7 @@ export class Logger {
         `[${this.#color("WRN")}] ${this.#icon("WRN")} ${this.#ts} ${this.#prefix}`,
         ...args,
       );
-      if (import.meta.env.DEV) {
-        void this.#appendToFile("WRN", args);
-      }
+      void this.#appendToFile("WRN", args);
     }
   }
 
@@ -224,9 +219,7 @@ export class Logger {
         `[${this.#color("ERR")}] ${this.#icon("ERR")} ${this.#ts} ${this.#prefix}`,
         ...args,
       );
-      if (import.meta.env.DEV) {
-        void this.#appendToFile("ERR", args);
-      }
+      void this.#appendToFile("ERR", args);
     }
   }
 }

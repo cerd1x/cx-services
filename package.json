@@ -50,6 +50,7 @@
     "graphql-scalars": "^1.25.0",
     "graphql-yoga": "^5.21.2",
     "jsonwebtoken": "^9.0.3",
+    "reflect-metadata": "^0.2.2",
     "sqids": "^0.3.0",
     "vcf": "^2.1.2",
     "zod": "^4.4.3"

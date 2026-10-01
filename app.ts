@@ -65,6 +65,12 @@ async function getApp() {
   const { gqlYogaAsPluginElysia } = await import("./shared/infra/graphql/yoga-server");
   const { rateLimit } = await import("elysia-rate-limit");
   _app = new Elysia({
+    /**
+     * Cloudflare Workers melarang `new Function`, sedangkan AOT Elysia (TypeBox)
+     * memakai `new Function` untuk meng-compile route. `aot: false` memindahkan
+     * kompilasi ke runtime tanpa eval.
+     */
+    aot: false,
     cookie: {
       secrets: appConfigs.app.secretKey,
       expires: new Date(appConfigs.cookie.sessionMaxAge),
