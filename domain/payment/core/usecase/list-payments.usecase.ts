@@ -1,5 +1,5 @@
 import { PaymentRepository } from "../ports/out/payment-repository.port";
-import type { PaymentData } from "../entity/payment.entity";
+import type { PaymentData } from "../model/payment.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

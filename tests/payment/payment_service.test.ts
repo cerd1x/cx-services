@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import type {
   PaymentData,
   PaymentUpdateData,
-} from "$services/domain/payment/core/entity/payment.entity";
-import type { InvoiceData } from "$services/domain/payment/core/entity/invoice.entity";
+} from "$services/domain/payment/core/model/payment.model";
+import type { InvoiceData } from "$services/domain/payment/core/model/invoice.model";
 import { PaymentRepository } from "$services/domain/payment/core/ports/out/payment-repository.port";
 import { InvoiceRepository } from "$services/domain/payment/core/ports/out/invoice-repository.port";
 import { PaymentGateway } from "$services/domain/payment/core/ports/out/payment-gateway.port";

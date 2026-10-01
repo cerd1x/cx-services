@@ -9,27 +9,50 @@ Melakukan kontrol terhadap **autentikasi** dan **otorisasi** user dalam sistem. 
 ### Struktur Direktori & File [L9-37]
 
 ```text
-services/domain/auth/
-├── app/
-│   └── auth_service.ts           # Application service (orchestrasi use case)
+domain/auth/
 ├── core/
 │   ├── model/
-│   │   └── auth.model.ts         # Model bisnis (data + behavior)
+│   │   └── index.ts
+│   ├── ports/
+│   │   └── out/
+│   │       ├── auth-repository.port.ts
+│   │       └── passkey-repository.port.ts
+│   ├── types/
+│   │   └── user-service-like.ts
 │   ├── usecase/
-│   │   └── *.usecase.ts              # Use-case bisnis
-│   ├── value-objects/
-│   │   └── logger.ts                 # Logger khusus module
-│   └── ports/out/
-│       └── auth-repository.port.ts   # Abstract port (repository contract)
+│   │   ├── authorize.usecase.ts
+│   │   ├── ctx.ts
+│   │   ├── delete-passkey.usecase.ts
+│   │   ├── issue-session.usecase.ts
+│   │   ├── list-passkeys.usecase.ts
+│   │   ├── passkey-authentication-options.usecase.ts
+│   │   ├── passkey-delete.usecase.ts
+│   │   ├── passkey-find-by-user-id.usecase.ts
+│   │   ├── passkey-generate-authentication-options.usecase.ts
+│   │   ├── passkey-generate-registration-options.usecase.ts
+│   │   ├── passkey-register.usecase.ts
+│   │   ├── passkey-registration-options.usecase.ts
+│   │   ├── passkey-verify-authentication.usecase.ts
+│   │   ├── register-passkey.usecase.ts
+│   │   ├── sign-in-with-passkey.usecase.ts
+│   │   ├── sign-in.usecase.ts
+│   │   ├── sign-out.usecase.ts
+│   │   └── sign-up.usecase.ts
+│   └── value-objects/
+│       ├── logger.ts
+│       ├── token.vo.ts
+│       └── webauthn.vo.ts
 ├── adapters/
-│   ├── driving/
-│   │   └── graphql/
-│   │       ├── auth.gql          # SDL GraphQL
-│   │       └── auth.resolver.ts  # Resolvers GraphQL
-│   └── driven/
-│       └── drizzle/
-│           └── auth.repository.ts    # Implementasi repository
-└── auth.composition.ts           # Composition root: Service.getInstance(new RepoImpl())
+│   ├── driven/
+│   │   └── drizzle/
+│   │       ├── auth.repository.ts
+│   │       └── passkey.repository.ts
+│   └── driving/
+│       └── graphql/
+│           ├── auth.gql
+│           └── auth.resolver.ts
+├── auth.composition.ts
+└── index.ts
 ```
 
 ---

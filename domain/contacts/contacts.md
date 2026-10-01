@@ -11,8 +11,6 @@ Melakukan kontrol terhadap **kontak/contact** user dalam sistem. Module ini bert
 ```text
 domain/contacts/
 ├── core/
-│   ├── entity/
-│   │   └── contact.entity.ts
 │   ├── model/
 │   │   ├── contact-page.model.ts
 │   │   ├── contact.model.ts
@@ -47,9 +45,9 @@ domain/contacts/
 
 ### Penjelasan File Per-File [L39-129]
 
-#### 1. `core/entity/contact.entity.ts` [L41-68]
+#### 1. `core/model/contact.model.ts` [L41-68]
 
-[`core/entity/contact.entity.ts`](core/entity/contact.entity.ts)
+[`core/model/contact.model.ts`](core/model/contact.model.ts)
 
 - **`contactSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

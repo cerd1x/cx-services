@@ -1,7 +1,7 @@
 import { eq, and, between } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { orderTable } from "$services/shared/infra/db/drizzle-schema";
-import { Order } from "../../../core/entity/order.entity";
+import { Order } from "../../../core/model/order.model";
 import { OrderRepository } from "../../../core/ports/out/order-repository.port";
 
 export class OrderRepositoryImpl implements OrderRepository {

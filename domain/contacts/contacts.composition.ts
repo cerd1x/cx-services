@@ -1,4 +1,4 @@
-import { Contact } from "./core/entity/contact.entity";
+import { Contact } from "./core/model/contact.model";
 import { ID } from "$services/shared/kernel";
 import { CreateContactUseCase } from "./core/usecase/create-contact.usecase";
 import { ContactByIdUseCase } from "./core/usecase/contact-by-id.usecase";

@@ -1,4 +1,4 @@
-import type { User } from "../../../user/core/entity/user.entity";
+import type { User } from "../../../user/core/model/user.model";
 import { ID } from "$services/shared/kernel";
 
 export interface UserServiceLike {

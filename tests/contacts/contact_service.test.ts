@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { NotFoundError, ValidationError } from "$services/shared/kernel/errors/service-error";
 import { createContactService, ContactService } from "$services/domain/contacts";
-import { Contact } from "$services/domain/contacts/core/entity/contact.entity";
+import { Contact } from "$services/domain/contacts/core/model/contact.model";
 import { ID } from "$services/shared/kernel/id";
 import { Cursor } from "$services/domain/contacts/core/model/contact-page.model";
 

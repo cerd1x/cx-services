@@ -5,8 +5,8 @@
 - [Tujuan Module](#tujuan-module)
 - [Struktur Direktori & File](#struktur-direktori-file)
 - [Penjelasan File Per-File](#penjelasan-file-per-file)
-  - [1. `payment.entity.ts`](#1-paymententityts)
-  - [2. `invoice.entity.ts`](#2-invoiceentityts)
+  - [1. `payment.model.ts`](#1-paymentmodelts)
+  - [2. `invoice.model.ts`](#2-invoicemodelts)
   - [3. `retry-policy.vo.ts`](#3-retry-policyvots)
   - [4. `logger.ts`](#4-logerts)
   - [5. `payment-error.ts`](#5-payment-errorts)
@@ -60,13 +60,11 @@ Melakukan kontrol terhadap **pembayaran (payment)** dan **tagihan (invoice)** da
 ```text
 domain/payment/
 ├── core/
-│   ├── entity/
-│   │   ├── invoice.entity.ts
-│   │   └── payment.entity.ts
 │   ├── errors/
 │   │   └── payment-error.ts
 │   ├── model/
 │   │   ├── index.ts
+│   │   ├── invoice.model.ts
 │   │   └── payment.model.ts
 │   ├── ports/
 │   │   └── out/
@@ -108,9 +106,9 @@ domain/payment/
 
 ### Penjelasan File Per-File
 
-#### 1. `core/entity/payment.entity.ts`
+#### 1. `core/model/payment.model.ts`
 
-[`core/entity/payment.entity.ts`](core/entity/payment.entity.ts)
+[`core/model/payment.model.ts`](core/model/payment.model.ts)
 
 - **`PaymentStatus`** — enum: `pending`, `processing`, `completed`, `failed`, `refunded`, `cancelled`
 - **`PaymentMethodType`** — enum: `cash`, `bank_transfer`, `ewallet`, `credit_card`, `debit_card`, `credit` (selaras dengan module `transactions`)
@@ -142,9 +140,9 @@ domain/payment/
   - `incrementRetry()` — naikkan `retryCount` lalu reset status ke `"pending"`.
   - Validation methods (chainable): `validateAmount()`, `validateCurrency()`, `validateStatus()`, `validateMethod()`, `validateAll()`.
 
-#### 2. `core/entity/invoice.entity.ts`
+#### 2. `core/model/invoice.model.ts`
 
-[`core/entity/invoice.entity.ts`](core/entity/invoice.entity.ts)
+[`core/model/invoice.model.ts`](core/model/invoice.model.ts)
 
 - **`InvoiceStatus`** — enum: `draft`, `issued`, `paid`, `partially_paid`, `overdue`, `cancelled`
 - **`InvoiceItem`** — `{ description, quantity (int+), unitPrice (positif) }`

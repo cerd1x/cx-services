@@ -1,4 +1,4 @@
-import type { Product } from "../../entity/product.entity";
+import type { Product } from "../../model/product.model";
 
 export abstract class ProductRepository {
   abstract save(product: Product): Promise<Product>;

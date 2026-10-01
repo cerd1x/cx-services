@@ -1,5 +1,5 @@
-import { Payment } from "../entity/payment.entity";
-import type { PaymentData } from "../entity/payment.entity";
+import { Payment } from "../model/payment.model";
+import type { PaymentData } from "../model/payment.model";
 import { PaymentRepository } from "../ports/out/payment-repository.port";
 import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { PaymentRetryExhaustedError } from "../errors/payment-error";

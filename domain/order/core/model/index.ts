@@ -1,1 +1,1 @@
-export { OrderRules } from "./order.model";
+export { Order, orderSchema, OrderStatus, type OrderType } from "./order.model";

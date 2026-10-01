@@ -11,11 +11,9 @@ Melakukan kontrol terhadap **aset/asset** user dalam sistem. Module ini bertangg
 ```text
 domain/assets/
 ├── core/
-│   ├── entity/
-│   │   ├── asset-mutation.entity.ts
-│   │   └── asset.entity.ts
 │   ├── model/
-│   │   ├── asset-rules.model.ts
+│   │   ├── asset-mutation.model.ts
+│   │   ├── asset.model.ts
 │   │   ├── balance.model.ts
 │   │   └── index.ts
 │   ├── ports/
@@ -55,9 +53,9 @@ domain/assets/
 
 ### Penjelasan File Per-File [L42-184]
 
-#### 1. `core/entity/asset.entity.ts` [L44-67]
+#### 1. `core/model/asset.model.ts` [L44-67]
 
-[`core/entity/asset.entity.ts`](core/entity/asset.entity.ts)
+[`core/model/asset.model.ts`](core/model/asset.model.ts)
 
 - **`AssetType`** — Enum: `bank`, `ewallet`, `cash`, `loan`, `crypto`
 - **`currencySchema`** — Zod schema untuk currency metadata: `code` (ISO code), `base`, `exponent`
@@ -79,9 +77,9 @@ domain/assets/
     4. `requiredBalance()` — `zBalanceSchema.safeParse(this.balance)`
     5. `requiredAll()` — chain semua method di atas
 
-#### 2. `core/entity/asset-mutation.entity.ts` [L68-81]
+#### 2. `core/model/asset-mutation.model.ts` [L68-81]
 
-[`core/entity/asset-mutation.entity.ts`](core/entity/asset-mutation.entity.ts)
+[`core/model/asset-mutation.model.ts`](core/model/asset-mutation.model.ts)
 
 - **`MutationType`** — Enum: `add`, `subtract`, `transaction`
 - **`assetMutationSchema`** — Schema validasi Zod untuk AssetMutation: `id`, `assetId`, `userId`, `type`, `amount`, `currency`, `balanceBefore`, `balanceAfter`, `description`, `createdAt`

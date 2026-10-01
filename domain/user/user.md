@@ -11,8 +11,6 @@ Melakukan kontrol terhadap **user** dan **management** user dalam sistem. Module
 ```text
 domain/user/
 ├── core/
-│   ├── entity/
-│   │   └── user.entity.ts
 │   ├── model/
 │   │   ├── index.ts
 │   │   └── user.model.ts
@@ -46,9 +44,9 @@ domain/user/
 
 ### Penjelasan File Per-File [L39-137]
 
-#### 1. `core/entity/user.entity.ts` [L41-66]
+#### 1. `core/model/user.model.ts` [L41-66]
 
-[`core/entity/user.entity.ts`](core/entity/user.entity.ts)
+[`core/model/user.model.ts`](core/model/user.model.ts)
 
 - **`userSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

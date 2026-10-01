@@ -1,7 +1,7 @@
 import { add, dinero, subtract, type Dinero } from "dinero.js";
 import * as _Currencies from "dinero.js/currencies";
 import z from "zod";
-import type { CurrencyType } from "../entity/asset.entity";
+import type { CurrencyType } from "../model/asset.model";
 
 export const isoCodeList = Object.entries(_Currencies).map((value, _) => value[1].code);
 

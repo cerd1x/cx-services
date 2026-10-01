@@ -1,4 +1,4 @@
-import type { User } from "../../../user/core/entity/user.entity";
+import type { User } from "../../../user/core/model/user.model";
 import { ID } from "$services/shared/kernel";
 import type { UserServiceLike } from "../types/user-service-like";
 import type { SettingService } from "$services/domain/setting";

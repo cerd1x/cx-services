@@ -1,8 +1,9 @@
 import { z } from "zod";
 import * as Currencies from "dinero.js/currencies";
 import { Balance, isoCodeList, type CurrencyMetaType } from "../value-objects/balance.vo";
+import { BalanceModel } from "./balance.model";
 import { ID, isMybe } from "$services/shared/kernel";
-import { myUserID } from "../../../user/core/entity/user.entity";
+import { myUserID } from "../../../user/core/model/user.model";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
 
 export const AssetType = {
@@ -124,6 +125,32 @@ export class Asset {
 
   requiredAll(): Asset {
     return this.requiredUserId().requiredName().requiredType().requiredBalance();
+  }
+
+  /**
+   * Aturan mutasi saldo yang butuh dua asset (add/subtract/swap).
+   * `Balance` di sini adalah nilai uang bersih, bukan saldo asset yang
+   * sedang dimutasi.
+   */
+  static validateMutationAmount(amount: Balance): void {
+    if (amount.value <= 0) {
+      throw new RequiredErr("amount", { class: Asset });
+    }
+  }
+
+  static canMutateAsset(asset: Asset, type: "add" | "subtract", amount: Balance): void {
+    this.validateMutationAmount(amount);
+    if (type === "subtract") {
+      BalanceModel.canSubtract(Balance.new(asset.balance), amount);
+    }
+  }
+
+  static validateSwapPreconditions(fromAsset: Asset, toAsset: Asset, amount: Balance): void {
+    if (fromAsset.IdStr === toAsset.IdStr) {
+      throw new RequiredErr("swap", { class: Asset });
+    }
+    this.validateMutationAmount(amount);
+    BalanceModel.canSubtract(Balance.new(fromAsset.balance), amount);
   }
 
   static new(input: AssetInput & { balance: Balance }): Asset {

@@ -9,10 +9,10 @@ import {
   mock,
   spyOn,
 } from "bun:test";
-import { User } from "$services/domain/user/core/entity/user.entity";
+import { User } from "$services/domain/user/core/model/user.model";
 import { createAuthService, AuthService, type UserServiceLike } from "$services/domain/auth";
 import { AssetService } from "$services/domain/assets";
-import type { Asset } from "$services/domain/assets/core/entity/asset.entity";
+import type { Asset } from "$services/domain/assets/core/model/asset.model";
 import { Token } from "$services/domain/auth/core/value-objects/token.vo";
 import {
   AuthenticationError,

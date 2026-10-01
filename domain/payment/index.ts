@@ -4,12 +4,12 @@ export {
   paymentService,
   type PaymentAdapters,
 } from "./payment.composition";
-export { Payment } from "./core/entity/payment.entity";
-export type { PaymentData, PaymentUpdateData } from "./core/entity/payment.entity";
-export { Invoice } from "./core/entity/invoice.entity";
-export type { InvoiceData, InvoiceItem, InvoiceUpdateData } from "./core/entity/invoice.entity";
-export { PaymentStatus, PaymentMethodType } from "./core/entity/payment.entity";
-export { InvoiceStatus } from "./core/entity/invoice.entity";
+export { Payment } from "./core/model/payment.model";
+export type { PaymentData, PaymentUpdateData } from "./core/model/payment.model";
+export { Invoice } from "./core/model/invoice.model";
+export type { InvoiceData, InvoiceItem, InvoiceUpdateData } from "./core/model/invoice.model";
+export { PaymentStatus, PaymentMethodType } from "./core/model/payment.model";
+export { InvoiceStatus } from "./core/model/invoice.model";
 export { RetryPolicy } from "./core/value-objects/retry-policy.vo";
 export type { RetryPolicyConfig } from "./core/value-objects/retry-policy.vo";
 export type {

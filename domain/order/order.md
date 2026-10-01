@@ -11,8 +11,6 @@ Melakukan kontrol terhadap **order/pesanan** dalam sistem. Module ini bertanggun
 ```text
 domain/order/
 ├── core/
-│   ├── entity/
-│   │   └── order.entity.ts
 │   ├── model/
 │   │   ├── index.ts
 │   │   └── order.model.ts
@@ -48,9 +46,9 @@ domain/order/
 
 ### Penjelasan File Per-File [L39-140]
 
-#### 1. `core/entity/order.entity.ts` [L41-75]
+#### 1. `core/model/order.model.ts` [L41-75]
 
-[`core/entity/order.entity.ts`](core/entity/order.entity.ts)
+[`core/model/order.model.ts`](core/model/order.model.ts)
 
 - **`orderSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

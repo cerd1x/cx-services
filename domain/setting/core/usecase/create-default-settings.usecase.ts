@@ -1,5 +1,5 @@
 import { SettingRepository } from "../ports/out/setting-repository.port";
-import { Setting, type SettingData } from "../entity/setting.entity";
+import { Setting, type SettingData } from "../model/setting.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

@@ -4,7 +4,7 @@ import {
 } from "$services/shared/kernel/errors/service-error";
 import { AuthRepository } from "../ports/out/auth-repository.port";
 import { Token } from "../value-objects/token.vo";
-import type { User } from "../../../user/core/entity/user.entity";
+import type { User } from "../../../user/core/model/user.model";
 import { UserServiceLikeCtx } from "./ctx";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";

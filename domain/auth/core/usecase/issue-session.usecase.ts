@@ -1,6 +1,6 @@
 import { AuthRepository } from "../ports/out/auth-repository.port";
 import { Token } from "../value-objects/token.vo";
-import type { User } from "../../../user/core/entity/user.entity";
+import type { User } from "../../../user/core/model/user.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

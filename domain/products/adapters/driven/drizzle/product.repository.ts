@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { productTable } from "$services/shared/infra/db/drizzle-schema";
-import { Product } from "../../../core/entity/product.entity";
+import { Product } from "../../../core/model/product.model";
 import { ProductRepository } from "../../../core/ports/out/product-repository.port";
 
 export class ProductRepositoryImpl implements ProductRepository {

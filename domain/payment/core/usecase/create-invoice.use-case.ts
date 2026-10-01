@@ -1,4 +1,4 @@
-import { Invoice, type InvoiceData, type InvoiceItem } from "../entity/invoice.entity";
+import { Invoice, type InvoiceData, type InvoiceItem } from "../model/invoice.model";
 import { InvoiceRepository } from "../ports/out/invoice-repository.port";
 import { InvoiceValidationError } from "../errors/payment-error";
 import { CoreUsecase } from "$services/shared/base";

@@ -1,5 +1,5 @@
 import { OrderRepository } from "../ports/out/order-repository.port";
-import type { Order as OrderType } from "../entity/order.entity";
+import type { Order as OrderType } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
 import { OrderByIdUseCase } from "./order-by-id.usecase";
 import { CoreUsecase } from "$services/shared/base";

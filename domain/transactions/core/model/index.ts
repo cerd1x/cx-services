@@ -1,4 +1,14 @@
-export { TransactionRules } from "./transaction.model";
+export {
+  Transaction,
+  transactionSchema,
+  paymentMethodSchema,
+  type PaymentMethod,
+  type TransactionData,
+  type TransactionUpdateData,
+  type TransactionStatus,
+  type TransactionType,
+  type PaymentMethodType,
+} from "./transaction.model";
 export {
   Cursor,
   DEFAULT_PAGE_SIZE,

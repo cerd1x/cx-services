@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
-import { Contact } from "$services/domain/contacts/core/entity/contact.entity";
+import { Contact } from "$services/domain/contacts/core/model/contact.model";
 import { ID } from "$services/shared/kernel";
 import {
   Cursor,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { Asset } from "$services/domain/assets/core/entity/asset.entity";
+import { Asset } from "$services/domain/assets/core/model/asset.model";
 import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 

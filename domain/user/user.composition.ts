@@ -1,4 +1,4 @@
-import { User as UserType } from "./core/entity/user.entity";
+import { User as UserType } from "./core/model/user.model";
 import { ID } from "$services/shared/kernel/id";
 import { CreateUserUseCase } from "./core/usecase/create-user.usecase";
 import { UserByUsernameUseCase } from "./core/usecase/user-by-username.usecase";

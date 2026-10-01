@@ -1,4 +1,10 @@
-export { ContactRules } from "./contact.model";
+export {
+  Contact,
+  contactSchema,
+  normalizePhones,
+  MAX_PHONES,
+  type ContactType,
+} from "./contact.model";
 export {
   Cursor,
   DEFAULT_PAGE_SIZE,

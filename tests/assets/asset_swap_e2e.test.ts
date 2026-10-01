@@ -7,11 +7,11 @@ import {
   type AssetData,
   type AssetType,
   type AssetUpdate,
-} from "$services/domain/assets/core/entity/asset.entity";
+} from "$services/domain/assets/core/model/asset.model";
 import type {
   AssetMutationData,
   AssetMutationInput,
-} from "$services/domain/assets/core/entity/asset-mutation.entity";
+} from "$services/domain/assets/core/model/asset-mutation.model";
 import { AssetRepository } from "$services/domain/assets/core/ports/out/asset-repository.port";
 import { OutboxRepository } from "$services/shared/kernel/outbox/outbox-repository.port";
 import { EventBus } from "$services/shared/kernel/outbox/event-bus";

@@ -1,7 +1,7 @@
 import { AuthenticationError } from "$services/shared/kernel/errors/service-error";
 import { AuthRepository } from "../ports/out/auth-repository.port";
 import { Token } from "../value-objects/token.vo";
-import type { User } from "../../../user/core/entity/user.entity";
+import type { User } from "../../../user/core/model/user.model";
 import type { SettingService } from "$services/domain/setting";
 import { SettingServiceCtx, UserServiceLikeCtx } from "./ctx";
 import { AssetService } from "$services/domain/assets";

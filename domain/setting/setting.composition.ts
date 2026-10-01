@@ -1,4 +1,4 @@
-import { type SettingData, type SettingInput } from "./core/entity/setting.entity";
+import { type SettingData, type SettingInput } from "./core/model/setting.model";
 import { CreateDefaultSettingsUseCase } from "./core/usecase/create-default-settings.usecase";
 import { SettingByUserIdUseCase } from "./core/usecase/setting-by-user-id.usecase";
 import { UpdateSettingUseCase } from "./core/usecase/update-setting.usecase";

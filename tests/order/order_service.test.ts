@@ -1,8 +1,8 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { createOrderService, OrderService } from "$services/domain/order";
-import { Order } from "$services/domain/order/core/entity/order.entity";
-import { Product } from "$services/domain/products/core/entity/product.entity";
+import { Order } from "$services/domain/order/core/model/order.model";
+import { Product } from "$services/domain/products/core/model/product.model";
 import { ID } from "$services/shared/kernel/id";
 import { createProductService, ProductService } from "$services/domain/products";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";

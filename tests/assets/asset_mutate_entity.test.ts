@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { AssetMutation } from "$services/domain/assets/core/entity/asset-mutation.entity";
+import { AssetMutation } from "$services/domain/assets/core/model/asset-mutation.model";
 import { ID } from "$services/shared/kernel";
 
 describe("AssetMutation", () => {

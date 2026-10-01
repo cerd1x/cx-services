@@ -1,6 +1,6 @@
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
-import { Asset } from "../entity/asset.entity";
+import { Asset } from "../model/asset.model";
 import { Balance } from "../value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 import { UnitOfWork } from "$services/shared/kernel/uow.port";

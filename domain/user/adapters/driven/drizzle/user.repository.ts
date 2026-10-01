@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { userTable } from "$services/shared/infra/db/drizzle-schema";
-import { User } from "../../../core/entity/user.entity";
+import { User } from "../../../core/model/user.model";
 import { UserRepository } from "../../../core/ports/out/user-repository.port";
 
 export class UserRepositoryImpl implements UserRepository {

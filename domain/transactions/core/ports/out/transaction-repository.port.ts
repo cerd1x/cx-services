@@ -1,4 +1,4 @@
-import type { Transaction } from "../../entity/transaction.entity";
+import type { Transaction } from "../../model/transaction.model";
 import type { ID } from "$services/shared/kernel";
 import type { PageQuery, PageWindow } from "../../model/transaction-page.model";
 

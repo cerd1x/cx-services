@@ -2,7 +2,7 @@ import {
   generateRegistrationOptions,
   type PublicKeyCredentialCreationOptionsJSON,
 } from "@simplewebauthn/server";
-import type { User } from "../../../user/core/entity/user.entity";
+import type { User } from "../../../user/core/model/user.model";
 import { AuthenticationError } from "$services/shared/kernel/errors/service-error";
 import { WebAuthnChallenge } from "../value-objects/webauthn.vo";
 import { PasskeyRepository } from "../ports/out/passkey-repository.port";

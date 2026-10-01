@@ -1,5 +1,5 @@
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
-import type { Contact } from "../../../core/entity/contact.entity";
+import type { Contact } from "../../../core/model/contact.model";
 import { ID } from "$services/shared/kernel";
 import typeDefs from "./contact.gql?raw";
 import type { Resolvers } from "$services/shared/infra/graphql/types";

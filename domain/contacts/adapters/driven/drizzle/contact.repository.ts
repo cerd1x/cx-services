@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gt, lt, or, sql, type SQL } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
-import { Contact } from "../../../core/entity/contact.entity";
+import { Contact } from "../../../core/model/contact.model";
 import { ContactRepository } from "../../../core/ports/out/contact-repository.port";
 import type { PageQuery, PageWindow } from "../../../core/model/contact-page.model";
 import { contactTable } from "$services/shared/infra/db/drizzle-schema";

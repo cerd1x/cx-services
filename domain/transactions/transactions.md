@@ -11,8 +11,6 @@ Melakukan kontrol terhadap **transaksi keuangan** dalam sistem. Module ini berta
 ```text
 domain/transactions/
 ├── core/
-│   ├── entity/
-│   │   └── transaction.entity.ts
 │   ├── model/
 │   │   ├── index.ts
 │   │   ├── transaction-page.model.ts
@@ -52,9 +50,9 @@ domain/transactions/
 
 ### Penjelasan File Per-File [L39-148]
 
-#### 1. `core/entity/transaction.entity.ts` [L41-76]
+#### 1. `core/model/transaction.model.ts` [L41-76]
 
-[`core/entity/transaction.entity.ts`](core/entity/transaction.entity.ts)
+[`core/model/transaction.model.ts`](core/model/transaction.model.ts)
 
 - **`TransactionType`** — Enum: `income`, `expense`, `transfer`, `outcome`
 - **`TransactionStatus`** — Enum: `pending`, `success`, `failed`

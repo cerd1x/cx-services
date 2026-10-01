@@ -116,4 +116,12 @@ export class AssetMutation {
     }
     return new AssetMutation(result.data);
   }
+
+  /** Menormalkan `description` yang nullable menjadi nilai eksplisit sebelum persist. */
+  static createMutationData(input: AssetMutationInput): AssetMutationInput {
+    return {
+      ...input,
+      description: input.description ?? null,
+    };
+  }
 }

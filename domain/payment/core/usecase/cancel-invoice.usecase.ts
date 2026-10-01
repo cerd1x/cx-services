@@ -1,5 +1,5 @@
 import { InvoiceRepository } from "../ports/out/invoice-repository.port";
-import { Invoice, type InvoiceData } from "../entity/invoice.entity";
+import { Invoice, type InvoiceData } from "../model/invoice.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

@@ -5,7 +5,7 @@ import { setDB, setD1 } from "$services/shared/infra/db";
 import { userTable } from "$services/shared/infra/db/drizzle-schema/user.schema";
 import { contactTable } from "$services/shared/infra/db/drizzle-schema/contact.schema";
 import { ContactRepositoryImpl } from "$services/domain/contacts/adapters/driven/drizzle/contact.repository";
-import { Contact } from "$services/domain/contacts/core/entity/contact.entity";
+import { Contact } from "$services/domain/contacts/core/model/contact.model";
 import { ID } from "$services/shared/kernel";
 import {
   Cursor,

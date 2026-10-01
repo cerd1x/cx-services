@@ -24,9 +24,8 @@ Full-stack finance management. Backend: **Elysia + GraphQL Yoga** on Cloudflare 
 │   │   ├── index.ts                   # Satu-satunya pintu publik modul ini
 │   │   ├── {domain}.composition.ts    # Composition root: class Service + factory + singleton
 │   │   ├── core/
-│   │   │   ├── entity/                # Entity (Zod schema + Entity class) — inti domain
-│   │   │   │   └── {domain}.entity.ts
-│   │   │   ├── model/                 # Model bisnis (data + behavior)
+│   │   │   ├── model/                 # Domain model: entity + aturan (Zod + class)
+│   │   │   │   ├── {domain}.model.ts  # Entity: identitas + invariant
 │   │   │   ├── usecase/               # Use case (satu file per use case)
 │   │   │   ├── value-objects/         # Value objects (Balance, Token, logger, dll)
 │   │   │   └── ports/out/             # Outbound ports (abstract repository contracts)
@@ -95,7 +94,7 @@ Full-stack finance management. Backend: **Elysia + GraphQL Yoga** on Cloudflare 
 - **Boundary dijaga lewat `index.ts`** (barrel export). Modul lain atau `routes/` cuma boleh import dari `index.ts`, tidak boleh reach langsung ke `domain/user/core` dari luar.
 - **Cross-module communication** — panggil service/use-case yang diexport `index.ts`-nya, jangan import internal modul lain langsung.
 - **`shared/kernel`** cuma buat value object generik lintas modul (Id, errors, uow), bukan tempat sampah.
-- **Entity adalah inti domain**: definisi Zod schema + Entity class hanya ada di `core/entity/{domain}.entity.ts`. `core/` tidak boleh punya dependency ke Drizzle/persistence.
+- **Domain model menyatu di `core/model/`**: identitas, invariant, dan class domain hanya ada di `core/model/{domain}.model.ts`. Tidak ada lagi folder `core/entity/`. `core/` tidak boleh punya dependency ke Drizzle/persistence.
 - **Adapter = implementasi port**: isi `adapters/` HANYA implementasi konkret dari port di `core/ports/out/` (repository Drizzle, payment gateway, resolver GraphQL). Tidak ada definisi domain/persistence di dalam adapter.
 
 ---
@@ -196,10 +195,8 @@ Setiap module di `domain/<module>/` memiliki struktur yang **WAJIB**:
   index.ts                      — export { service, Service, createService, Type } (module public surface)
   <module>.composition.ts       — Composition root: class <Module>Service + create<Module>Service() + singleton
   core/
-    entity/                     — inti domain: identitas & invariant data
-      <module>.entity.ts        — Zod schema + Entity class (tanpa dependency Drizzle)
-    model/                      — representasi logika bisnis (data + behavior)
-      <module>.model.ts         — Class + aturan/validasi/perhitungan
+    model/                      — domain model: identitas + aturan (tanpa dependency Drizzle)
+      <module>.model.ts         — Zod schema + Entity class + validasi
     usecase/                    — use case bisnis
       <module>.usecase.ts       — Workflow / aturan proses bisnis
     value-objects/
@@ -216,7 +213,7 @@ Setiap module di `domain/<module>/` memiliki struktur yang **WAJIB**:
 ```
 
 > **Entity milik `core/`, bukan adapter**: satu-satunya tempat definisi Zod schema dan
-> Entity class ada di `core/entity/<module>.entity.ts`. Definisi tabel Drizzle
+> Domain model (Zod schema + Entity class) ada di `core/model/<module>.model.ts`. Definisi tabel Drizzle
 > (`sqliteTable`) tetap di `shared/infra/db/drizzle-schema/`. Adapter HANYA flesibel:
 > mengimplementasikan abstract class dari `core/ports/out/` (repository, gateway) atau
 >menjawab permintaan dari core (resolver). `core/` tidak boleh meng-import driver DB.
@@ -244,7 +241,7 @@ Setiap module di `domain/<module>/` memiliki struktur yang **WAJIB**:
 Entity class menggunakan **ES private fields** (`#field`) dengan `private constructor` + `static new()` factory. Zod schema sebagai single source of truth untuk validasi data.
 
 ```ts
-// domain/assets/core/entity/asset.entity.ts
+// domain/assets/core/model/asset.model.ts
 import { z } from "zod";
 
 export const assetSchema = z.object({
@@ -478,14 +475,14 @@ import {
   type AssetInput,
   type AssetData,
   type AssetUpdate,
-} from "../entity/asset.entity";
+} from "./asset.model";
 import { Balance } from "../value-objects/balance.vo";
 import { ID, isMybe } from "$services/shared/kernel";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
 import type {
   AssetMutationInput,
   AssetMutationData,
-} from "../entity/asset-mutation.entity";
+} from "./asset-mutation.model";
 import { CoreUsecase, ServiceContainer } from "$services/shared/base";
 
 // Token untuk repository (class yang implement interface dependency)
@@ -760,8 +757,8 @@ export {
   AssetService,
   type AssetAdapters,
 } from "./assets.composition";
-export type { AssetInput, AssetData } from "./core/entity/asset.entity";
-export { Asset } from "./core/entity/asset.entity";
+export type { AssetInput, AssetData } from "./core/model/asset.model";
+export { Asset } from "./core/model/asset.model";
 export { Balance } from "./core/value-objects/balance.vo";
 ```
 
@@ -859,21 +856,22 @@ Jalankan: `bun run gql:gen` — **WAJIB** dijalankan setiap ada perubahan SDL (`
 1. Setiap module **WAJIB** punya: `core/`, `adapters/`, `<module>.composition.ts`, `index.ts` — folder `app/` **DILARANG** (class service + factory + singleton tinggal di `<module>.composition.ts`)
 2. Service class **WAJIB** singleton (`static #instance` + `init()`/`getInstance()`) dan **WAJIB** dideklarasikan di `<module>.composition.ts`
 3. Semua public method service/use-case **WAJIB** dikasih `@logMethod(logger)`
-4. Entity **WAJIB** tinggal di `core/entity/<module>.entity.ts` (Zod schema + `validate*()` chainable) — satu-satunya tempat definisi entity. Tabel Drizzle (`sqliteTable`) di `shared/infra/db/drizzle-schema/`
+4. Domain model **WAJIB** tinggal di `core/model/<module>.model.ts` (Zod schema + Entity class + `validate*()` chainable) — satu-satunya tempat definisi entity. Folder `core/entity/` **DILARANG**. Tabel Drizzle (`sqliteTable`) di `shared/infra/db/drizzle-schema/`
 5. `core/` **DILARANG** meng-import `drizzle-orm`, `$services/shared/infra/db`, atau modul `adapters/` milik domain lain
 6. Port **WAJIB** abstract class (bukan interface) di `core/ports/out/` — method return entity Data types
 7. Isi `adapters/` **WAJIB** hanya implementasi port (`implements <X>Repository`) atau driving adapter (resolver) — tidak boleh mendefinisikan entity, schema, atau aturan bisnis
-8. Repository **WAJIB** implement abstract class dari `core/ports/out/` dan berada di `adapters/driven/drizzle/`
-9. GraphQL resolver **WAJIB** pakai `Resolvers<YogaContext>` type
-10. SDL **WAJIB** di-import via `import typeDefs from "./module.gql?raw"`
-11. ID ke external **WAJIB** pake `ID.toHash()` (Sqids), internal pake `ID.toNumb()`
-12. Money **WAJIB** pake `Balance` (dinero.js)
-13. Jangan import `$services/` dari client code (`src/routes/`, `src/lib/`) — lihat `client-server-boundary` skill
-14. Cross-module dependency hanya via services: `auth→user`, `order→product|transaction|asset`, `assets→transaction`
-15. Komposisi module hanya di `<module>.composition.ts` — jangan impor repo/entity module lain secara langsung. Referensi service antar module yang membentuk siklus **WAJIB** resolve saat runtime (`Service.getInstance()` / lazy gateway), jangan tangkap `export const service` di top-level
-16. **Barrel export**: /ts` modul — jangan tembus ke subfolder
-17. **Cross-module via service/port**: kalau modul A butuh data modul B, lewat service yang diexport `index.ts`-nya
-18. **`#instance` naming**: `#instanceNamaService` — UNIK per class (bentrok di Bun bundler)
-19. **Use-case pattern**: 1 file = 1 use-case. Untuk kesederhanaan, boleh tetap 1 file service — namely class `<Domain>Service` di `<domain>.composition.ts`
-20. **Mapper terpisah** (opsional): jangan campur mapping logic di repository
-21. **Resolver akses via context**: gunakan service yang di-inject di `YogaContext`, bukan import langsung
+8. DILARANG ada class `XRules` yang menduplikasi `validate*()` milik domain model — aturan validasi hanya hidup di `core/model/{module}.model.ts`
+9. Repository **WAJIB** implement abstract class dari `core/ports/out/` dan berada di `adapters/driven/drizzle/`
+10. GraphQL resolver **WAJIB** pakai `Resolvers<YogaContext>` type
+11. SDL **WAJIB** di-import via `import typeDefs from "./module.gql?raw"`
+12. ID ke external **WAJIB** pake `ID.toHash()` (Sqids), internal pake `ID.toNumb()`
+13. Money **WAJIB** pake `Balance` (dinero.js)
+14. Jangan import `$services/` dari client code (`src/routes/`, `src/lib/`) — lihat `client-server-boundary` skill
+15. Cross-module dependency hanya via services: `auth→user`, `order→product|transaction|asset`, `assets→transaction`
+16. Komposisi module hanya di `<module>.composition.ts` — jangan impor repo/entity module lain secara langsung. Referensi service antar module yang membentuk siklus **WAJIB** resolve saat runtime (`Service.getInstance()` / lazy gateway), jangan tangkap `export const service` di top-level
+17. **Barrel export**: /ts` modul — jangan tembus ke subfolder
+18. **Cross-module via service/port**: kalau modul A butuh data modul B, lewat service yang diexport `index.ts`-nya
+19. **`#instance` naming**: `#instanceNamaService` — UNIK per class (bentrok di Bun bundler)
+20. **Use-case pattern**: 1 file = 1 use-case. Untuk kesederhanaan, boleh tetap 1 file service — namely class `<Domain>Service` di `<domain>.composition.ts`
+21. **Mapper terpisah** (opsional): jangan campur mapping logic di repository
+22. **Resolver akses via context**: gunakan service yang di-inject di `YogaContext`, bukan import langsung

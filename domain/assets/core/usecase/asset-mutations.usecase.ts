@@ -1,5 +1,5 @@
 import { AssetRepository } from "../ports/out/asset-repository.port";
-import type { AssetMutationData } from "../entity/asset-mutation.entity";
+import type { AssetMutationData } from "../model/asset-mutation.model";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

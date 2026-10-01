@@ -11,8 +11,6 @@ Melakukan kontrol terhadap **statistik/keuangan** user dalam sistem. Module ini 
 ```text
 domain/statistic/
 ├── core/
-│   ├── entity/
-│   │   └── statistic.entity.ts
 │   ├── model/
 │   │   ├── index.ts
 │   │   └── statistic.model.ts
@@ -39,9 +37,9 @@ domain/statistic/
 
 ### Penjelasan File Per-File [L39-112]
 
-#### 1. `core/entity/statistic.entity.ts` [L41-53]
+#### 1. `core/model/statistic.model.ts` [L41-53]
 
-[`core/entity/statistic.entity.ts`](core/entity/statistic.entity.ts)
+[`core/model/statistic.model.ts`](core/model/statistic.model.ts)
 
 - **`StatisticData` type** — Type definition untuk data statistik:
   - `totalIncome`: number — total income dari transaksi

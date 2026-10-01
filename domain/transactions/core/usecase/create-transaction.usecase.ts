@@ -1,7 +1,7 @@
 import { TransactionRepository } from "../ports/out/transaction-repository.port";
-import { Transaction } from "../entity/transaction.entity";
-import type { Transaction as TransactionType } from "../entity/transaction.entity";
-import type { PaymentMethod } from "../entity/transaction.entity";
+import { Transaction } from "../model/transaction.model";
+import type { Transaction as TransactionType } from "../model/transaction.model";
+import type { PaymentMethod } from "../model/transaction.model";
 import { Balance } from "../../../assets/core/value-objects/balance.vo";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

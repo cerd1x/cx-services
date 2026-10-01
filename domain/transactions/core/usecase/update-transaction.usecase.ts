@@ -2,7 +2,7 @@ import { TransactionRepository } from "../ports/out/transaction-repository.port"
 import type {
   Transaction as TransactionType,
   TransactionUpdateData,
-} from "../entity/transaction.entity";
+} from "../model/transaction.model";
 import { ID } from "$services/shared/kernel";
 import { TransactionByIdUseCase } from "./transaction-by-id.usecase";
 import { CoreUsecase } from "$services/shared/base";

@@ -1,5 +1,5 @@
 import { TransactionRepository } from "../ports/out/transaction-repository.port";
-import type { Transaction as TransactionType } from "../entity/transaction.entity";
+import type { Transaction as TransactionType } from "../model/transaction.model";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

@@ -14,7 +14,7 @@ import { createAuthService, AuthService } from "$services/domain/auth";
 import { AuthRepositoryImpl } from "$services/domain/auth/adapters/driven/drizzle/auth.repository";
 import { createSettingService, SettingService } from "$services/domain/setting";
 import { SettingRepositoryImpl } from "$services/domain/setting/adapters/driven/drizzle/setting.repository";
-import { User } from "$services/domain/user/core/entity/user.entity";
+import { User } from "$services/domain/user/core/model/user.model";
 
 describe("User queries through services", () => {
   let sqlite: any;

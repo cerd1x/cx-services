@@ -1,1 +1,1 @@
-export { ProductRules } from "./product.model";
+export { Product, productSchema, type ProductType } from "./product.model";

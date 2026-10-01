@@ -1,1 +1,1 @@
-export { UserRules } from "./user.model";
+export { User, myUserID, userSchema, type UserType } from "./user.model";

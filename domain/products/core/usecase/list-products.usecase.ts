@@ -1,5 +1,5 @@
 import { ProductRepository } from "../ports/out/product-repository.port";
-import type { Product as ProductType } from "../entity/product.entity";
+import type { Product as ProductType } from "../model/product.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

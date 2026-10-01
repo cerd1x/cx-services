@@ -6,11 +6,11 @@ import {
   AssetType,
 } from "$services/shared/infra/graphql/types";
 import type { Resolvers, Transaction as TxType } from "$services/shared/infra/graphql/types";
-import { Transaction } from "../../../core/entity/transaction.entity";
+import { Transaction } from "../../../core/model/transaction.model";
 import type {
   TransactionType as EntityTransactionType,
   PaymentMethod as EntityPaymentMethod,
-} from "../../../core/entity/transaction.entity";
+} from "../../../core/model/transaction.model";
 import { Balance } from "../../../../assets/core/value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 

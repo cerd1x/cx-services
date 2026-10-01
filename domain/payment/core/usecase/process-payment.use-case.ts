@@ -1,4 +1,4 @@
-import { Payment, type PaymentData } from "../entity/payment.entity";
+import { Payment, type PaymentData } from "../model/payment.model";
 import { PaymentRepository } from "../ports/out/payment-repository.port";
 import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { RetryPolicy, RetryPolicyToken } from "../value-objects/retry-policy.vo";

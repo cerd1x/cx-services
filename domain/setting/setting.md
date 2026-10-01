@@ -11,8 +11,6 @@ Melakukan kontrol terhadap **pengaturan/setting** user dalam sistem. Module ini 
 ```text
 domain/setting/
 ├── core/
-│   ├── entity/
-│   │   └── setting.entity.ts
 │   ├── model/
 │   │   ├── index.ts
 │   │   └── setting.model.ts
@@ -41,9 +39,9 @@ domain/setting/
 
 ### Penjelasan File Per-File [L39-125]
 
-#### 1. `core/entity/setting.entity.ts` [L41-65]
+#### 1. `core/model/setting.model.ts` [L41-65]
 
-[`core/entity/setting.entity.ts`](core/entity/setting.entity.ts)
+[`core/model/setting.model.ts`](core/model/setting.model.ts)
 
 - **`settingSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

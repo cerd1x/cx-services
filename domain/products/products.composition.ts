@@ -1,4 +1,4 @@
-import { Product as ProductType } from "./core/entity/product.entity";
+import { Product as ProductType } from "./core/model/product.model";
 import { ID } from "$services/shared/kernel";
 import { CreateProductUseCase } from "./core/usecase/create-product.usecase";
 import { ProductByIdUseCase } from "./core/usecase/product-by-id.usecase";

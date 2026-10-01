@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, mock } from "bun:test";
 import { createPasskeyService } from "$services/domain/auth";
 import { WebAuthnChallenge } from "$services/domain/auth/core/value-objects/webauthn.vo";
-import { User } from "$services/domain/user/core/entity/user.entity";
+import { User } from "$services/domain/user/core/model/user.model";
 import { ID } from "$services/shared/kernel";
 import { AuthenticationError } from "$services/shared/kernel/errors/service-error";
 import type { PasskeyRepository } from "$services/domain/auth/core/ports/out/passkey-repository.port";

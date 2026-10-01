@@ -1,5 +1,5 @@
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
-import type { Transaction } from "../entity/transaction.entity";
+import type { Transaction } from "../model/transaction.model";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;

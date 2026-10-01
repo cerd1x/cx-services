@@ -1,1 +1,1 @@
-export { StatisticModel } from "./statistic.model";
+export { StatisticModel, type StatisticData } from "./statistic.model";

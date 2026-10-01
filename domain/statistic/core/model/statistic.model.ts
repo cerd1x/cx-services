@@ -1,4 +1,11 @@
-import type { StatisticData } from "../entity/statistic.entity";
+export type StatisticData = {
+  totalIncome: number;
+  totalExpense: number;
+  totalProfit: number;
+  totalLoan: number;
+  totalCash: number;
+  totalAsset: number;
+};
 
 export class StatisticModel {
   static totalProfit(totalIncome: number, totalExpense: number): number {

@@ -1,5 +1,5 @@
 import { ProductRepository } from "../ports/out/product-repository.port";
-import type { Product as ProductType } from "../entity/product.entity";
+import type { Product as ProductType } from "../model/product.model";
 import { ID } from "$services/shared/kernel";
 import { ProductByIdUseCase } from "./product-by-id.usecase";
 import { CoreUsecase } from "$services/shared/base";

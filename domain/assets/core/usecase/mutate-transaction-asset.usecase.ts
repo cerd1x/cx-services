@@ -1,4 +1,4 @@
-import { Asset } from "../entity/asset.entity";
+import { Asset } from "../model/asset.model";
 import { Balance } from "../value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
 import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";

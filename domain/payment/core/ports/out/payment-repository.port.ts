@@ -1,5 +1,5 @@
 import type { ID } from "$services/shared/kernel";
-import type { PaymentData, PaymentUpdateData } from "../../entity/payment.entity";
+import type { PaymentData, PaymentUpdateData } from "../../model/payment.model";
 
 export abstract class PaymentRepository {
   abstract save(payment: PaymentData): Promise<PaymentData>;

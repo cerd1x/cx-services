@@ -3,7 +3,7 @@ import {
   Contact,
   MAX_PHONES,
   normalizePhones,
-} from "$services/domain/contacts/core/entity/contact.entity";
+} from "$services/domain/contacts/core/model/contact.model";
 import { ID } from "$services/shared/kernel/id";
 
 describe("normalizePhones", () => {

@@ -1,7 +1,7 @@
 import {
   Transaction as TransactionType,
   type TransactionUpdateData,
-} from "./core/entity/transaction.entity";
+} from "./core/model/transaction.model";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ID } from "$services/shared/kernel";

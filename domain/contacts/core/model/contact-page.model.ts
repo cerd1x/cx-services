@@ -1,5 +1,5 @@
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
-import type { Contact } from "../entity/contact.entity";
+import type { Contact } from "./contact.model";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;

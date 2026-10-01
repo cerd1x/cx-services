@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { settingTable } from "$services/shared/infra/db/drizzle-schema";
 import { SettingRepository } from "../../../core/ports/out/setting-repository.port";
-import type { SettingData } from "../../../core/entity/setting.entity";
+import type { SettingData } from "../../../core/model/setting.model";
 
 export class SettingRepositoryImpl implements SettingRepository {
   async findByUserId(userId: number): Promise<SettingData | null> {

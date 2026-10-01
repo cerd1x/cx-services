@@ -1,4 +1,4 @@
-import type { StatisticData } from "../entity/statistic.entity";
+import type { StatisticData } from "../model/statistic.model";
 import { StatisticRepository } from "../ports/out/statistic-repository.port";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

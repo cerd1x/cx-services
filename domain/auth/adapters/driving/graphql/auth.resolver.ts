@@ -1,5 +1,5 @@
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
-import { User } from "../../../../user/core/entity/user.entity";
+import { User } from "../../../../user/core/model/user.model";
 import typeDefs from "./auth.gql?raw";
 import type { Resolvers } from "$services/shared/infra/graphql/types";
 import { appConfigs } from "$config";

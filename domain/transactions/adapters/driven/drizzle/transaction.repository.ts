@@ -1,7 +1,7 @@
 import { eq, and, asc, desc, gte, lte, sql, type SQL } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { transactionTable } from "$services/shared/infra/db/drizzle-schema";
-import { Transaction } from "../../../core/entity/transaction.entity";
+import { Transaction } from "../../../core/model/transaction.model";
 import { TransactionRepository } from "../../../core/ports/out/transaction-repository.port";
 import type { PageQuery, PageWindow } from "../../../core/model/transaction-page.model";
 import { Balance } from "../../../../assets/core/value-objects/balance.vo";

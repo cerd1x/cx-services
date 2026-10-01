@@ -11,8 +11,6 @@ Melakukan kontrol terhadap **produk** dalam sistem. Module ini bertanggung jawab
 ```text
 domain/products/
 ├── core/
-│   ├── entity/
-│   │   └── product.entity.ts
 │   ├── model/
 │   │   ├── index.ts
 │   │   └── product.model.ts
@@ -45,9 +43,9 @@ domain/products/
 
 ### Penjelasan File Per-File [L39-119]
 
-#### 1. `core/entity/product.entity.ts` [L41-72]
+#### 1. `core/model/product.model.ts` [L41-72]
 
-[`core/entity/product.entity.ts`](core/entity/product.entity.ts)
+[`core/model/product.model.ts`](core/model/product.model.ts)
 
 - **`productSchema`** — Zod schema (`z.object({...})`)
   - **Fields:**

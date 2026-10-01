@@ -1,7 +1,7 @@
 import { AuthenticationError } from "$services/shared/kernel/errors/service-error";
 import { UserServiceLikeCtx } from "./ctx";
 import { PasswordUtils } from "$services/shared/kernel/password-utils";
-import type { User } from "../../../user/core/entity/user.entity";
+import type { User } from "../../../user/core/model/user.model";
 import { IssueSessionUseCase } from "./issue-session.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

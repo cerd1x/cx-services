@@ -1,4 +1,4 @@
-import { User } from "../user/core/entity/user.entity";
+import { User } from "../user/core/model/user.model";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import type {

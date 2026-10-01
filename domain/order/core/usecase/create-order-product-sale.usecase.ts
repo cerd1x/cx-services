@@ -1,6 +1,6 @@
 import { OrderRepository } from "../ports/out/order-repository.port";
-import { Order } from "../entity/order.entity";
-import type { Order as OrderType } from "../entity/order.entity";
+import { Order } from "../model/order.model";
+import type { Order as OrderType } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
 import { Balance } from "../../../assets/core/value-objects/balance.vo";
 import { ProductService } from "$services/domain/products";
@@ -8,7 +8,7 @@ import { TransactionService } from "$services/domain/transactions";
 import { PaymentService } from "$services/domain/payment";
 import { PaymentServiceCtx } from "./payment-service.ctx";
 import { AssetService } from "$services/domain/assets";
-import type { PaymentMethodType } from "../../../transactions/core/entity/transaction.entity";
+import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
