@@ -1,0 +1,4 @@
+# Salin ke .dev.vars untuk `wrangler dev`. Secrets (SECRET_KEY, token) TIDAK boleh di-commit.
+SECRET_KEY=your-secret-key-here
+ORIGIN=http://localhost:5173
+BETA_REPORT_ADMIN_TOKEN=your-admin-token

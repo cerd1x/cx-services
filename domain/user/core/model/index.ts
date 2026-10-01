@@ -1,0 +1,1 @@
+export { UserRules } from "./user.model";

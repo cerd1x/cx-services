@@ -1,0 +1,1 @@
+export { StatisticModel } from "./statistic.model";

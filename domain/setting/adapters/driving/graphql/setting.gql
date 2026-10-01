@@ -1,0 +1,21 @@
+type Query {
+  setting: Setting! @authorized
+}
+
+type Mutation {
+  updateSetting(input: UpdateSettingInput!): Setting! @authorized
+}
+
+input UpdateSettingInput {
+  currency: String
+  darkMode: Boolean
+  dateFormat: String
+}
+
+type Setting {
+  id: ID!
+  userId: ID!
+  currency: String!
+  darkMode: Boolean!
+  dateFormat: String!
+}

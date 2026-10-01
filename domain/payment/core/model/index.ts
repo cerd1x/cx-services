@@ -1,0 +1,1 @@
+export { PaymentRules } from "./payment.model";

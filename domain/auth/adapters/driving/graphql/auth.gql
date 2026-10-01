@@ -1,0 +1,74 @@
+extend type Query {
+  me: MeUser! @authorized
+  checkAuthorized: Boolean!
+  passkeyRegistrationOptions: PasskeyRegistrationOptionsPayload! @authorized
+  passkeyAuthenticationOptions: PasskeyAuthenticationOptionsPayload!
+  passkeys: [PasskeyInfo!]! @authorized
+}
+
+type MeUser {
+  id: ID! @authorized
+  username: String! @authorized
+  name: String!
+  avatarUrl: String
+}
+
+type PasskeyRegistrationOptionsPayload {
+  options: String!
+  challenge: String!
+}
+
+type PasskeyAuthenticationOptionsPayload {
+  options: String!
+  challenge: String!
+}
+
+type PasskeyInfo {
+  id: String!
+  deviceName: String
+  createdAt: DateTime!
+}
+
+type Mutation {
+  signUp(input: SignUpInput!): SignUpPayload!
+  signIn(input: SignInInput!): SignInPayload!
+  signInWithPassKey(input: SignInWithPassKeyInput!): SignInPayload!
+  signOut: Boolean!
+  registerPasskey(input: RegisterPasskeyInput!): Boolean! @authorized
+  deletePasskey(credentialId: String!): Boolean! @authorized
+}
+
+input SignUpInput {
+  name: String!
+  username: String!
+  password: String!
+}
+
+type SignUpPayload {
+  user: User!
+  session: String!
+  refreshToken: String!
+}
+
+input SignInInput {
+  username: String!
+  password: String!
+}
+
+type SignInPayload {
+  user: User!
+  session: String!
+  refreshToken: String!
+}
+
+input SignInWithPassKeyInput {
+  challenge: String!
+  credentialId: String!
+  assertionResponse: String!
+}
+
+input RegisterPasskeyInput {
+  challenge: String!
+  attestationResponse: String!
+  deviceName: String
+}

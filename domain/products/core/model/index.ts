@@ -1,0 +1,1 @@
+export { ProductRules } from "./product.model";

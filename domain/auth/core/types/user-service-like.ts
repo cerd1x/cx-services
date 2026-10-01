@@ -1,0 +1,9 @@
+import type { User } from "../../../user/adapters/driven/drizzle/user.entity";
+import { ID } from "$services/shared/kernel";
+
+export interface UserServiceLike {
+  createUser(name: string, username: string, password: string): Promise<User>;
+  userByUsername(username: string): Promise<User>;
+  user(id: ID): Promise<User>;
+  deleteUser(userId: ID): Promise<boolean>;
+}

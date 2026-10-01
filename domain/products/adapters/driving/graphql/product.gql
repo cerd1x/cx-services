@@ -1,0 +1,50 @@
+type Query {
+  product(id: String!): Product @authorized
+  products: [Product!]! @authorized
+}
+
+type Mutation {
+  createProduct(input: CreateProductInput!): Product! @authorized
+  updateProduct(id: String!, input: UpdateProductInput!): Product! @authorized
+  deleteProduct(id: String!): Boolean! @authorized
+  importProductFromCSV(content: String!, filename: String!): ImportProductResult! @authorized
+}
+
+type ImportProductResult {
+  imported: Int!
+  failed: Int!
+  merged: Int!
+}
+
+input CreateProductInput {
+  name: String!
+  description: String
+  price: Float!
+  capital: Float
+  stock: Int
+  trackStock: Boolean
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  price: Float
+  capital: Float
+  currency: String
+  stock: Int
+  trackStock: Boolean
+}
+
+type Product {
+  id: ID
+  name: String!
+  description: String
+  price: Float!
+  capital: Float
+  margin: Float!
+  currency: String!
+  stock: Int!
+  trackStock: Boolean!
+  createdAt: DateTime
+  updatedAt: DateTime
+}

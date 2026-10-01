@@ -1,0 +1,117 @@
+type Query {
+  transaction(id: String!): Transaction @authorized
+  transactions: [Transaction!]! @authorized
+  # Keyset paginated list, ordered by createdAt DESC, id DESC (newest first).
+  # Forward: (first, after)  Backward: (last, before)
+  transactionConnection(
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): TransactionConnection! @authorized
+  transactionsByType(type: TransactionType!): [Transaction!]! @authorized
+  transactionsByDateRange(start: DateTime!, end: DateTime!): [Transaction!]! @authorized
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
+}
+
+type TransactionConnection {
+  edges: [TransactionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Mutation {
+  createTransaction(input: CreateTransactionInput!): Transaction! @authorized
+  updateTransaction(id: ID!, input: UpdateTransactionInput!): Transaction! @authorized
+  deleteTransaction(id: ID!): Boolean! @authorized
+  swapBalance(fromAssetId: ID!, toAssetId: ID!, amount: String!): SwapBalanceResult! @authorized
+}
+
+type SwapBalanceResult {
+  from: Asset!
+  to: Asset!
+}
+
+enum TransactionType {
+  income
+  expense
+  transfer
+  outcome
+  cash
+}
+
+input PaymentMethodInput {
+  type: PaymentMethodType!
+  assetId: ID
+}
+
+input CreateTransactionInput {
+  type: TransactionType!
+  amount: String!
+  capital: String!
+  date: DateTimeOrTimestamp!
+  description: String
+  category: String
+  paymentMethod: PaymentMethodInput
+  customerId: ID!
+  status: TransactionStatus
+  payWithAssetId: ID
+  payToAssetId: ID
+}
+
+input UpdateTransactionInput {
+  type: TransactionType
+  amount: String
+  capital: String
+  date: DateTimeOrTimestamp
+  description: String
+  category: String
+  paymentMethod: PaymentMethodInput
+  customerId: ID!
+}
+
+type PaymentMethod {
+  type: PaymentMethodType!
+  assetId: ID
+}
+
+enum PaymentMethodType {
+  cash
+  bank_transfer
+  ewallet
+  credit_card
+  debit_card
+  credit
+}
+
+type Transaction {
+  id: ID!
+  type: TransactionType!
+  status: TransactionStatus!
+
+  #string of ISOCODE + VALUE
+  amount: String!
+  capital: String!
+  description: String
+  category: String
+  paymentMethod: PaymentMethod!
+  customerId: ID
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+enum TransactionStatus {
+  pending
+  success
+  failed
+}

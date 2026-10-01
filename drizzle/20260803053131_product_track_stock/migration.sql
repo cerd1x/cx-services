@@ -1,0 +1,1 @@
+ALTER TABLE `product` ADD `track_stock` integer DEFAULT 1 NOT NULL;

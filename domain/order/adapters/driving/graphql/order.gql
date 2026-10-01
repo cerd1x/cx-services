@@ -1,0 +1,74 @@
+type Query {
+  order(id: String!): Order @authorized
+  orders: [Order!]! @authorized
+}
+
+type Mutation {
+  createOrder(input: CreateOrderInput!): Order! @authorized
+  updateOrder(id: String!, input: UpdateOrderInput!): Order! @authorized
+  deleteOrder(id: String!): Boolean! @authorized
+  createOrderProductSale(input: CreateOrderProductSaleInput!): Order! @authorized
+  createOrderExpense(input: CreateOrderExpenseInput!): Order! @authorized
+  createOrderLoan(input: CreateOrderLoanInput!): Order! @authorized
+}
+
+input CreateOrderProductSaleInput {
+  productId: ID!
+  itemCount: Int!
+  totalAmount: Float!
+  currency: String!
+  paymentMethod: String
+  customerId: ID
+  description: String
+  payToAssetId: ID
+}
+
+input CreateOrderExpenseInput {
+  totalAmount: Float!
+  currency: String!
+  itemCount: Int!
+  description: String
+  customerId: String
+  paymentMethod: String
+  payWithAssetId: ID
+}
+
+input CreateOrderInput {
+  totalAmount: Float!
+  currency: String!
+  itemCount: Int!
+  paymentMethod: String
+  description: String
+  customerId: String
+}
+
+input CreateOrderLoanInput {
+  totalAmount: Float!
+  currency: String!
+  itemCount: Int!
+  paymentMethod: String
+  customerId: ID
+  description: String
+  payWithAssetId: ID
+}
+
+input UpdateOrderInput {
+  status: String
+  paymentMethod: String
+  description: String
+  customerId: String
+}
+
+type Order {
+  id: ID
+  userId: ID
+  status: String!
+  paymentMethod: String!
+  totalAmount: Float!
+  currency: String!
+  itemCount: Int!
+  description: String
+  customerId: ID
+  createdAt: DateTime
+  updatedAt: DateTime
+}

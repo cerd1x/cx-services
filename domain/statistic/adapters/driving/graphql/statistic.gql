@@ -1,0 +1,12 @@
+type Query {
+  statistics: Statistic! @authorized
+}
+
+type Statistic {
+  totalIncome: Float!
+  totalExpense: Float!
+  totalProfit: Float!
+  totalLoan: Float!
+  totalCash: Float!
+  totalAsset: Float!
+}

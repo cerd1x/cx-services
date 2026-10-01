@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext"],
+    "types": ["node", "bun-types", "@cloudflare/workers-types"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "noEmit": true,
+    "paths": {
+      "$services": ["./"],
+      "$services/*": ["./*"],
+      "$config": ["./app.config.ts"],
+      "$gql": ["./shared/infra/graphql/types"],
+      "$gql/*": ["./shared/infra/graphql/types/*"]
+    }
+  },
+  "include": [
+    "./**/*.ts",
+    "./app.config.ts",
+    "./drizzle.config.ts",
+    "./codegen.ts"
+  ],
+  "exclude": ["node_modules", "build", "drizzle"]
+}

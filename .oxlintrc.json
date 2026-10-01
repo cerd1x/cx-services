@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["unicorn", "typescript", "oxc", "eslint"],
+  "options": {
+    "typeAware": false,
+    "typeCheck": false
+  },
+  "ignorePatterns": ["node_modules", "build", ".wrangler", "drizzle", ".idea"],
+  "rules": {
+    "typescript/await-thenable": "off"
+  }
+}

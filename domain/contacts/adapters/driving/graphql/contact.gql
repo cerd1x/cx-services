@@ -1,0 +1,76 @@
+type Query {
+  contact(id: String!): Contact @authorized
+  contacts: [Contact!]! @authorized
+  # Keyset paginated list, ordered by id DESC (newest first).
+  # Forward: (first, after)  Backward: (last, before)
+  contactConnection(
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): ContactConnection! @authorized
+}
+
+type ContactEdge {
+  cursor: String!
+  node: Contact!
+}
+
+type ContactConnection {
+  edges: [ContactEdge!]!
+  pageInfo: PageInfo!
+}
+
+type Mutation {
+  createContact(input: CreateContactInput!): Contact! @authorized
+  updateContact(id: String!, input: UpdateContactInput!): Contact! @authorized
+  deleteContact(id: String!): Boolean! @authorized
+  importContacts(content: String!, filename: String!): ImportResult! @authorized
+  mergeContacts(phone: String!): MergeResult! @authorized
+}
+
+type ImportResult {
+  imported: Int!
+  failed: Int!
+  merged: Int!
+}
+
+type MergeResult {
+  merged: Int!
+  primary: Contact!
+}
+
+input CreateContactInput {
+  name: String!
+  # jika userId tidak di isi pastikan
+  # user sudah memiliki credential ,atau cookie
+  userId: ID
+  email: String
+  phone: String
+  phones: [String!]
+  group: String
+  avatar: String
+}
+
+input UpdateContactInput {
+  name: String
+  email: String
+  phone: String
+  phones: [String!]
+  group: String
+}
+
+type Contact {
+  id: ID! @authorized
+  userId: ID! @authorized
+  name: String!
+  email: String @authorized
+  # nomor utama (pertama) — kompatibilitas format lama
+  phone: String @authorized
+  # semua nomor yang dimiliki (maks 10)
+  phones: [String!] @authorized
+  group: String @authorized
+  avatar: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}

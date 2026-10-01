@@ -1,0 +1,107 @@
+type Query {
+  payment(id: ID!): Payment @authorized
+  payments: [Payment!]! @authorized
+  paymentsByStatus(status: PaymentStatusEnum!): [Payment!]! @authorized
+  invoice(id: ID!): Invoice @authorized
+  invoices: [Invoice!]! @authorized
+  invoicesByStatus(status: InvoiceStatusEnum!): [Invoice!]! @authorized
+}
+
+type Mutation {
+  processPayment(input: ProcessPaymentInput!): Payment! @authorized
+  retryPayment(paymentId: ID!): Payment! @authorized
+  createInvoice(input: CreateInvoiceInput!): Invoice! @authorized
+  issueInvoice(id: ID!): Invoice! @authorized
+  cancelInvoice(id: ID!): Invoice! @authorized
+}
+
+enum PaymentStatusEnum {
+  pending
+  processing
+  completed
+  failed
+  refunded
+  cancelled
+}
+
+enum InvoiceStatusEnum {
+  draft
+  issued
+  paid
+  partially_paid
+  overdue
+  cancelled
+}
+
+enum PaymentMethodEnum {
+  cash
+  bank_transfer
+  ewallet
+  credit_card
+  debit_card
+  credit
+}
+
+type Payment {
+  id: ID!
+  userId: ID!
+  invoiceId: ID
+  amount: Float!
+  currency: String!
+  method: PaymentMethodEnum!
+  status: PaymentStatusEnum!
+  gatewayRef: String
+  description: String
+  retryCount: Int!
+  maxRetries: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type InvoiceItem {
+  description: String!
+  quantity: Int!
+  unitPrice: Float!
+}
+
+type Invoice {
+  id: ID!
+  userId: ID!
+  invoiceNumber: String!
+  customerId: ID
+  items: [InvoiceItem!]!
+  subtotal: Float!
+  tax: Float!
+  totalAmount: Float!
+  currency: String!
+  status: InvoiceStatusEnum!
+  issuedAt: DateTime
+  dueAt: DateTime
+  paidAt: DateTime
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+input ProcessPaymentInput {
+  amount: Float!
+  currency: String!
+  method: PaymentMethodEnum!
+  invoiceId: ID
+  description: String
+}
+
+input InvoiceItemInput {
+  description: String!
+  quantity: Int!
+  unitPrice: Float!
+}
+
+input CreateInvoiceInput {
+  customerId: ID
+  items: [InvoiceItemInput!]!
+  currency: String!
+  tax: Float
+  dueAt: DateTimeOrTimestamp
+  description: String
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "cx-services",
+  "main": "./build/worker.js",
+  "no_bundle": true,
+  "compatibility_date": "2026-07-17",
+  "compatibility_flags": ["nodejs_als", "nodejs_compat"],
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "CX_DB",
+      "database_name": "cxapp-db",
+      "database_id": "227f06fb-c27e-4f9c-bf8a-d2aae1fbb822",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "r2_buckets": [{ "binding": "BETA_REPORT_R2", "bucket_name": "cxapp-beta-reports" }],
+  "vars": {
+    "NODE_ENV": "production",
+    "GQL_PATH": "/graphql",
+    "LOGGER_DIR": ".logger-file"
+  }
+}

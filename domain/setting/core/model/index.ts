@@ -1,0 +1,1 @@
+export { SettingRules } from "./setting.model";

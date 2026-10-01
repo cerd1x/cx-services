@@ -1,0 +1,58 @@
+type Query {
+  assets: [Asset!]! @authorized
+  asset(name: String!): Asset @authorized
+  assetById(id: ID!): Asset @authorized
+  assetMutations(assetId: ID!): [AssetMutationType!]! @authorized
+}
+
+type Mutation {
+  createAsset(input: CreateAssetInput!): Asset! @authorized
+  updateAsset(id: ID!, input: AssetInputUpdate!): Asset! @authorized
+  deleteAsset(name: String!): Boolean! @authorized
+  addBalance(assetId: ID!, amount: String!): Asset! @authorized
+  subtractBalance(assetId: ID!, amount: String!): Asset! @authorized
+}
+
+input CreateAssetInput {
+  name: String!
+  type: AssetType!
+  ## format ISO CODE + VAlUE
+  # example:
+  #   balance = "IDR 20.000" or
+  #   balance = "IDR 20000"
+  balance: String!
+}
+
+input AssetInputUpdate {
+  name: String
+  type: AssetType
+  ## format ISO CODE + VAlUE
+  balance: String
+  currency: String
+}
+
+enum AssetType {
+  bank
+  ewallet
+  cash
+  crypto
+  loan
+}
+
+type Asset {
+  id: ID!
+  name: String!
+  type: AssetType!
+  balance: String!
+}
+
+type AssetMutationType {
+  id: ID!
+  type: String!
+  amount: Float!
+  currency: String!
+  balanceBefore: String!
+  balanceAfter: String!
+  description: String
+  createdAt: String!
+}

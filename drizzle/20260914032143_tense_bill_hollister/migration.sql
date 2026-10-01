@@ -1,0 +1,1 @@
+ALTER TABLE `setting` ADD `date_format` text(30) DEFAULT 'd MMM yyyy, HH:mm' NOT NULL;
