@@ -1,0 +1,1 @@
+CREATE INDEX `transaction_user_id_created_at_id_idx` ON `transaction` (`user_id`,`created_at`,`id`);
