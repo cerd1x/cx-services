@@ -4,13 +4,14 @@ import {
   betaReportStore,
   isBetaReportAdmin,
 } from "./shared/infra/beta-report";
-import type { BetaReportFile, BetaReportMeta, BetaReportPayload } from "./shared/infra/beta-report";
+import type {
+  BetaReportFile,
+  BetaReportMeta,
+  BetaReportPayload,
+} from "./shared/infra/beta-report";
 import { appConfigs, corsOrigins } from "./app.config";
 
-const l = streamLog(Logger.create(LogLevel.Info, `${appConfigs.logger.dir}/app.log`)).child(
-  "ApiServer",
-);
-
+const l = streamLog(Logger.fromConfig(appConfigs.logger)).child("ApiServer");
 
 let _app: any = null;
 
@@ -52,7 +53,10 @@ function isBetaReportAdminRequest(request: Request): boolean {
   return isBetaReportAdmin(request, appConfigs.betaReport.adminToken);
 }
 
-function resolveBetaReportKey(id: string | undefined, items: BetaReportMeta[]): string | null {
+function resolveBetaReportKey(
+  id: string | undefined,
+  items: BetaReportMeta[],
+): string | null {
   if (!id) return null;
   if (id.includes("/")) return id;
   return items.find((m) => m.id === id)?.key ?? null;
@@ -62,7 +66,8 @@ async function getApp() {
   if (_app) return _app;
   const { Elysia } = await import("elysia");
   const { cors } = await import("@elysiajs/cors");
-  const { gqlYogaAsPluginElysia } = await import("./shared/infra/graphql/yoga-server");
+  const { gqlYogaAsPluginElysia } =
+    await import("./shared/infra/graphql/yoga-server");
   const { rateLimit } = await import("elysia-rate-limit");
   _app = new Elysia({
     /**
@@ -97,16 +102,30 @@ async function getApp() {
       rateLimit({
         max: 60,
         duration: 60_000,
-        errorResponse: new Response(JSON.stringify({ error: "Too many requests" }), {
-          status: 429,
-          headers: { "Content-Type": "application/json" },
-        }),
+        errorResponse: new Response(
+          JSON.stringify({ error: "Too many requests" }),
+          {
+            status: 429,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+        // Di development (bukan production), nonaktifkan rate-limit
+        // untuk menghindari warning "failed to determine client address"
+        // ketika request datang dari local server tanpa header address.
+        skip: (ctx: any) => {
+          if (appConfigs.isProduction) return false;
+          // Nonaktifkan di dev
+          return true;
+        },
       }),
     )
     .get("/", () => {
       return "🦊 Cerdix API Server Running";
     })
-    .get("/health", () => ({ status: "ok", timestamp: new Date().toISOString() }))
+    .get("/health", () => ({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+    }))
     .post("/beta/report", receiveBetaReport)
     .post("/api/beta/report", receiveBetaReport)
     .get("/beta/report/list", async ({ request, set }: any) => {
@@ -122,7 +141,10 @@ async function getApp() {
         set.status = 401;
         return { error: "Unauthorized" };
       }
-      const key = resolveBetaReportKey(params?.id, await betaReportStore.list());
+      const key = resolveBetaReportKey(
+        params?.id,
+        await betaReportStore.list(),
+      );
       if (!key) {
         set.status = 404;
         return { error: "Not found" };
@@ -172,7 +194,11 @@ async function getApp() {
         set.status = 500;
         return { status: "error", reason: result.reason };
       }
-      return { status: "sent", count: files.length, messageId: result.messageId };
+      return {
+        status: "sent",
+        count: files.length,
+        messageId: result.messageId,
+      };
     })
     .use(gqlYogaAsPluginElysia({ logging: true }));
   return _app;

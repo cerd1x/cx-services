@@ -61,6 +61,25 @@ export class Logger {
     return new Logger(level, logFile, name);
   }
 
+  /**
+   * Buat Logger dari `appConfigs.logger`.
+   *
+   * `output` mendukung:
+   * - `"console"` — hanya ke console
+   * - `"file"` — hanya ke file (path di `dir`)
+   * - `"console|file"` atau `"file|console"` — ke console DAN ke file
+   *
+   * Default `"console"`.
+   */
+  static fromConfig(config: { output?: string; dir?: string }): Logger {
+    const output = (config.output ?? "console").toLowerCase();
+    const isFile = output.includes("file");
+    const isConsole = output.includes("console") || !isFile;
+    const logFile = isFile ? `${config.dir ?? ".logger-file"}/app.log` : undefined;
+    const logger = new Logger(LogLevel.Info, logFile, undefined);
+    return logger;
+  }
+
   private constructor(level?: LogLevel, logFile?: string, name?: string) {
     this.#level = level ?? LogLevel.Info;
     this.#logFile = process.env.NODE_ENV === "production" ? null : (logFile ?? null);
@@ -84,14 +103,23 @@ export class Logger {
   static #pathLazy: { dirname: Function } | null = null;
   static #canWriteFile = true;
 
-  async #ensureFs() {
+  async #ensureFs(logFile?: string) {
     if (!Logger.#canWriteFile) return;
     if (Logger.#fsLazy && Logger.#pathLazy) return;
     try {
       const [fsMod, pathMod] = await Promise.all([import("fs"), import("path")]);
       // Cloudflare Workers (nodejs_compat) mengekspos API `fs`, tetapi operasi
-      // tulis meledak (EPERM). `existsSync` tidak pernah throw, jadi periksa hasil.
-      if (!fsMod.existsSync("/")) {
+      // tulis/mkdir meledak (EPERM). Probe capability terhadap direktori log
+      // yang benar-benar dipakai (bukan /tmp, yang selalu writable di workerd).
+      // Jika gagal, disable permanen untuk process ini.
+      const testDir = logFile ? pathMod.dirname(logFile) : "/tmp";
+      const probeDir = testDir && testDir !== "." ? testDir : "/tmp";
+      const testFile = pathMod.join(probeDir, "__cf_write_test__");
+      try {
+        if (!fsMod.existsSync(probeDir)) fsMod.mkdirSync(probeDir, { recursive: true });
+        fsMod.writeFileSync(testFile, "test");
+        fsMod.unlinkSync(testFile);
+      } catch {
         Logger.#canWriteFile = false;
         return;
       }
@@ -112,7 +140,7 @@ export class Logger {
     if (process.env.NODE_ENV === "production") return;
     const logLine = formatLog(level, args, this.#name ?? undefined);
     try {
-      await this.#ensureFs();
+      await this.#ensureFs(this.#logFile ?? undefined);
       if (!Logger.#canWriteFile || !Logger.#fsLazy || !Logger.#pathLazy) return;
       const fs = Logger.#fsLazy;
       const path = Logger.#pathLazy;

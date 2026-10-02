@@ -41,6 +41,19 @@ export const logger = streamLog(
 ).child("AuthService");
 ```
 
+### Konfigurasi via `appConfigs.logger` (recommended)
+
+```ts
+import { Logger } from "$services/shared/infra/logger";
+import { appConfigs } from "./app.config";
+
+// Otomatis baca `appConfigs.logger.output` dan `appConfigs.logger.dir`
+// output: "console" | "file" | "console|file"
+export const logger = streamLog(
+  Logger.fromConfig(appConfigs.logger),
+).child("MyService");
+```
+
 Pakai di service dengan decorator `@logMethod`:
 
 ```ts
@@ -204,9 +217,12 @@ logYogaFetch(yoga); // [HTTP → POST] enter: {url} → result {status} ({ms})
 
 ## API reference
 
-| API                        | Keterangan                                            |
-| -------------------------- | ----------------------------------------------------- |
-| `streamLog(logger)`           | Buat StreamLogger + `treeSink(logger)`               |
+| API                              | Keterangan                                            |
+| -------------------------------- | ----------------------------------------------------- |
+| `Logger.fromConfig(config)`    | Buat Logger dari `{ output, dir }` (console|file) |
+| `Logger.create(level, logFile, name)` | Buat Logger dengan file path (legacy)   |
+| `Logger.getInstance(level, logFile, name)` | Singleton Logger (legacy)        |
+| `streamLog(logger)`            | Buat StreamLogger + `treeSink(logger)`              |
 | `StreamLogger.from(sinks)` | Buat StreamLogger kosong dengan daftar sink           |
 | `.child(name)`             | Turunkan namespace (immutable)                        |
 | `.pipe(sink)`              | Forward entry ke sink tambahan (immutable)            |
