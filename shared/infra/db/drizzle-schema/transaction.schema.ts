@@ -8,9 +8,12 @@ export const transactionTable = sqliteTable("transaction", {
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
   type: text("type", { enum: ["income", "expense", "transfer", "outcome"] }).notNull(),
-  status: text("status", { enum: ["pending", "success", "failed"] })
+status: text("status", { enum: ["pending", "success", "failed"] })
     .notNull()
     .default("pending"),
+  paymentStatus: text("payment_status", { enum: ["paid", "unpaid"] })
+    .notNull()
+    .default("unpaid"),
   paymentMethod: text("payment_method").notNull().default('{"type":"cash"}'),
   customerId: integer("customer_id"),
   amount: text("amount").notNull(),

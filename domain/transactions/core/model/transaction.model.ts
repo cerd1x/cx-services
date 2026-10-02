@@ -39,6 +39,15 @@ const paymentMethodTypeSchema = z.enum([
   "credit",
 ]);
 
+const PaymentStatus = {
+  paid: "paid",
+  unpaid: "unpaid",
+} as const;
+
+type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
+
+const paymentStatusSchema = z.enum(["paid", "unpaid"]);
+
 export const paymentMethodSchema = z.object({
   type: paymentMethodTypeSchema,
   assetId: z.number().optional(),
@@ -80,6 +89,7 @@ export class Transaction {
   userId?: number;
   type!: TransactionType;
   status: TransactionStatus = "pending";
+  paymentStatus: "paid" | "unpaid" = "unpaid";
   paymentMethod: PaymentMethod = { type: "cash" };
   customerId?: number;
   amount!: Balance;
@@ -99,6 +109,7 @@ export class Transaction {
     description?: string;
     category?: string;
     status?: TransactionStatus;
+    paymentStatus?: Transaction["paymentStatus"];
     paymentMethod?: PaymentMethod;
     customerId?: number;
     id?: number;
@@ -112,6 +123,7 @@ export class Transaction {
     this.description = data.description;
     this.category = data.category;
     if (data.status) this.status = data.status;
+    if (data.paymentStatus) this.paymentStatus = data.paymentStatus;
     if (data.paymentMethod) this.paymentMethod = data.paymentMethod;
     this.customerId = data.customerId;
     this.id = data.id ? ID.new(data.id) : undefined;
