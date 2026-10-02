@@ -15,22 +15,13 @@ export type YogaFetch = (
 ) => Response | Promise<Response>;
 
 export function logYogaFetch(fetchFn: YogaFetch): YogaFetch {
-  return (request, extra) => {
+  return async (request, extra) => {
     const start = Date.now();
     const log = httpStream.child(request.method);
     log.info("enter:", request.url);
 
     try {
-      const res = fetchFn(request, extra);
-
-      if (res instanceof Promise) {
-        return res.then((r) => {
-          log.success(`result ${r.status} (${Date.now() - start}ms)`);
-          return r;
-        });
-      }
-
-      log.success(`result ${res.status} (${Date.now() - start}ms)`);
+      const res = await fetchFn(request, extra);
       return res;
     } catch (err) {
       log.error("error:", err);

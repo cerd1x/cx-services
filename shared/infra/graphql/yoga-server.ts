@@ -49,7 +49,8 @@ import type { YogaContext } from "./yoga-context";
 import { ServiceError } from "$services/shared/kernel/errors/service-error";
 import type { Elysia } from "elysia";
 import { depthLimitRule, noIntrospectionInProductionRule } from "./security-rules";
-import { logYogaFetch, withResolverLogging } from "./graphql-stream";
+import { appConfigs } from "$config";
+import { withResolverLogging } from "./graphql-stream";
 import { Logger, LogLevel, streamLog } from "$services/shared/infra/logger";
 
 const scalarTypeDefs = `scalar DateTime
@@ -128,7 +129,7 @@ const yoga = createYoga<YogaContext, YogaContext>({
         if (process.env.NODE_ENV !== "development") {
           addValidationRule(noIntrospectionInProductionRule());
         }
-        addValidationRule(depthLimitRule());
+        addValidationRule(depthLimitRule(appConfigs.graphql.maxDepth));
       },
     },
   ],
@@ -153,13 +154,16 @@ const yoga = createYoga<YogaContext, YogaContext>({
   },
 });
 
-const loggedYogaFetch = logYogaFetch(yoga as unknown as (request: Request, extra?: Record<string, unknown>) => Response | Promise<Response>);
+const _yogaFetch = yoga.fetch.bind(yoga) as (
+  request: Request,
+  extra?: Record<string, unknown>,
+) => Response | Promise<Response>;
 
 export function yogaFetch(
   request: Request,
   extra?: Record<string, unknown>,
 ): Promise<Response> | Response {
-  return loggedYogaFetch(request, extra ?? {});
+  return _yogaFetch(request, extra ?? {});
 }
 
 type GqlYogaPluginOptions = {
@@ -173,8 +177,34 @@ export const gqlYogaAsPluginElysia = (opts: GqlYogaPluginOptions = {}) => {
 
   return (app: Elysia) =>
     app
-      .get(path, async ({ request, cookie }) => yogaFetch(request, { cookie }))
-      .post(path, async ({ request, cookie }) => yogaFetch(request, { cookie }), { parse: "none" });
+      .get(path, async ({ request, cookie }) => {
+        // Teruskan Response yoga apa adanya: Content-Type GraphiQL (text/html)
+        // harus dipertahankan, dan body tidak boleh di-buffer.
+        return yoga.fetch(request);
+      })
+      .post(path, async ({ request, body }: any) => {
+        // `aot: false` memakai dynamic-handle Elysia yang TIDAK menghormati
+        // `parse: "none"`: hook parse `none` dilewati, lalu fallback
+        // `switch (contentType)` tetap menjalankan `request.json()`, sehingga
+        // stream body terkunci dan yoga gagal dengan
+        // "This ReadableStream is currently locked to a reader.".
+        // Solusinya: kirim Request baru ke yoga dari body yang sudah di-parse.
+        const payload = request.bodyUsed
+          ? typeof body === "string"
+            ? body
+            : body === undefined
+              ? ""
+              : JSON.stringify(body)
+          : await request.text();
+        const res = await yoga.fetch(
+          new Request(request.url, {
+            method: "POST",
+            headers: request.headers,
+            body: payload,
+          }),
+        );
+        return res;
+      }, { parse: "none" });
 };
 
 export { yoga };

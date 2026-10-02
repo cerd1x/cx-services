@@ -16,6 +16,11 @@ function toList(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
+function toInt(value: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 export const appConfigs = {
   env: env.NODE_ENV ?? "development",
   isProduction: isProd,
@@ -32,8 +37,22 @@ export const appConfigs = {
     url: env.DATABASE_URL ?? "local.db",
     password: env.DATABASE_PASSWORD ?? "",
   },
+  graphql: {
+    /** Batas kedalaman query GraphQL (field selection set tersarang).
+     *  Schema memakai Relay-style pagination, jadi tiap relasi menambah
+     *  ~2–3 level. ENV: GQL_MAX_DEPTH
+     */
+    maxDepth: toInt(env.GQL_MAX_DEPTH, 20),
+  },
   logger: {
+    /** Logger output mode:
+     * - "console" → hanya ke console (default)
+     * - "file" → hanya ke file (di dir)
+     * - "console|file" atau "file|console" → console DAN file
+     * ENV: LOGGER_OUTPUT
+     */
     dir: env.LOGGER_DIR ?? ".logger-file",
+    output: env.LOGGER_OUTPUT ?? "console",
   },
   cookie: {
     sessionKey: "__sst__",

@@ -2,7 +2,7 @@ import type { ValidationRule } from "graphql";
 import { GraphQLError } from "graphql";
 import { Kind, type ASTVisitor } from "graphql";
 
-const MAX_DEPTH = 10;
+const MAX_DEPTH = 20;
 
 export function depthLimitRule(maxDepth: number = MAX_DEPTH): ValidationRule {
   return (context) => {
