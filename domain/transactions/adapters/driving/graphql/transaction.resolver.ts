@@ -21,6 +21,7 @@ const mapTx = (txinp: Transaction): TxType => {
     capital: txinp.capital.toString(),
     type: txinp.type as TransactionType,
     status: txinp.status as TransactionStatus,
+    paymentStatus: txinp.paymentStatus as TxType["paymentStatus"],
     paymentMethod: {
       type: txinp.paymentMethod.type as TxType["paymentMethod"]["type"],
       assetId: txinp.paymentMethod.assetId?.toString() ?? null,
@@ -86,6 +87,7 @@ const resolvers: Resolvers<YogaContext> = {
           paymentMethod,
           customerId,
           status,
+          paymentStatus,
           payWithAssetId,
           payToAssetId,
         },
@@ -107,6 +109,7 @@ const resolvers: Resolvers<YogaContext> = {
           : undefined,
         customerId: customerId ? ID.new(customerId).toNumb : undefined,
         status: status as TransactionStatus | undefined,
+        paymentStatus: paymentStatus ?? undefined,
         userId: userAuth!.id.toNumb,
         payWithAssetId: payWithAssetId ? ID.new(payWithAssetId).toNumb : undefined,
         payToAssetId: payToAssetId ? ID.new(payToAssetId).toNumb : undefined,
@@ -129,6 +132,7 @@ const resolvers: Resolvers<YogaContext> = {
               }
             : undefined,
           customerId: input.customerId ? ID.new(input.customerId).toNumb : undefined,
+          paymentStatus: input.paymentStatus ?? undefined,
         },
         userAuth!.id,
       );

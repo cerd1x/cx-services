@@ -17,6 +17,7 @@ export type TransactionInput = {
   paymentMethod?: PaymentMethod;
   customerId?: number;
   status?: "pending" | "success" | "failed";
+  paymentStatus?: "paid" | "unpaid";
   userId?: number;
   payWithAssetId?: number;
   payToAssetId?: number;

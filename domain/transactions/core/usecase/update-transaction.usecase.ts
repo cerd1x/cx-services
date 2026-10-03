@@ -32,6 +32,7 @@ export class UpdateTransactionUseCase extends CoreUsecase<TransactionType, Updat
       };
     if (data.description !== undefined) existing.description = data.description;
     if (data.status !== undefined) existing.status = data.status;
+    if (data.paymentStatus !== undefined) existing.paymentStatus = data.paymentStatus;
     if (data.customerId !== undefined) existing.customerId = data.customerId;
 
     existing.validateAll();

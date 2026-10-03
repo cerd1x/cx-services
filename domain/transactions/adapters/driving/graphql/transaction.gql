@@ -65,6 +65,7 @@ input CreateTransactionInput {
   paymentMethod: PaymentMethodInput
   customerId: ID!
   status: TransactionStatus
+  paymentStatus: TransactionPaymentStatus
   payWithAssetId: ID
   payToAssetId: ID
 }
@@ -78,6 +79,7 @@ input UpdateTransactionInput {
   category: String
   paymentMethod: PaymentMethodInput
   customerId: ID!
+  paymentStatus: TransactionPaymentStatus
 }
 
 type PaymentMethod {
@@ -98,6 +100,7 @@ type Transaction {
   id: ID!
   type: TransactionType!
   status: TransactionStatus!
+  paymentStatus: TransactionPaymentStatus!
 
   #string of ISOCODE + VALUE
   amount: String!
@@ -114,4 +117,9 @@ enum TransactionStatus {
   pending
   success
   failed
+}
+
+enum TransactionPaymentStatus {
+  paid
+  unpaid
 }

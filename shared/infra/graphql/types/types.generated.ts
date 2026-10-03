@@ -159,6 +159,7 @@ export type CreateTransactionInput = {
   payToAssetId?: InputMaybe<Scalars['ID']['input']>;
   payWithAssetId?: InputMaybe<Scalars['ID']['input']>;
   paymentMethod?: InputMaybe<PaymentMethodInput>;
+  paymentStatus?: InputMaybe<TransactionPaymentStatus>;
   status?: InputMaybe<TransactionStatus>;
   type: TransactionType;
 };
@@ -791,6 +792,7 @@ export type Transaction = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   paymentMethod: PaymentMethod;
+  paymentStatus: TransactionPaymentStatus;
   status: TransactionStatus;
   type: TransactionType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -807,6 +809,11 @@ export type TransactionEdge = {
   cursor: Scalars['String']['output'];
   node: Transaction;
 };
+
+export enum TransactionPaymentStatus {
+  Paid = 'paid',
+  Unpaid = 'unpaid'
+}
 
 export enum TransactionStatus {
   Failed = 'failed',
@@ -861,6 +868,7 @@ export type UpdateTransactionInput = {
   date?: InputMaybe<Scalars['DateTimeOrTimestamp']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   paymentMethod?: InputMaybe<PaymentMethodInput>;
+  paymentStatus?: InputMaybe<TransactionPaymentStatus>;
   type?: InputMaybe<TransactionType>;
 };
 
@@ -1010,6 +1018,7 @@ export type ResolversTypes = {
   Transaction: ResolverTypeWrapper<Transaction>;
   TransactionConnection: ResolverTypeWrapper<TransactionConnection>;
   TransactionEdge: ResolverTypeWrapper<TransactionEdge>;
+  TransactionPaymentStatus: TransactionPaymentStatus;
   TransactionStatus: TransactionStatus;
   TransactionType: TransactionType;
   UpdateContactInput: UpdateContactInput;
@@ -1379,6 +1388,7 @@ export type TransactionResolvers<ContextType = any, ParentType extends Resolvers
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   paymentMethod?: Resolver<ResolversTypes['PaymentMethod'], ParentType, ContextType>;
+  paymentStatus?: Resolver<ResolversTypes['TransactionPaymentStatus'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['TransactionStatus'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['TransactionType'], ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;

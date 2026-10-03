@@ -19,6 +19,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         userId: transaction.userId!,
         type: transaction.type,
         status: transaction.status,
+        paymentStatus: transaction.paymentStatus,
         paymentMethod: JSON.stringify(transaction.paymentMethod),
         customerId: transaction.customerId ?? null,
         amount: `${transaction.amount.code} ${transaction.amount.value}`,
@@ -40,6 +41,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
       userId: row.userId ?? undefined,
       type: row.type as Transaction["type"],
       status: row.status as Transaction["status"],
+      paymentStatus: row.paymentStatus as Transaction["paymentStatus"],
       paymentMethod:
         typeof row.paymentMethod === "string" ? JSON.parse(row.paymentMethod) : row.paymentMethod,
       customerId: row.customerId ?? undefined,
@@ -171,6 +173,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         userId: transaction.userId!,
         type: transaction.type,
         status: transaction.status,
+        paymentStatus: transaction.paymentStatus,
         paymentMethod: JSON.stringify(transaction.paymentMethod),
         customerId: transaction.customerId ?? null,
         amount: `${transaction.amount.code} ${transaction.amount.value}`,

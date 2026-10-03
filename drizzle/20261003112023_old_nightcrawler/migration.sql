@@ -1,0 +1,1 @@
+ALTER TABLE `transaction` ADD `payment_status` text DEFAULT 'unpaid' NOT NULL;

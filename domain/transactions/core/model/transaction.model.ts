@@ -60,6 +60,7 @@ export const transactionSchema = z.object({
   userId: z.number().optional(),
   type: z.enum(["income", "expense", "transfer", "outcome"]),
   status: z.enum(["pending", "success", "failed"]).default("pending"),
+  paymentStatus: paymentStatusSchema.default("unpaid"),
   paymentMethod: paymentMethodSchema.default({ type: "cash" }),
   customerId: z.number().optional(),
   amount: z.number().positive("Amount must be positive"),
@@ -74,7 +75,13 @@ export type TransactionData = z.infer<typeof transactionSchema>;
 export type TransactionUpdateData = Partial<
   Pick<
     TransactionData,
-    "type" | "status" | "paymentMethod" | "description" | "category" | "customerId"
+    | "type"
+    | "status"
+    | "paymentStatus"
+    | "paymentMethod"
+    | "description"
+    | "category"
+    | "customerId"
   >
 >;
 
@@ -144,6 +151,7 @@ export class Transaction {
     description?: string;
     category?: string;
     status?: TransactionStatus;
+    paymentStatus?: Transaction["paymentStatus"];
     paymentMethod?: PaymentMethod;
     customerId?: number;
   }): Transaction {
@@ -206,6 +214,14 @@ export class Transaction {
     return this;
   }
 
+  validatePaymentStatus(): Transaction {
+    const result = paymentStatusSchema.safeParse(this.paymentStatus);
+    if (!result.success) {
+      throw new Error(result.error.issues.map((i) => i.message).join(", "));
+    }
+    return this;
+  }
+
   validatePaymentMethod(): Transaction {
     const result = paymentMethodSchema.safeParse(this.paymentMethod);
     if (!result.success) {
@@ -219,6 +235,7 @@ export class Transaction {
       .validateDescription()
       .validateCategory()
       .validateStatus()
+      .validatePaymentStatus()
       .validatePaymentMethod();
   }
 }
