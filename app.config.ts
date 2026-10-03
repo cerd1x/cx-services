@@ -76,6 +76,13 @@ export const appConfigs = {
     adminToken: env.BETA_REPORT_ADMIN_TOKEN ?? "",
     r2Bucket: env.BETA_REPORT_R2_BUCKET ?? "cx-services-beta-reports",
   },
+  /**
+   * Kill switch GraphQL — kontrol operasional via REST.
+   * ENV: KILLSWITCH_ADMIN_TOKEN
+   */
+  killswitch: {
+    adminToken: env.KILLSWITCH_ADMIN_TOKEN ?? "",
+  },
   // OAuth Gemini — dipakai klien desktop (cx-dompetqu), tidak dipakai worker.
   geminiOAuth: {
     clientId: env.GOOGLE_OAUTH_CLIENT_ID ?? "",

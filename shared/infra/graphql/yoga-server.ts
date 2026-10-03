@@ -41,7 +41,11 @@ import {
   paymentTypeDefs,
   paymentResolvers,
 } from "$services/domain/payment/adapters/driving/graphql/payment.resolver";
-import { authorizedDirectiveTypeDefs, authorizedDirectiveTransformer } from "./directives";
+import {
+  authorizedDirectiveTypeDefs,
+  authorizedDirectiveTransformer,
+  killswitchTransformer,
+} from "./directives";
 import { createYoga, createGraphQLError, type YogaServerOptions } from "graphql-yoga";
 import { GraphQLError } from "graphql";
 import { createContext, withSetCookies } from "./yoga-context";
@@ -111,6 +115,11 @@ let schema = makeExecutableSchema({
 });
 
 schema = authorizedDirectiveTransformer(schema, { exclude: ["signIn", "signUp"] });
+
+// Applied setelah `authorizedDirectiveTransformer` supaya kill switch jadi
+// wrapper terluar: operation yang dimatikan berhenti di sini, sebelum resolver
+// dan sebelum pemeriksaan auth.
+schema = killswitchTransformer(schema);
 
 const yoga = createYoga<YogaContext, YogaContext>({
   schema,

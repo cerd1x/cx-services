@@ -10,6 +10,7 @@ import {
   statisticService,
   orderService,
   paymentService,
+  apiKillswitchService,
 } from "$services/composition/root.container";
 import { ID } from "$services/shared/kernel/id";
 import { appConfigs } from "$config";
@@ -46,6 +47,7 @@ export type YogaContext = YogaInitialContext & {
   statistic: typeof statisticService;
   order: typeof orderService;
   payment: typeof paymentService;
+  killswitch: typeof apiKillswitchService;
   headers: Record<string, string | undefined>;
   userAuth: { id: ID; username: string } | null;
   cookies: Record<string, string>;
@@ -119,6 +121,7 @@ export async function createContext(
     statistic: statisticService,
     order: orderService,
     payment: paymentService,
+    killswitch: apiKillswitchService,
     headers: {},
     userAuth,
     cookies,

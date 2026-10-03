@@ -10,6 +10,7 @@ import type {
   BetaReportPayload,
 } from "./shared/infra/beta-report";
 import { appConfigs, corsOrigins } from "./app.config";
+import { apiKillswitchService } from "./composition/root.container";
 
 const l = streamLog(Logger.fromConfig(appConfigs.logger)).child("ApiServer");
 
@@ -51,6 +52,20 @@ async function receiveBetaReport({ body, set }: any) {
 
 function isBetaReportAdminRequest(request: Request): boolean {
   return isBetaReportAdmin(request, appConfigs.betaReport.adminToken);
+}
+
+/**
+ * Gate untuk endpoint kill switch.
+ *
+ * Sengaja `isBetaReportAdmin` dipakai ulang supaya tidak ada dua mekanisme
+ * token yang bisa berbeda sifat. Operasional: `KILLSWITCH_ADMIN_TOKEN` di-set,
+ * kalau tidak token kosong membuat semua request ditolak (fail-closed) —
+ * penting, karena endpoint ini bisa mematikan API produksi.
+ */
+function isKillswitchAdminRequest(request: Request): boolean {
+  const token = appConfigs.killswitch.adminToken;
+  if (!token) return false;
+  return request.headers.get("x-admin-token") === token;
 }
 
 function resolveBetaReportKey(
@@ -199,6 +214,44 @@ async function getApp() {
         count: files.length,
         messageId: result.messageId,
       };
+    })
+    .get("/admin/killswitch", async ({ request, set }: any) => {
+      if (!isKillswitchAdminRequest(request)) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+      const items = await apiKillswitchService.listDisabledOperations();
+      return {
+        status: "ok",
+        count: items.length,
+        items: items.map((i) => ({
+          operation: i.operation,
+          reason: i.reason ?? null,
+          disabledAt: i.disabledAt,
+        })),
+      };
+    })
+    .post("/admin/killswitch/:operation", async ({ params, request, body, set }: any) => {
+      if (!isKillswitchAdminRequest(request)) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+      const { reason } = (body ?? {}) as { reason?: string };
+      const entry = await apiKillswitchService.disableOperation(params?.operation, reason);
+      return {
+        status: "disabled",
+        operation: entry.operation,
+        reason: entry.reason ?? null,
+        disabledAt: entry.disabledAt,
+      };
+    })
+    .delete("/admin/killswitch/:operation", async ({ params, request, set }: any) => {
+      if (!isKillswitchAdminRequest(request)) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+      const result = await apiKillswitchService.enableOperation(params?.operation);
+      return { status: "enabled", ...result };
     })
     .use(gqlYogaAsPluginElysia({ logging: true }));
   return _app;

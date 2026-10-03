@@ -221,6 +221,12 @@ const DDL = [
     created_at TEXT NOT NULL DEFAULT (current_timestamp),
     updated_at TEXT NOT NULL DEFAULT (current_timestamp)
   )`,
+  `CREATE TABLE IF NOT EXISTS "api_killswitch" (
+    operation TEXT PRIMARY KEY NOT NULL,
+    reason TEXT,
+    disabled_at INTEGER NOT NULL DEFAULT (unixepoch()),
+    updated_at INTEGER
+  )`,
   `CREATE TABLE IF NOT EXISTS "token" (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL UNIQUE REFERENCES "user"(id) ON DELETE CASCADE,

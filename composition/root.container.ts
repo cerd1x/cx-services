@@ -13,6 +13,7 @@ import "$services/domain/auth";
 import "$services/domain/statistic";
 import "$services/domain/order";
 import "$services/domain/payment";
+import "$services/domain/killswitch";
 
 logger.info("All services initialized");
 
@@ -26,3 +27,4 @@ export { settingService } from "$services/domain/setting";
 export { statisticService } from "$services/domain/statistic";
 export { orderService } from "$services/domain/order";
 export { paymentService } from "$services/domain/payment";
+export { apiKillswitchService } from "$services/domain/killswitch";

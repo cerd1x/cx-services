@@ -53,6 +53,21 @@ export class UnauthorizedError extends ServiceError {
   }
 }
 
+/**
+ * 503 — layanan sengaja dimatikan (kill switch), bukan rusak.
+ *
+ * Penting: type ini yang membuat `maskedErrors` di `yoga-server.ts` meneruskan
+ * message dan code apa adanya. `GraphQLError` yang dilempar langsung dari
+ * resolver akan dibuang jadi `"Internal server error"`, jadi error yang memang
+ * perlu sampai ke client harus selalu lewat kelas di file ini.
+ */
+export class ServiceUnavailableError extends ServiceError {
+  constructor(message = "Service unavailable", options?: ServiceErrorOptions) {
+    super(message, 503, options);
+    this.name = "ServiceUnavailableError";
+  }
+}
+
 export class RequiredErr extends ServiceError {
   constructor(field: string, options?: ServiceErrorOptions) {
     const positionClassErr = options?.class ? `in class: ${options.class.constructor.name}` : "";

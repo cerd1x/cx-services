@@ -12,4 +12,5 @@ export * from "./order.schema";
 export * from "./payment.schema";
 export * from "./invoice.schema";
 export * from "./passkey.schema";
+export * from "./api-killswitch.schema";
 export * from "./relations";
