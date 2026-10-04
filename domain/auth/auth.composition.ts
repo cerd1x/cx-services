@@ -55,7 +55,6 @@ export class AuthService {
   #listPasskeys: ListPasskeysUseCase | null = null;
   #deletePasskey: DeletePasskeyUseCase | null = null;
   #signInWithPassKey: SignInWithPassKeyUseCase | null = null;
-  #passkeyService?: PasskeyService;
 
   @logMethod(logger)
   static init(
@@ -97,7 +96,6 @@ export class AuthService {
     this.#signIn = signIn;
     this.#signOut = signOut;
     this.#authorize = authorize;
-    this.#passkeyService = passkeyService;
 
     if (passkeyUsecases) {
       this.#passkeyRegistrationOptions = passkeyUsecases.passkeyRegistrationOptions;

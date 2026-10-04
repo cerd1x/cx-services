@@ -3,7 +3,7 @@ import type { PaymentData } from "../model/payment.model";
 import { PaymentRepository } from "../ports/out/payment-repository.port";
 import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { PaymentRetryExhaustedError } from "../errors/payment-error";
-import { RetryPolicy, RetryPolicyToken } from "../value-objects/retry-policy.vo";
+import { RetryPolicyToken } from "../value-objects/retry-policy.vo";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

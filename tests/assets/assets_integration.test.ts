@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createUserService, UserService } from "$services/domain/user";
-import { createTransactionService, TransactionService } from "$services/domain/transactions";
+import { createTransactionService } from "$services/domain/transactions";
 import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
 import { Asset } from "$services/domain/assets/core/model/asset.model";
 import { User } from "$services/domain/user/core/model/user.model";

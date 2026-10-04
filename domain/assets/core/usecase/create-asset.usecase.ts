@@ -1,7 +1,6 @@
 import { ServiceError, ConflictError } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
 import { Asset, type AssetInput } from "../model/asset.model";
-import { Balance } from "../value-objects/balance.vo";
 import { isMybe } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

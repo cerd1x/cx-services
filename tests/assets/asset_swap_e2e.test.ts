@@ -236,7 +236,7 @@ describe("swapBalance e2e (in-memory repo)", () => {
       userId,
       balance: Balance.new("IDR 1000000"),
     });
-    const bank = await AssetService.getInstance().createAsset({
+    await AssetService.getInstance().createAsset({
       name: "Bank",
       type: "bank",
       userId,

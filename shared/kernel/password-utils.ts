@@ -5,18 +5,6 @@ const PBKDF2_SALT_LENGTH = 16;
 const PBKDF2_KEY_LENGTH_BITS = 256;
 const PBKDF2_PREFIX = "$pbkdf2-sha256$";
 
-const ARGON2_VERSION = 0x13;
-const ARGON2_MEMORY = 19456;
-const ARGON2_ITERATIONS = 2;
-const ARGON2_PARALLELISM = 1;
-const ARGON2_HASH_LENGTH = 32;
-
-function b64encode(bytes: Uint8Array): string {
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary).replace(/=+$/, "");
-}
-
 function b64decode(str: string): Uint8Array {
   const binary = atob(str);
   const bytes = new Uint8Array(binary.length);

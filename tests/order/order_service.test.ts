@@ -4,8 +4,8 @@ import { createOrderService, OrderService } from "$services/domain/order";
 import { Order } from "$services/domain/order/core/model/order.model";
 import { Product } from "$services/domain/products/core/model/product.model";
 import { ID } from "$services/shared/kernel/id";
-import { createProductService, ProductService } from "$services/domain/products";
-import { createTransactionService, TransactionService } from "$services/domain/transactions";
+import { createProductService } from "$services/domain/products";
+import { createTransactionService } from "$services/domain/transactions";
 import type { PaymentService } from "$services/domain/payment";
 import { mockAssetSwapGateway } from "../utils/outbox.mock";
 

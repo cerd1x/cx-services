@@ -15,8 +15,8 @@ import { TransactionRepositoryImpl } from "$services/domain/transactions/adapter
 import { AssetRepositoryImpl } from "$services/domain/assets/adapters/driven/drizzle/asset.repository";
 import { UnitOfWorkImpl } from "$services/domain/assets/adapters/driven/drizzle/uow.repository";
 import { OutboxRepositoryImpl } from "$services/shared/infra/db/drizzle/outbox.repository";
-import { createProductService, ProductService } from "$services/domain/products";
-import { createTransactionService, TransactionService } from "$services/domain/transactions";
+import { createProductService } from "$services/domain/products";
+import { createTransactionService } from "$services/domain/transactions";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { ID } from "$services/shared/kernel/id";
 import { PaymentRepositoryImpl } from "$services/domain/payment/adapters/driven/drizzle/payment.repository";
@@ -118,13 +118,10 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
     return result[0].id!;
   }
 
-  let productSeq = 0;
-
   async function seedProduct(
     userId: number,
     overrides?: { stock?: number; price?: number; capital?: number; trackStock?: boolean },
   ): Promise<number> {
-    productSeq++;
     const result = await db
       .insert(productTable)
       .values({

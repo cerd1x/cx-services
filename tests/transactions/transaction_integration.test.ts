@@ -1,10 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { drizzle } from "drizzle-orm/d1";
-import { eq } from "drizzle-orm";
 import { createMockD1, initTestTables } from "../utils/d1-mock";
 import { setDB, setD1 } from "$services/shared/infra/db";
 import { userTable } from "$services/shared/infra/db/drizzle-schema/user.schema";
-import { transactionTable } from "$services/shared/infra/db/drizzle-schema/transaction.schema";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
 import { TransactionRepositoryImpl } from "$services/domain/transactions/adapters/driven/drizzle/transaction.repository";
 import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
@@ -34,18 +32,6 @@ describe("Transaction integration", () => {
     sqlite?.close();
   });
 
-  async function seedUser(): Promise<number> {
-    const result = await db
-      .insert(userTable)
-      .values({
-        name: "Test User",
-        username: `tx_user_${Date.now()}`,
-        email: "tx@test.com",
-        password: "hash",
-      })
-      .returning({ id: userTable.id });
-    return result[0].id!;
-  }
 
   async function seedTransaction(overrides?: {
     type?: string;

@@ -3,7 +3,7 @@ import * as _Currencies from "dinero.js/currencies";
 import z from "zod";
 import type { CurrencyType } from "../model/asset.model";
 
-export const isoCodeList = Object.entries(_Currencies).map((value, _) => value[1].code);
+export const isoCodeList = Object.entries(_Currencies).map(([, currencies]) => currencies.code);
 
 const isoCodeSchema = z.enum(isoCodeList);
 

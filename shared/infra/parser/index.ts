@@ -72,7 +72,7 @@ export function parseProductCSV(text: string): ParsedProduct[] {
       if (!name || name.trim().length === 0) return null;
 
       const price =
-        priceIdx >= 0 ? parseFloat(cols[priceIdx]?.replace(/[^0-9.\-]/g, "") || "0") : 0;
+        priceIdx >= 0 ? parseFloat(cols[priceIdx]?.replace(/[^0-9.-]/g, "") || "0") : 0;
       if (price <= 0) return null;
 
       return {
@@ -83,7 +83,7 @@ export function parseProductCSV(text: string): ParsedProduct[] {
         stock: stockIdx >= 0 ? parseInt(cols[stockIdx]?.replace(/[^0-9]/g, "") || "0", 10) : 0,
         capital:
           capitalIdx >= 0
-            ? parseFloat(cols[capitalIdx]?.replace(/[^0-9.\-]/g, "") || "0") || undefined
+            ? parseFloat(cols[capitalIdx]?.replace(/[^0-9.-]/g, "") || "0") || undefined
             : undefined,
       };
     })

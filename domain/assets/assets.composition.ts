@@ -33,7 +33,6 @@ export class AssetService {
   #assetByName: AssetByNameUseCase;
   #assetById: AssetByIdUseCase;
   #updateAsset: UpdateAssetUseCase;
-  #applyMutation: ApplyAssetMutationUseCase;
   #mutateAddAsset: MutateAddAssetUseCase;
   #mutateSubtractAsset: MutateSubtractAssetUseCase;
   #mutateTransactionAsset: MutateTransactionAssetUseCase;
@@ -104,7 +103,6 @@ export class AssetService {
     this.#assetByName = assetByName;
     this.#assetById = assetById;
     this.#updateAsset = updateAsset;
-    this.#applyMutation = applyMutation;
     this.#mutateAddAsset = mutateAddAsset;
     this.#mutateSubtractAsset = mutateSubtractAsset;
     this.#mutateTransactionAsset = mutateTransactionAsset;

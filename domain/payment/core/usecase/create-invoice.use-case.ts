@@ -4,7 +4,6 @@ import { InvoiceValidationError } from "../errors/payment-error";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
-import { ID } from "$services/shared/kernel";
 
 export type CreateInvoiceInput = {
   userId: number;

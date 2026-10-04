@@ -1,11 +1,9 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { drizzle } from "drizzle-orm/d1";
-import { eq } from "drizzle-orm";
 import { createMockD1, initTestTables } from "../utils/d1-mock";
 import { setDB, setD1 } from "$services/shared/infra/db";
-import { userTable } from "$services/shared/infra/db/drizzle-schema/user.schema";
 import { createUserService, UserService } from "$services/domain/user";
-import { createAssetService, AssetService } from "$services/domain/assets";
+import { createAssetService } from "$services/domain/assets";
 import { AssetRepositoryImpl } from "$services/domain/assets/adapters/driven/drizzle/asset.repository";
 import { UnitOfWorkImpl } from "$services/domain/assets/adapters/driven/drizzle/uow.repository";
 import { OutboxRepositoryImpl } from "$services/shared/infra/db/drizzle/outbox.repository";
@@ -44,12 +42,8 @@ describe("User queries through services", () => {
     });
   });
 
-  function close() {
-    sqlite?.close();
-  }
-
   it("users query returns a list (public name field)", async () => {
-    const u = await UserService.getInstance().createUser(
+    await UserService.getInstance().createUser(
       "Alice",
       "alice",
       "password123",

@@ -1,4 +1,3 @@
-import type { D1Database } from "@cloudflare/workers-types";
 import { getD1 } from "./client";
 
 export const D1_TX = Symbol("D1TxCollector");

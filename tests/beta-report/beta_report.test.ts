@@ -117,7 +117,7 @@ describe("BetaReportEmailer", () => {
 
   it("sends an email with the report attached", async () => {
     const emailMock = {
-      send: mock(async (msg: any) => ({ messageId: "m1" })),
+      send: mock(async (_msg: any) => ({ messageId: "m1" })),
     };
     betaReportEmailer.configure(emailMock as unknown as SendEmail, {
       to: ["ops@example.com"],
@@ -228,7 +228,7 @@ describe("POST /beta/report/email", () => {
     const created = await post("http://localhost/api/beta/report", payload);
     const { id } = await created.json();
     const emailMock = {
-      send: mock(async (msg: any) => ({ messageId: "route-m1" })),
+      send: mock(async (_msg: any) => ({ messageId: "route-m1" })),
     };
     betaReportEmailer.configure(emailMock as unknown as SendEmail, {
       to: ["ops@example.com"],

@@ -10,7 +10,7 @@ import {
   spyOn,
 } from "bun:test";
 import { User } from "$services/domain/user/core/model/user.model";
-import { createUserService, UserService } from "$services/domain/user";
+import { createUserService } from "$services/domain/user";
 import { createAuthService, AuthService } from "$services/domain/auth";
 import { AssetService } from "$services/domain/assets";
 import type { Asset } from "$services/domain/assets/core/model/asset.model";

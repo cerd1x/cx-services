@@ -38,7 +38,7 @@ export class BetaReportEmailer {
 
   configure(email?: SendEmail | null, config?: BetaReportEmailConfig): void {
     this.#email = email ?? null;
-    this.#config = { ...this.#config, ...(config ?? {}) };
+    this.#config = { ...this.#config, ...config };
     l.info(`[BetaReportEmailer] email=${this.#email ? "bound" : "none"} to=${(this.#config.to ?? []).join(",")}`);
   }
 

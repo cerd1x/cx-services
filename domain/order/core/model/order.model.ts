@@ -31,7 +31,6 @@ export type OrderType = z.infer<typeof orderSchema>;
 const statusSchema = orderSchema.shape.status;
 const paymentMethodSchema = orderSchema.shape.paymentMethod;
 const priceSchema = orderSchema.shape.price;
-const totalAmountSchema = orderSchema.shape.totalAmount;
 const currencySchema = orderSchema.shape.currency;
 const itemCountSchema = orderSchema.shape.itemCount;
 const descriptionSchema = orderSchema.shape.description;
