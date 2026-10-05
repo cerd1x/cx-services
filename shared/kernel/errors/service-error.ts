@@ -1,6 +1,11 @@
 export interface ServiceErrorOptions {
   cause?: unknown;
   class?: object;
+  /**
+   * Pakai `resource` apa adanya tanpa menambah akhiran `" not found"`.
+   * Berguna ketika pesan final harus presisi (mis. sudah uppercase).
+   */
+  exact?: boolean;
 }
 
 export class ServiceError extends Error {
@@ -22,7 +27,7 @@ export class ValidationError extends ServiceError {
 
 export class NotFoundError extends ServiceError {
   constructor(resource: string, options?: ServiceErrorOptions) {
-    super(`${resource} not found`, 404, options);
+    super(options?.exact ? resource : `${resource} not found`, 404, options);
     this.name = "NotFoundError";
   }
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "cx-services",
+  "name": "cxs",
   "main": "./build/worker.js",
   "no_bundle": true,
   "compatibility_date": "2026-07-17",
@@ -12,9 +12,12 @@
       "database_name": "cxapp-db",
       "database_id": "227f06fb-c27e-4f9c-bf8a-d2aae1fbb822",
       "migrations_dir": "drizzle",
+      // drizzle-kit menaruh SQL di `drizzle/<timestamp>_<name>/migration.sql`,
+      // sedangkan wrangler mencari `drizzle/*.sql` (datar).
+      "migrations_pattern": "drizzle/*/migration.sql",
     },
   ],
-  "r2_buckets": [{ "binding": "BETA_REPORT_R2", "bucket_name": "cxapp-beta-reports" }],
+  // r2_buckets removed — BETA_REPORT_R2 binding disabled; beta-report falls back to Memory backend
   "vars": {
     "NODE_ENV": "production",
     "GQL_PATH": "/graphql",

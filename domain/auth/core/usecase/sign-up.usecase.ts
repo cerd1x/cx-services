@@ -50,8 +50,8 @@ export class SignUpUseCase extends CoreUsecase<
     const refreshExpiry = new Date(Date.now() + Token.defaultExpireAt * 7);
 
     let resultToken = await authRepo.saveToken(user.id.toNumb, {
-      sessionToken: token.setType("session").generate(),
-      refreshToken: token
+      sessionToken: await token.setType("session").generate(),
+      refreshToken: await token
         .setType("refresh")
         .setExpireAt(Date.now() + Token.defaultExpireAt * 7)
         .generate(),

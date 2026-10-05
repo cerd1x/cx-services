@@ -107,7 +107,7 @@ describe("AuthService", () => {
         refreshToken: "mock-refresh-token",
       });
 
-      spyOn(Token.prototype, "generate").mockReturnValue("mock-token");
+      spyOn(Token.prototype, "generate").mockResolvedValue("mock-token");
 
       const user = User.new({
         name: "Test",
@@ -194,7 +194,7 @@ describe("AuthService", () => {
         refreshToken: "mock-refresh-token",
       });
 
-      spyOn(Token.prototype, "generate").mockReturnValue("mock-token");
+      spyOn(Token.prototype, "generate").mockResolvedValue("mock-token");
 
       const result = await AuthService.getInstance().signIn("testuser", "password123");
 
@@ -253,7 +253,7 @@ describe("AuthService", () => {
         session: "mock-session-token",
         refreshToken: "mock-refresh-token",
       });
-      spyOn(Token.prototype, "generate").mockReturnValue("mock-token");
+      spyOn(Token.prototype, "generate").mockResolvedValue("mock-token");
 
       const result = await AuthService.getInstance().signInWithPassKey({
         challenge: "challenge-token",
@@ -410,12 +410,12 @@ describe("AuthService", () => {
         userId: 1,
         setExpireAt: mock(() => mockSessionToken),
         setType: mock(() => mockSessionToken),
-        generate: mock(() => "new-session-token"),
+        generate: mock(() => Promise.resolve("new-session-token")),
       };
 
       const fromSpy = spyOn(Token, "from");
-      fromSpy.mockImplementationOnce(() => mockRefreshToken as unknown as Token);
-      fromSpy.mockImplementationOnce(() => mockSessionToken as unknown as Token);
+      fromSpy.mockImplementationOnce(() => Promise.resolve(mockRefreshToken as unknown as Token));
+      fromSpy.mockImplementationOnce(() => Promise.resolve(mockSessionToken as unknown as Token));
 
       userService.user.mockResolvedValue(foundUser);
       authRepo.updateToken.mockResolvedValue({} as any);
@@ -462,7 +462,9 @@ describe("AuthService", () => {
         isExpired: mock(() => true),
       };
 
-      spyOn(Token, "from").mockImplementationOnce(() => mockRefreshToken as unknown as Token);
+      spyOn(Token, "from").mockImplementationOnce(() =>
+        Promise.resolve(mockRefreshToken as unknown as Token),
+      );
 
       await expect(AuthService.getInstance().authorize("expired-session-token")).rejects.toThrow(
         UnauthorizedError,

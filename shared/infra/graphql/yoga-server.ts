@@ -44,8 +44,8 @@ import {
 import { authorizedDirectiveTypeDefs, authorizedDirectiveTransformer } from "./directives";
 import { createYoga, createGraphQLError, type YogaServerOptions } from "graphql-yoga";
 import { GraphQLError } from "graphql";
-import { createContext } from "./yoga-context";
-import type { YogaContext } from "./yoga-context";
+import { createContext, withSetCookies } from "./yoga-context";
+import type { YogaContext, CookieJar } from "./yoga-context";
 import { ServiceError } from "$services/shared/kernel/errors/service-error";
 import type { Elysia } from "elysia";
 import { depthLimitRule, noIntrospectionInProductionRule } from "./security-rules";
@@ -65,9 +65,9 @@ const paginationTypeDefs = `type PageInfo {
   endCursor: String
 }`;
 
-const gqlStream = streamLog(
-  Logger.create(LogLevel.Info, ".logger/graphql-resolver-log.log"),
-).child("GraphQL");
+const gqlStream = streamLog(Logger.create(LogLevel.Info, ".logger/graphql-resolver-log.log")).child(
+  "GraphQL",
+);
 
 const moduleResolvers = {
   Auth: authResolvers,
@@ -159,11 +159,24 @@ const _yogaFetch = yoga.fetch.bind(yoga) as (
   extra?: Record<string, unknown>,
 ) => Response | Promise<Response>;
 
+/**
+ * Satu-satunya pintu masuk ke `yoga.fetch()`.
+ *
+ * `CookieJar` dibuat di sini lalu diteruskan sebagai serverContext supaya
+ * `createContext` bisa menulis cookie ke sana; setelah response selesai, isinya
+ * ditulis sebagai header `Set-Cookie`.
+ */
+async function runYoga(request: Request, extra?: Record<string, unknown>): Promise<Response> {
+  const cookieJar: CookieJar = [];
+  const response = await _yogaFetch(request, { ...extra, cookieJar });
+  return withSetCookies(response, cookieJar);
+}
+
 export function yogaFetch(
   request: Request,
   extra?: Record<string, unknown>,
 ): Promise<Response> | Response {
-  return _yogaFetch(request, extra ?? {});
+  return runYoga(request, extra ?? {});
 }
 
 type GqlYogaPluginOptions = {
@@ -177,34 +190,38 @@ export const gqlYogaAsPluginElysia = (opts: GqlYogaPluginOptions = {}) => {
 
   return (app: Elysia) =>
     app
-      .get(path, async ({ request, cookie }) => {
+      .get(path, async ({ request }: any) => {
         // Teruskan Response yoga apa adanya: Content-Type GraphiQL (text/html)
         // harus dipertahankan, dan body tidak boleh di-buffer.
-        return yoga.fetch(request);
+        return runYoga(request);
       })
-      .post(path, async ({ request, body }: any) => {
-        // `aot: false` memakai dynamic-handle Elysia yang TIDAK menghormati
-        // `parse: "none"`: hook parse `none` dilewati, lalu fallback
-        // `switch (contentType)` tetap menjalankan `request.json()`, sehingga
-        // stream body terkunci dan yoga gagal dengan
-        // "This ReadableStream is currently locked to a reader.".
-        // Solusinya: kirim Request baru ke yoga dari body yang sudah di-parse.
-        const payload = request.bodyUsed
-          ? typeof body === "string"
-            ? body
-            : body === undefined
-              ? ""
-              : JSON.stringify(body)
-          : await request.text();
-        const res = await yoga.fetch(
-          new Request(request.url, {
-            method: "POST",
-            headers: request.headers,
-            body: payload,
-          }),
-        );
-        return res;
-      }, { parse: "none" });
+      .post(
+        path,
+        async ({ request, body }: any) => {
+          // `aot: false` memakai dynamic-handle Elysia yang TIDAK menghormati
+          // `parse: "none"`: hook parse `none` dilewati, lalu fallback
+          // `switch (contentType)` tetap menjalankan `request.json()`, sehingga
+          // stream body terkunci dan yoga gagal dengan
+          // "This ReadableStream is currently locked to a reader.".
+          // Solusinya: kirim Request baru ke yoga dari body yang sudah di-parse.
+          const payload = request.bodyUsed
+            ? typeof body === "string"
+              ? body
+              : body === undefined
+                ? ""
+                : JSON.stringify(body)
+            : await request.text();
+          const res = await runYoga(
+            new Request(request.url, {
+              method: "POST",
+              headers: request.headers,
+              body: payload,
+            }),
+          );
+          return res;
+        },
+        { parse: "none" },
+      );
 };
 
 export { yoga };

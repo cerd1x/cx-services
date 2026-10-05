@@ -75,11 +75,11 @@ const resolvers: Resolvers<YogaContext> = {
 
       const result = await auth.signUp(user);
 
-      cookie[appConfigs.cookie.sessionKey].set({
+      cookie[appConfigs.cookie.sessionKey]?.set({
         value: result.session,
         maxAge: appConfigs.cookie.sessionMaxAge,
       });
-      cookie[appConfigs.cookie.refreshKey].set({
+      cookie[appConfigs.cookie.refreshKey]?.set({
         value: result.refreshToken,
         maxAge: appConfigs.cookie.refreshMaxAge,
       });
@@ -98,11 +98,11 @@ const resolvers: Resolvers<YogaContext> = {
     signIn: async (_parent, args, { auth, cookie }) => {
       const result = await auth.signIn(args.input.username, args.input.password);
 
-      cookie[appConfigs.cookie.sessionKey].set({
+      cookie[appConfigs.cookie.sessionKey]?.set({
         value: result.session,
         maxAge: appConfigs.cookie.sessionMaxAge,
       });
-      cookie[appConfigs.cookie.refreshKey].set({
+      cookie[appConfigs.cookie.refreshKey]?.set({
         value: result.refreshToken,
         maxAge: appConfigs.cookie.refreshMaxAge,
       });
@@ -128,11 +128,11 @@ const resolvers: Resolvers<YogaContext> = {
         rpID,
       });
 
-      cookie[appConfigs.cookie.sessionKey].set({
+      cookie[appConfigs.cookie.sessionKey]?.set({
         value: result.session,
         maxAge: appConfigs.cookie.sessionMaxAge,
       });
-      cookie[appConfigs.cookie.refreshKey].set({
+      cookie[appConfigs.cookie.refreshKey]?.set({
         value: result.refreshToken,
         maxAge: appConfigs.cookie.refreshMaxAge,
       });
@@ -175,12 +175,12 @@ const resolvers: Resolvers<YogaContext> = {
         await auth.signOut(session, refreshToken ?? undefined);
       }
 
-      cookie[appConfigs.cookie.sessionKey].set({
+      cookie[appConfigs.cookie.sessionKey]?.set({
         value: "",
         maxAge: 0,
         path: "/",
       });
-      cookie[appConfigs.cookie.refreshKey].set({
+      cookie[appConfigs.cookie.refreshKey]?.set({
         value: "",
         maxAge: 0,
         path: "/",

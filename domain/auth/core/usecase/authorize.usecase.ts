@@ -39,14 +39,14 @@ export class AuthorizeUseCase extends CoreUsecase<
           throw new UnauthorizedError("token expired, please sign-in again");
         }
 
-        const refreshTokenObj = Token.from(data.refreshToken);
+        const refreshTokenObj = await Token.from(data.refreshToken);
         if (refreshTokenObj.isExpired()) {
           throw new UnauthorizedError("token expired, please sign-in again");
         }
 
-        const t = Token.from(token);
+        const t = await Token.from(token);
         t.setExpireAt(Date.now() + Token.defaultExpireAt);
-        const sst = t.setType("session").generate();
+        const sst = await t.setType("session").generate();
 
         const user = await userService.user(ID.new(t.userId));
         if (!user.id) throw new AuthenticationError("userId is required");

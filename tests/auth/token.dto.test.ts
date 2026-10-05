@@ -84,38 +84,38 @@ describe("Token", () => {
     expect(token.type).toBe("session");
   });
 
-  it("generate returns a valid JWT string", () => {
+  it("generate returns a valid JWT string", async () => {
     const token = Token.create({ userId: 1 });
-    const jwt = token.generate();
+    const jwt = await token.generate();
 
     expect(typeof jwt).toBe("string");
     expect(jwt.split(".")).toHaveLength(3);
   });
 
-  it("verify returns correct payload for valid token", () => {
+  it("verify returns correct payload for valid token", async () => {
     const future = new Date(Date.now() + 86_400_000);
     const token = Token.create({ userId: 42, expiresAt: future, type: "refresh" });
-    const jwt = token.generate();
+    const jwt = await token.generate();
 
-    const decoded = token.verify(jwt);
+    const decoded = await token.verify(jwt);
 
     expect(decoded.userId).toBe(42);
     expect(decoded.type).toBe("refresh");
     expect(decoded.expiresAt.getTime()).toBe(future.getTime());
   });
 
-  it("verify throws for tampered token", () => {
+  it("verify throws for tampered token", async () => {
     const token = Token.create({ userId: 1 });
-    const jwt = token.generate();
+    const jwt = await token.generate();
     const tampered = jwt.slice(0, -5) + "XXXXX";
 
-    expect(() => token.verify(tampered)).toThrow("invalid token");
+    await expect(token.verify(tampered)).rejects.toThrow("invalid token");
   });
 
-  it("decode returns correct payload without verification", () => {
+  it("decode returns correct payload without verification", async () => {
     const future = new Date(Date.now() + 86_400_000);
     const token = Token.create({ userId: 7, expiresAt: future, type: "session" });
-    const jwt = token.generate();
+    const jwt = await token.generate();
 
     const decoded = token.decode(jwt);
 

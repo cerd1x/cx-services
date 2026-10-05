@@ -28,7 +28,7 @@ export class IssueSessionUseCase extends CoreUsecase<
 
         if (sessionExpired) {
           const t = Token.create({ userId: user.id!.toNumb });
-          const newSession = t.setType("session").generate();
+          const newSession = await t.setType("session").generate();
 
           await authRepo.updateToken(user.id!.toNumb, {
             session: newSession,
@@ -52,8 +52,8 @@ export class IssueSessionUseCase extends CoreUsecase<
 
     let token = Token.create({ userId: user.id!.toNumb });
 
-    const newSession = token.setType("session").generate();
-    const newRefresh = token
+    const newSession = await token.setType("session").generate();
+    const newRefresh = await token
       .setType("refresh")
       .setExpireAt(Date.now() + Token.defaultExpireAt * 7)
       .generate();

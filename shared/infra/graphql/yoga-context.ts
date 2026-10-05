@@ -25,6 +25,16 @@ export type CookieSetter = {
   }) => void;
 };
 
+/**
+ * Kumpulan string `Set-Cookie` untuk satu request.
+ *
+ * Dibuat oleh pemanggil `yoga.fetch()` lalu diteruskan sebagai serverContext,
+ * karena `createContext` hanya bisa menulis cookie dan tidak bisa menyentuh
+ * `Response`. Setelah `yoga.fetch()` selesai, array ini ditulis ke header
+ * response lewat `withSetCookies()`.
+ */
+export type CookieJar = string[];
+
 export type YogaContext = YogaInitialContext & {
   user: typeof userService;
   auth: typeof authService;
@@ -56,9 +66,17 @@ function parseCookiesFromHeader(cookieHeader: string | null): Record<string, str
 }
 
 export async function createContext(
-  base: YogaInitialContext & { cookie?: Record<string, CookieSetter> },
+  base: YogaInitialContext & { cookie?: Record<string, CookieSetter>; cookieJar?: CookieJar },
 ): Promise<YogaContext> {
   const cookies = parseCookiesFromHeader(base.request.headers.get("Cookie"));
+
+  /**
+   * Yoga tidak menyediakan `context.cookie` di jalur fetch (`@whatwg-node/server`
+   * tidak eagerly-parse cookie), jadi cookie yang di-set resolver harus datang
+   * dari `makeCookieSetter` yang lazy. Fallback `{}` membuat
+   * `cookie[key].set()` meledak dengan "Cannot read properties of undefined".
+   */
+  const cookie = base.cookie ?? makeCookieSetter(base.cookieJar ?? []);
 
   let token = cookies[appConfigs.cookie.sessionKey];
 
@@ -77,7 +95,7 @@ export async function createContext(
       const { user } = result;
 
       if (result.token?.session) {
-        base.cookie?.[appConfigs.cookie.sessionKey]?.set({ value: result.token.session });
+        cookie[appConfigs.cookie.sessionKey]?.set({ value: result.token.session });
       }
 
       if (user.id) {
@@ -85,7 +103,7 @@ export async function createContext(
       }
     } catch {
       userAuth = null;
-      base.cookie?.[appConfigs.cookie.sessionKey]?.set({ value: "", maxAge: 0, path: "/" });
+      cookie[appConfigs.cookie.sessionKey]?.set({ value: "", maxAge: 0, path: "/" });
     }
   }
 
@@ -104,8 +122,44 @@ export async function createContext(
     headers: {},
     userAuth,
     cookies,
-    cookie: base.cookie ?? {},
+    cookie,
   } as YogaContext;
+}
+
+/**
+ * Tambahkan isi `CookieJar` sebagai header `Set-Cookie` pada response.
+ *
+ * Header dibangun ulang karena `Headers` iterator menggabungkan multi-value
+ * `Set-Cookie` menjadi satu string yang dipisah koma, yang tidak bisa dibaca
+ * browser. `Response` yang dikembalikan yoga tidak bisa di-mutasi langsung
+ * karena `Set-Cookie` termasuk forbidden response-header name pada guard
+ * `"response"` — menambahkannya lewat `new Headers()` (guard `"none"`) dulu
+ * baru di-wrap ke `Response` baru.
+ */
+export function withSetCookies(response: Response, jar: CookieJar): Response {
+  if (jar.length === 0) return response;
+
+  const headers = new Headers();
+  const existing = response.headers.getSetCookie?.() ?? [];
+
+  for (const [name, value] of response.headers) {
+    if (name.toLowerCase() === "set-cookie") continue;
+    headers.append(name, value);
+  }
+  for (const cookie of existing) headers.append("Set-Cookie", cookie);
+  for (const cookie of jar) headers.append("Set-Cookie", cookie);
+
+  const bodyless =
+    response.status === 101 ||
+    response.status === 204 ||
+    response.status === 205 ||
+    response.status === 304;
+
+  return new Response(bodyless ? null : response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 export function makeCookieSetter(cookies: string[]): Record<string, CookieSetter> {

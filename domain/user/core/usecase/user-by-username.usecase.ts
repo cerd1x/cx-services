@@ -11,7 +11,7 @@ export class UserByUsernameUseCase extends CoreUsecase<UserType, string> {
     const userRepo = this.deps.get(UserRepository);
     const user = await userRepo.findByUsername(username);
     if (!user) {
-      throw new NotFoundError(`User with username ${username} not found`);
+      throw new NotFoundError(`username [${username}] NOT FOUND`, { exact: true });
     }
     return user;
   }

@@ -1,5 +1,14 @@
 import { describe, expect, it } from "bun:test";
-import { authHeaders, e2eLifecycle, gql, signUpUser } from "./_helper";
+import {
+  authHeaders,
+  e2eLifecycle,
+  gql,
+  refreshCookieOf,
+  sessionCookieOf,
+  setCookiesOf,
+  signUpUser,
+} from "./_helper";
+import { appConfigs } from "$config";
 
 describe("auth e2e (GraphQL over HTTP)", () => {
   e2eLifecycle();
@@ -67,6 +76,57 @@ describe("auth e2e (GraphQL over HTTP)", () => {
     expect(Array.isArray(errors) && errors.length).toBeGreaterThan(0);
   });
 
+  it("signUp sets session + refresh cookie on the response", async () => {
+    const { res } = await signUpUser();
+
+    const session = sessionCookieOf(res);
+    const refresh = refreshCookieOf(res);
+
+    expect(session).toBeDefined();
+    expect(refresh).toBeDefined();
+    expect(session).toContain("HttpOnly");
+    expect(session).toContain(`Max-Age=${appConfigs.cookie.sessionMaxAge}`);
+    expect(refresh).toContain(`Max-Age=${appConfigs.cookie.refreshMaxAge}`);
+    // Dua cookie harus terpisah entry, bukan digabung string berkoma.
+    expect(
+      setCookiesOf(res).filter((c) =>
+        c.startsWith(`${encodeURIComponent(appConfigs.cookie.sessionKey)}=`),
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("signIn sets session + refresh cookie on the response", async () => {
+    const username = `cookie_signin_${Date.now()}`;
+    await signUpUser(username);
+
+    const { data, errors, res } = await gql<{
+      signIn: { session: string; user: { username: string } };
+    }>(
+      `mutation($input: SignInInput!) {
+        signIn(input: $input) { session user { username } }
+      }`,
+      { input: { username, password: "password123" } },
+    );
+
+    expect(errors).toBeUndefined();
+    expect(data!.signIn.user.username).toBe(username);
+    expect(sessionCookieOf(res)).toBeDefined();
+    expect(refreshCookieOf(res)).toBeDefined();
+  });
+
+  it("signOut sends cookies with Max-Age=0 to clear them", async () => {
+    const { session } = await signUpUser();
+
+    const out = await gql<{ signOut: boolean }>(`mutation { signOut }`, undefined, {
+      cookie: `${encodeURIComponent(appConfigs.cookie.sessionKey)}=${session}`,
+    });
+
+    expect(out.errors).toBeUndefined();
+    expect(out.data!.signOut).toBe(true);
+    expect(sessionCookieOf(out.res)).toContain("Max-Age=0");
+    expect(refreshCookieOf(out.res)).toContain("Max-Age=0");
+  });
+
   it("signOut invalidates the session", async () => {
     const { session, username } = await signUpUser();
     const before = await gql<{ me: { username: string } }>(
@@ -76,11 +136,9 @@ describe("auth e2e (GraphQL over HTTP)", () => {
     );
     expect(before.data!.me.username).toBe(username);
 
-    const out = await gql<{ signOut: boolean }>(
-      `mutation { signOut }`,
-      undefined,
-      { cookie: `__sst__=${session}` },
-    );
+    const out = await gql<{ signOut: boolean }>(`mutation { signOut }`, undefined, {
+      cookie: `__sst__=${session}`,
+    });
     expect(out.errors).toBeUndefined();
     expect(out.data!.signOut).toBe(true);
 
