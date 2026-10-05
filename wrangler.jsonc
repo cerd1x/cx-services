@@ -22,5 +22,9 @@
     "NODE_ENV": "production",
     "GQL_PATH": "/graphql",
     "LOGGER_DIR": ".logger-file",
+    // GraphiQL IDE + introspection aktif di production (schema jadi
+    // terbaca publik; otorisasi per-field tetap lewat @authorized).
+    // Set "false" untuk mematikan lagi tanpa mengubah kode.
+    "GQL_GRAPHIQL": "true",
   },
 }

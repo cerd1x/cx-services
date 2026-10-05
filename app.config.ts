@@ -43,6 +43,14 @@ export const appConfigs = {
      *  ~2–3 level. ENV: GQL_MAX_DEPTH
      */
     maxDepth: toInt(env.GQL_MAX_DEPTH, 20),
+    /** GraphiQL IDE + introspection query aktif?
+     *  Default: development saja. Set "true" untuk mengaktifkan juga di
+     *  production (mis. untuk debugging lewat browser). Perhatian:
+     *  introspection=on berarti seluruh schema bisa dibaca publik —
+     *  otorisasi per-field tetap berlaku lewat directive `@authorized`.
+     *  ENV: GQL_GRAPHIQL
+     */
+    graphiql: env.GQL_GRAPHIQL ? env.GQL_GRAPHIQL !== "false" : !isProd,
   },
   logger: {
     /** Logger output mode:

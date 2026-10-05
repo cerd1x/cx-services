@@ -126,7 +126,7 @@ const yoga = createYoga<YogaContext, YogaContext>({
   context: (ctx) => createContext(ctx),
   cors: false,
   logging: false,
-  graphiql: process.env.NODE_ENV === "development",
+  graphiql: appConfigs.graphql.graphiql,
   fetchAPI: { Response },
   plugins: [
     {
@@ -135,7 +135,7 @@ const yoga = createYoga<YogaContext, YogaContext>({
       }: {
         addValidationRule: (rule: import("graphql").ValidationRule) => void;
       }) {
-        if (process.env.NODE_ENV !== "development") {
+        if (!appConfigs.graphql.graphiql) {
           addValidationRule(noIntrospectionInProductionRule());
         }
         addValidationRule(depthLimitRule(appConfigs.graphql.maxDepth));
