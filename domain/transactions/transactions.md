@@ -139,11 +139,17 @@ domain/transactions/
        - `userId: ID` — pemilik transaksi
      - Return: `Promise<void>` — tidak mengembalikan apa pun
 
-#### 4. `core/usecase/transaction.service.ts` [L94-110]
+#### 4. `transactions.composition.ts` — facade `TransactionService`
 
-[`services/domain/transactions/app/use-cases/transaction.service.ts`](./app/use-cases/transaction.service.ts)
+[`transactions.composition.ts`](./transactions.composition.ts)
 
-- **Singleton pattern** — `TransactionService.getInstance()`
+> Catatan: dulu ada `core/usecase/transaction.service.ts` berisi
+> `TransactionService.getInstance()`. File itu **sudah dihapus** — pola sekarang
+> facade `TransactionService` tinggal di `transactions.composition.ts`, sementara
+> logika bisnis dipecah menjadi use-case per operasi.
+
+- **Singleton pattern** — `TransactionService.getInstance()`, dibangun oleh
+  `createTransactionService({ ... })` yang juga jadi test seam
 - **Use cases:**
   - `createTransaction(input)` — Buat transaksi baru
   - `transaction(id, userId)` — Ambil transaksi by ID
@@ -155,6 +161,8 @@ domain/transactions/
   - `requestFormTransaction(userId)` — Generate hash form untuk CSRF protection
   - `validateCSRFToken(token, userId)` — Validasi CSRF token
   - `requestFormCSRFToken(userId)` — Generate CSRF token
+  - `transactionsPage(userId, query)` — List keyset-paginated (Relay cursor)
+  - `swapBalance(userId, from, to, amount)` — Tukar saldo antar asset
 
 #### 5. `adapters/driven/drizzle/transaction.repository.ts` [L111-119]
 

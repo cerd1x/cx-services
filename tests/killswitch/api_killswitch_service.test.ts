@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, mock } from "bun:test";
-import {
-  ApiKillswitchService,
-  createApiKillswitchService,
-} from "$services/domain/killswitch";
+import { ApiKillswitchService, createApiKillswitchService } from "$services/domain/killswitch";
 import type { ApiKillswitchRepository } from "$services/domain/killswitch/core/ports/out/api-killswitch-repository.port";
 import type { ApiKillswitch } from "$services/domain/killswitch/core/model/api-killswitch.model";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";

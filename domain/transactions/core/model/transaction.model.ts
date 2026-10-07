@@ -106,8 +106,6 @@ export class Transaction {
   createdAt?: Date;
   updatedAt?: Date;
 
-  #currency!: string;
-
   constructor(data: {
     type: TransactionType;
     userId?: number;
@@ -133,13 +131,11 @@ export class Transaction {
     if (data.paymentStatus) this.paymentStatus = data.paymentStatus;
     if (data.paymentMethod) this.paymentMethod = data.paymentMethod;
     this.customerId = data.customerId;
-    this.id = data.id ? ID.new(data.id) : undefined;
+    // `!== undefined`, bukan truthy: id 0 adalah value yang valid secara tipe,
+    // dan baris yang belum tersimpan tidak punya id sama sekali — bukan id 0.
+    this.id = data.id !== undefined ? ID.new(data.id) : undefined;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
-  }
-
-  get currency(): string {
-    return this.#currency;
   }
 
   static new(data: {

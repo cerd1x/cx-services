@@ -52,12 +52,12 @@ sendiri. Ia **menerapkan** switch ke schema milik modul lain lewat transformer.
 
 `shared/infra/db/drizzle-schema/api-killswitch.schema.ts` — tabel `api_killswitch`
 
-| Kolom         | Tipe              | Nullable | Default         |
-| ------------- | ----------------- | -------- | --------------- |
-| `operation`   | `text` (PK)       | tidak    | —               |
-| `reason`      | `text`            | ya       | `NULL`          |
-| `disabled_at` | `integer` (unix s)| tidak    | `(unixepoch())` |
-| `updated_at`  | `integer` (unix s)| ya       | —               |
+| Kolom         | Tipe               | Nullable | Default         |
+| ------------- | ------------------ | -------- | --------------- |
+| `operation`   | `text` (PK)        | tidak    | —               |
+| `reason`      | `text`             | ya       | `NULL`          |
+| `disabled_at` | `integer` (unix s) | tidak    | `(unixepoch())` |
+| `updated_at`  | `integer` (unix s) | ya       | —               |
 
 Index `api_killswitch_disabled_at_idx` pada `disabled_at` untuk
 `ORDER BY disabled_at DESC`.
@@ -87,7 +87,7 @@ Contoh: `Query.transactions`, `Mutation.createTransaction`.
 Divalidasi Zod dengan `operationKeySchema`:
 
 ```ts
-/^(Query|Mutation)\.[_A-Za-z][_0-9A-Za-z]*$/
+/^(Query|Mutation)\.[_A-Za-z][_0-9A-Za-z]*$/;
 ```
 
 Catatan:
@@ -120,13 +120,13 @@ Catatan:
 
 `core/ports/out/api-killswitch-repository.port.ts` — abstract class `ApiKillswitchRepository`
 
-| Method                                        | Kegunaan                                  |
-| --------------------------------------------- | ----------------------------------------- |
-| `listDisabled()`                              | Semua switch aktif                        |
-| `isDisabled(operation)`                       | Status satu operation (hot path)          |
-| `disable(operation, reason?)`                 | Matikan; idempotent                       |
-| `enable(operation)`                           | Nyalakan; `false` bila tidak ada yg berubah |
-| `invalidateCache()`                           | Buang cache lokal                         |
+| Method                        | Kegunaan                                    |
+| ----------------------------- | ------------------------------------------- |
+| `listDisabled()`              | Semua switch aktif                          |
+| `isDisabled(operation)`       | Status satu operation (hot path)            |
+| `disable(operation, reason?)` | Matikan; idempotent                         |
+| `enable(operation)`           | Nyalakan; `false` bila tidak ada yg berubah |
+| `invalidateCache()`           | Buang cache lokal                           |
 
 `ApiKillswitch` di-re-export dari file port supaya adapter cukup mengimpor satu
 file untuk kontrak beserta tipe datanya.
@@ -135,12 +135,12 @@ file untuk kontrak beserta tipe datanya.
 
 ### Use Case [L102-124]
 
-| Use Case                       | I/O                | Perilaku                                       |
-| ------------------------------ | ------------------ | ---------------------------------------------- |
-| `IsOperationDisabledUseCase`   | `string → DisabledState` | Hot path per request; tidak melempar error |
-| `DisableOperationUseCase`      | `{operation, reason?} → ApiKillswitch` | Validasi key, `ValidationError` bila salah |
-| `EnableOperationUseCase`       | `{operation} → {operation, enabled, changed}` | Validasi key, `changed` menandai perubahan nyata |
-| `ListDisabledOperationsUseCase` | `void → ApiKillswitch[]` | Reporting                |
+| Use Case                        | I/O                                           | Perilaku                                         |
+| ------------------------------- | --------------------------------------------- | ------------------------------------------------ |
+| `IsOperationDisabledUseCase`    | `string → DisabledState`                      | Hot path per request; tidak melempar error       |
+| `DisableOperationUseCase`       | `{operation, reason?} → ApiKillswitch`        | Validasi key, `ValidationError` bila salah       |
+| `EnableOperationUseCase`        | `{operation} → {operation, enabled, changed}` | Validasi key, `changed` menandai perubahan nyata |
+| `ListDisabledOperationsUseCase` | `void → ApiKillswitch[]`                      | Reporting                                        |
 
 `IsOperationDisabledUseCase` sengaja tidak melempar error — keputusan ada di
 transformer GraphQL, sehingga use case ini murni membaca state dan mudah diuji.
@@ -196,11 +196,11 @@ hilang, diganti `"Internal server error"`.
 
 Konsekuensi yang harus diketahui klien:
 
-| Aspek              | Nilai                                             |
-| ------------------ | ------------------------------------------------- |
-| `errors[0].message` | berisi operation + reason                        |
+| Aspek                       | Nilai                                    |
+| --------------------------- | ---------------------------------------- |
+| `errors[0].message`         | berisi operation + reason                |
 | `errors[0].extensions.code` | `503` (numeric, mengikuti konvensi repo) |
-| HTTP status        | **tetap `200`**                                   |
+| HTTP status                 | **tetap `200`**                          |
 
 HTTP `200` itu bukan bug: `maskError` tidak menyertakan `extensions.http`, jadi
 seluruh `ServiceError` (400/401/404) juga balik dengan HTTP 200. Klien wajib
@@ -258,11 +258,11 @@ berhenti sebelum resolver dan sebelum pemeriksaan auth.
 Endpoint di `app.ts`, guarded header `x-admin-token`
 (`appConfigs.killswitch.adminToken`, ENV `KILLSWITCH_ADMIN_TOKEN`):
 
-| Method   | Path                            | Fungsi                            |
-| -------- | ------------------------------- | --------------------------------- |
-| `GET`    | `/admin/killswitch`             | Daftar switch aktif               |
-| `POST`   | `/admin/killswitch/:operation`  | Matikan (`{ reason }` di body)    |
-| `DELETE` | `/admin/killswitch/:operation`  | Nyalakan kembali                  |
+| Method   | Path                           | Fungsi                         |
+| -------- | ------------------------------ | ------------------------------ |
+| `GET`    | `/admin/killswitch`            | Daftar switch aktif            |
+| `POST`   | `/admin/killswitch/:operation` | Matikan (`{ reason }` di body) |
+| `DELETE` | `/admin/killswitch/:operation` | Nyalakan kembali               |
 
 Contoh:
 

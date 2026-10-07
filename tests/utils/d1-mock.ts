@@ -156,6 +156,7 @@ const DDL = [
     user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     type TEXT NOT NULL CHECK(type IN ('income','expense','transfer','outcome')),
     status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','success','failed')),
+    payment_status TEXT NOT NULL DEFAULT 'unpaid' CHECK(payment_status IN ('paid','unpaid')),
     payment_method TEXT NOT NULL DEFAULT '{"type":"cash"}',
     customer_id INTEGER,
     amount TEXT NOT NULL,

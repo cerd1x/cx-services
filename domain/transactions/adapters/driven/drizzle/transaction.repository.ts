@@ -2,13 +2,51 @@ import { eq, and, asc, desc, gte, lte, sql, type SQL } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { transactionTable } from "$services/shared/infra/db/drizzle-schema";
 import { Transaction } from "../../../core/model/transaction.model";
+import { paymentMethodSchema } from "../../../core/model/transaction.model";
+import type { PaymentMethod } from "../../../core/model/transaction.model";
 import { TransactionRepository } from "../../../core/ports/out/transaction-repository.port";
 import type { PageQuery, PageWindow } from "../../../core/model/transaction-page.model";
 import { Balance } from "../../../../assets/core/value-objects/balance.vo";
 import { ID } from "$services/shared/kernel";
+import { logger } from "../../../core/value-objects/logger";
 
 function positionOf(tx: Transaction): { createdAt: number; id: number } {
   return { createdAt: tx.createdAt!.getTime(), id: tx.id!.toNumb };
+}
+
+/**
+ * Parse `payment_method` dari DB.
+ *
+ * Kolom ini menyimpan JSON seperti `{"type":"cash"}`. Tapi migration
+ * `20260721132432_thick_matthew_murdock` mengganti default kolom dari `'cash'`
+ * menjadi JSON tanpa mem-backfill nilai lama — baris yang sudah ada disalin
+ * mentah, sehingga masih berisi string polos `'cash'` yang BUKAN JSON.
+ *
+ * `JSON.parse` mentah akan melempar `SyntaxError` di baris-baris itu, dan
+ * karena mapper dipakai di setiap query, satu baris legacy cukup untuk
+ * menggagalkan seluruh `transactions`. Jadi parse dibungkus dan bentuk legacy
+ * dipetakan ke `{ type: "cash" }` yang setara.
+ */
+function parsePaymentMethod(raw: string): PaymentMethod {
+  const trimmed = raw.trim();
+
+  if (!trimmed.startsWith("{")) {
+    // Bentuk legacy: nama metode polos, mis. "cash".
+    const parsed = paymentMethodSchema.safeParse({ type: trimmed });
+    if (parsed.success) return parsed.data;
+
+    logger.warn(`[Transaction] payment_method legacy tak dikenal: "${raw}", default ke cash`);
+    return { type: "cash" };
+  }
+
+  try {
+    const parsed = paymentMethodSchema.safeParse(JSON.parse(trimmed));
+    if (parsed.success) return parsed.data;
+    logger.warn(`[Transaction] payment_method tidak valid: "${raw}", default ke cash`);
+  } catch {
+    logger.warn(`[Transaction] payment_method bukan JSON: "${raw}", default ke cash`);
+  }
+  return { type: "cash" };
 }
 
 export class TransactionRepositoryImpl implements TransactionRepository {
@@ -42,8 +80,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
       type: row.type as Transaction["type"],
       status: row.status as Transaction["status"],
       paymentStatus: row.paymentStatus as Transaction["paymentStatus"],
-      paymentMethod:
-        typeof row.paymentMethod === "string" ? JSON.parse(row.paymentMethod) : row.paymentMethod,
+      paymentMethod: parsePaymentMethod(row.paymentMethod),
       customerId: row.customerId ?? undefined,
       amount: Balance.new(row.amount),
       capital: Balance.new(row.capital),
@@ -76,10 +113,17 @@ export class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   async findByType(type: string, userId: ID): Promise<Transaction[]> {
+    // `eq()` bertipe, bukan template `sql`, supaya nilai `type` ikut divalidasi
+    // terhadap enum kolom dan tidak bisa meng-inject kolom/kolom typo.
     const rows = await getDB()
       .select()
       .from(transactionTable)
-      .where(and(sql`type = ${type}`, eq(transactionTable.userId, userId.toNumb)));
+      .where(
+        and(
+          eq(transactionTable.type, type as Transaction["type"]),
+          eq(transactionTable.userId, userId.toNumb),
+        ),
+      );
 
     return rows.map((r) => this.#toTransaction(r));
   }
@@ -170,7 +214,10 @@ export class TransactionRepositoryImpl implements TransactionRepository {
     const result = await getDB()
       .update(transactionTable)
       .set({
-        userId: transaction.userId!,
+        // `userId` sengaja tidak ikut di-set. `WHERE` di bawah memfilter dengan
+        // userId pemanggil, jadi menulis `transaction.userId` dari payload
+        // akan memindahkan row ke user lain dan membatalkan cek kepemilikan.
+        // Kepemilikan hanya bisa berubah lewat jalur eksplisit.
         type: transaction.type,
         status: transaction.status,
         paymentStatus: transaction.paymentStatus,

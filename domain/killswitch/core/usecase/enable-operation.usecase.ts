@@ -16,7 +16,10 @@ export type EnableOperationResult = {
   changed: boolean;
 };
 
-export class EnableOperationUseCase extends CoreUsecase<EnableOperationResult, EnableOperationInput> {
+export class EnableOperationUseCase extends CoreUsecase<
+  EnableOperationResult,
+  EnableOperationInput
+> {
   @logMethod(logger)
   async execute(input: EnableOperationInput): Promise<EnableOperationResult> {
     const parsed = operationKeySchema.safeParse(input.operation);
