@@ -1,0 +1,69 @@
+"""
+Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+tanpa token mendapat 401.
+"""
+type Query {
+  adminUsers: [AdminUser!]! @admin
+  adminOverview: AdminOverview! @admin
+  adminUserTransactions(userId: ID!, limit: Int): [AdminTransaction!]! @admin
+}
+
+type Mutation {
+  adminSetUserRole(input: AdminSetUserRoleInput!): User! @admin
+  adminDeleteUser(userId: ID!): Boolean! @admin
+}
+
+input AdminSetUserRoleInput {
+  userId: ID!
+  role: UserRole!
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+"""
+User yang dilihat admin. Sengaja tidak memuat `password`, dan `email` hanya
+ada di sini — bukan di type `User` biasa.
+"""
+type AdminUser {
+  id: ID!
+  name: String!
+  username: String!
+  email: String!
+  role: UserRole!
+  avatarUrl: String
+  createdAt: DateTime!
+}
+
+type AdminOverview {
+  totalUsers: Int!
+  totalAdmins: Int!
+  totalTransactions: Int!
+  totalAssets: Int!
+  """
+  Total `amount` untuk transaksi bertipe income, dijumlahkan apa adanya.
+  Nilainya belum dinormalisasi ke satu mata uang.
+  """
+  totalIncome: Float!
+  """
+  Total `amount` untuk transaksi bertipe expense, dijumlahkan apa adanya.
+  """
+  totalExpense: Float!
+}
+
+type AdminTransaction {
+  id: ID!
+  userId: ID!
+  type: String!
+  status: String!
+  paymentStatus: String!
+  amount: Float!
+  capital: Float!
+  description: String
+  category: String
+  date: String!
+  createdAt: DateTime!
+}

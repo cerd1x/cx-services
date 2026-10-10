@@ -1,14 +1,44 @@
 import { mapSchema, MapperKind, getDirective } from "@graphql-tools/utils";
-import { defaultFieldResolver, type GraphQLSchema, type ResponsePath, GraphQLError } from "graphql";
+import { defaultFieldResolver, type GraphQLSchema, type ResponsePath } from "graphql";
+import {
+  AuthenticationError,
+  UnauthorizedError,
+} from "$services/shared/kernel/errors/service-error";
 import {
   buildOperationKey,
   ApiDisabledError,
 } from "$services/domain/killswitch/core/model/api-killswitch.model";
 import type { ApiKillswitchService } from "$services/domain/killswitch";
+import type { UserRole } from "$services/domain/user";
 
 export const authorizedDirectiveTypeDefs = /* sdl */ `
   directive @authorized on OBJECT | FIELD_DEFINITION
 `;
+
+export const adminDirectiveTypeDefs = /* sdl */ `
+  directive @admin on OBJECT | FIELD_DEFINITION
+`;
+
+/** Bentuk `context.userAuth` yang dipakai kedua transformer otorisasi. */
+type AuthContext = {
+  userAuth: { id: unknown; username: string; role: UserRole } | null;
+};
+
+/**
+ * Error otorisasi sengaja dilempar sebagai `ServiceError`, bukan `GraphQLError`.
+ *
+ * `maskedErrors` di `yoga-server.ts` hanya meneruskan message dan code untuk
+ * `ServiceError`; `GraphQLError` yang dilempar langsung akan dibuang jadi
+ * `"Internal server error"` tanpa code — sehingga client tidak bisa membedakan
+ * "belum login" dari "kegagalan server".
+ */
+function unauthenticatedError(): AuthenticationError {
+  return new AuthenticationError("Missing or expired token");
+}
+
+function forbiddenError(): UnauthorizedError {
+  return new UnauthorizedError("Forbidden: admin role required");
+}
 
 function rootOperationName(path: ResponsePath): string {
   let current: ResponsePath | undefined = path;
@@ -36,11 +66,48 @@ export function authorizedDirectiveTransformer(
             return originalResolve(source, args, context, info);
           }
 
-          const { userAuth } = context as { userAuth: { id: unknown; username: string } | null };
+          const { userAuth } = context as AuthContext;
           if (!userAuth) {
-            throw new GraphQLError("Missing or expired token", {
-              extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
-            });
+            throw unauthenticatedError();
+          }
+
+          return originalResolve(source, args, context, info);
+        };
+      }
+      return fieldConfig;
+    },
+  });
+}
+
+/**
+ * Membatasi field ke user dengan peran admin.
+ *
+ * Berbeda dengan `@authorized` yang hanya memeriksa "ada token tidak", `@admin`
+ * memeriksa token **dan** `role`. Field bertanda `@admin` boleh tetap memakai
+ * `@authorized` sekaligus; urutan transformer membuat pemeriksaan `@admin` yang
+ * lebih dulu berjalan, jadi anonymous mendapat 401 (bukan 403) dan user biasa
+ * mendapat 403.
+ *
+ * Sumber kebenaran adalah `context.userAuth.role`, yang diambil dari database
+ * saat token diverifikasi di `createContext` — bukan dari klaim di dalam JWT.
+ * Jadi mencabut akses admin berlaku segera, tanpa menunggu token kedaluwarsa.
+ */
+export function adminDirectiveTransformer(schema: GraphQLSchema): GraphQLSchema {
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+      const adminDirective = getDirective(schema, fieldConfig, "admin")?.[0];
+
+      if (adminDirective) {
+        const originalResolve = fieldConfig.resolve ?? defaultFieldResolver;
+
+        fieldConfig.resolve = async (source, args, context, info) => {
+          const { userAuth } = context as AuthContext;
+          if (!userAuth) {
+            throw unauthenticatedError();
+          }
+
+          if (userAuth.role !== "admin") {
+            throw forbiddenError();
           }
 
           return originalResolve(source, args, context, info);

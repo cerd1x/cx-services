@@ -14,6 +14,56 @@ export type Scalars = {
   Timestamp: { input: number; output: number; }
 };
 
+export type AdminOverview = {
+  __typename?: 'AdminOverview';
+  totalAdmins: Scalars['Int']['output'];
+  totalAssets: Scalars['Int']['output'];
+  /** Total `amount` untuk transaksi bertipe expense, dijumlahkan apa adanya. */
+  totalExpense: Scalars['Float']['output'];
+  /**
+   * Total `amount` untuk transaksi bertipe income, dijumlahkan apa adanya.
+   * Nilainya belum dinormalisasi ke satu mata uang.
+   */
+  totalIncome: Scalars['Float']['output'];
+  totalTransactions: Scalars['Int']['output'];
+  totalUsers: Scalars['Int']['output'];
+};
+
+export type AdminSetUserRoleInput = {
+  role: UserRole;
+  userId: Scalars['ID']['input'];
+};
+
+export type AdminTransaction = {
+  __typename?: 'AdminTransaction';
+  amount: Scalars['Float']['output'];
+  capital: Scalars['Float']['output'];
+  category?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  date: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  paymentStatus: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+  userId: Scalars['ID']['output'];
+};
+
+/**
+ * User yang dilihat admin. Sengaja tidak memuat `password`, dan `email` hanya
+ * ada di sini — bukan di type `User` biasa.
+ */
+export type AdminUser = {
+  __typename?: 'AdminUser';
+  avatarUrl?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  role: UserRole;
+  username: Scalars['String']['output'];
+};
+
 export type Asset = {
   __typename?: 'Asset';
   balance: Scalars['String']['output'];
@@ -243,6 +293,8 @@ export type MergeResult = {
 export type Mutation = {
   __typename?: 'Mutation';
   addBalance: Asset;
+  adminDeleteUser: Scalars['Boolean']['output'];
+  adminSetUserRole: User;
   cancelInvoice: Invoice;
   createAsset: Asset;
   createContact: Contact;
@@ -286,6 +338,16 @@ export type Mutation = {
 export type MutationAddBalanceArgs = {
   amount: Scalars['String']['input'];
   assetId: Scalars['ID']['input'];
+};
+
+
+export type MutationAdminDeleteUserArgs = {
+  userId: Scalars['ID']['input'];
+};
+
+
+export type MutationAdminSetUserRoleArgs = {
+  input: AdminSetUserRoleInput;
 };
 
 
@@ -598,8 +660,16 @@ export type Product = {
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type Query = {
   __typename?: 'Query';
+  adminOverview: AdminOverview;
+  adminUserTransactions: Array<AdminTransaction>;
+  adminUsers: Array<AdminUser>;
   asset?: Maybe<Asset>;
   assetById?: Maybe<Asset>;
   assetMutations: Array<AssetMutationType>;
@@ -634,26 +704,62 @@ export type Query = {
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
+export type QueryAdminUserTransactionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  userId: Scalars['ID']['input'];
+};
+
+
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryAssetArgs = {
   name: Scalars['String']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryAssetByIdArgs = {
   id: Scalars['ID']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryAssetMutationsArgs = {
   assetId: Scalars['ID']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryContactArgs = {
   id: Scalars['String']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryContactConnectionArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -662,41 +768,81 @@ export type QueryContactConnectionArgs = {
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryInvoiceArgs = {
   id: Scalars['ID']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryInvoicesByStatusArgs = {
   status: InvoiceStatusEnum;
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryOrderArgs = {
   id: Scalars['String']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryPaymentArgs = {
   id: Scalars['ID']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryPaymentsByStatusArgs = {
   status: PaymentStatusEnum;
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryProductArgs = {
   id: Scalars['String']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryTransactionArgs = {
   id: Scalars['String']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryTransactionConnectionArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -705,17 +851,32 @@ export type QueryTransactionConnectionArgs = {
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryTransactionsByDateRangeArgs = {
   end: Scalars['DateTime']['input'];
   start: Scalars['DateTime']['input'];
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryTransactionsByTypeArgs = {
   type: TransactionType;
 };
 
 
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
 export type QueryUserArgs = {
   username: Scalars['String']['input'];
 };
@@ -885,6 +1046,11 @@ export type User = {
   username: Scalars['String']['output'];
 };
 
+export enum UserRole {
+  Admin = 'admin',
+  User = 'user'
+}
+
 
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
@@ -958,6 +1124,10 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  AdminOverview: ResolverTypeWrapper<AdminOverview>;
+  AdminSetUserRoleInput: AdminSetUserRoleInput;
+  AdminTransaction: ResolverTypeWrapper<AdminTransaction>;
+  AdminUser: ResolverTypeWrapper<AdminUser>;
   Asset: ResolverTypeWrapper<Asset>;
   AssetInputUpdate: AssetInputUpdate;
   AssetMutationType: ResolverTypeWrapper<AssetMutationType>;
@@ -1028,10 +1198,15 @@ export type ResolversTypes = {
   UpdateTransactionInput: UpdateTransactionInput;
   UpdateUserAvatarInput: UpdateUserAvatarInput;
   User: ResolverTypeWrapper<User>;
+  UserRole: UserRole;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  AdminOverview: AdminOverview;
+  AdminSetUserRoleInput: AdminSetUserRoleInput;
+  AdminTransaction: AdminTransaction;
+  AdminUser: AdminUser;
   Asset: Asset;
   AssetInputUpdate: AssetInputUpdate;
   AssetMutationType: AssetMutationType;
@@ -1094,6 +1269,39 @@ export type ResolversParentTypes = {
   UpdateTransactionInput: UpdateTransactionInput;
   UpdateUserAvatarInput: UpdateUserAvatarInput;
   User: User;
+};
+
+export type AdminOverviewResolvers<ContextType = any, ParentType extends ResolversParentTypes['AdminOverview'] = ResolversParentTypes['AdminOverview']> = {
+  totalAdmins?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalAssets?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalExpense?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  totalIncome?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  totalTransactions?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalUsers?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type AdminTransactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['AdminTransaction'] = ResolversParentTypes['AdminTransaction']> = {
+  amount?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  capital?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  category?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  paymentStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+};
+
+export type AdminUserResolvers<ContextType = any, ParentType extends ResolversParentTypes['AdminUser'] = ResolversParentTypes['AdminUser']> = {
+  avatarUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  role?: Resolver<ResolversTypes['UserRole'], ParentType, ContextType>;
+  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type AssetResolvers<ContextType = any, ParentType extends ResolversParentTypes['Asset'] = ResolversParentTypes['Asset']> = {
@@ -1196,6 +1404,8 @@ export type MergeResultResolvers<ContextType = any, ParentType extends Resolvers
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   addBalance?: Resolver<ResolversTypes['Asset'], ParentType, ContextType, RequireFields<MutationAddBalanceArgs, 'amount' | 'assetId'>>;
+  adminDeleteUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAdminDeleteUserArgs, 'userId'>>;
+  adminSetUserRole?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationAdminSetUserRoleArgs, 'input'>>;
   cancelInvoice?: Resolver<ResolversTypes['Invoice'], ParentType, ContextType, RequireFields<MutationCancelInvoiceArgs, 'id'>>;
   createAsset?: Resolver<ResolversTypes['Asset'], ParentType, ContextType, RequireFields<MutationCreateAssetArgs, 'input'>>;
   createContact?: Resolver<ResolversTypes['Contact'], ParentType, ContextType, RequireFields<MutationCreateContactArgs, 'input'>>;
@@ -1308,6 +1518,9 @@ export type ProductResolvers<ContextType = any, ParentType extends ResolversPare
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  adminOverview?: Resolver<ResolversTypes['AdminOverview'], ParentType, ContextType>;
+  adminUserTransactions?: Resolver<Array<ResolversTypes['AdminTransaction']>, ParentType, ContextType, RequireFields<QueryAdminUserTransactionsArgs, 'userId'>>;
+  adminUsers?: Resolver<Array<ResolversTypes['AdminUser']>, ParentType, ContextType>;
   asset?: Resolver<Maybe<ResolversTypes['Asset']>, ParentType, ContextType, RequireFields<QueryAssetArgs, 'name'>>;
   assetById?: Resolver<Maybe<ResolversTypes['Asset']>, ParentType, ContextType, RequireFields<QueryAssetByIdArgs, 'id'>>;
   assetMutations?: Resolver<Array<ResolversTypes['AssetMutationType']>, ParentType, ContextType, RequireFields<QueryAssetMutationsArgs, 'assetId'>>;
@@ -1412,6 +1625,9 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type Resolvers<ContextType = any> = {
+  AdminOverview?: AdminOverviewResolvers<ContextType>;
+  AdminTransaction?: AdminTransactionResolvers<ContextType>;
+  AdminUser?: AdminUserResolvers<ContextType>;
   Asset?: AssetResolvers<ContextType>;
   AssetMutationType?: AssetMutationTypeResolvers<ContextType>;
   Contact?: ContactResolvers<ContextType>;

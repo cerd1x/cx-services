@@ -1,4 +1,4 @@
-import type { User } from "../../model/user.model";
+import type { User, UserRole } from "../../model/user.model";
 
 export abstract class UserRepository {
   abstract isWithUsername(username: string): Promise<boolean>;
@@ -9,4 +9,13 @@ export abstract class UserRepository {
   abstract save(user: User): Promise<User>;
   abstract update(user: User): Promise<User>;
   abstract delete(id: number): Promise<void>;
+  /**
+   * Jalur tulis terpisah untuk `role`.
+   *
+   * Sengaja tidak digabung ke `update()`/`save()`: kolom role menentukan hak
+   * akses, jadi mengubahnya hanya boleh lewat operasi yang eksplisit
+   * ({@see UpdateUserRoleUseCase}), bukan ikut terbawa ketika avatar atau email
+   * diubah lewat jalur umum.
+   */
+  abstract updateRole(id: number, role: UserRole): Promise<User>;
 }

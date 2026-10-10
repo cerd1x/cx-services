@@ -42,10 +42,16 @@ import {
   paymentResolvers,
 } from "$services/domain/payment/adapters/driving/graphql/payment.resolver";
 import {
+  adminDirectiveTypeDefs,
   authorizedDirectiveTypeDefs,
   authorizedDirectiveTransformer,
+  adminDirectiveTransformer,
   killswitchTransformer,
 } from "./directives";
+import {
+  adminTypeDefs,
+  adminResolvers,
+} from "$services/domain/admin/adapters/driving/graphql/admin.resolver";
 import { createYoga, createGraphQLError, type YogaServerOptions } from "graphql-yoga";
 import { GraphQLError } from "graphql";
 import { createContext, withSetCookies } from "./yoga-context";
@@ -84,11 +90,13 @@ const moduleResolvers = {
   Statistics: statisticResolvers,
   Orders: orderResolvers,
   Payments: paymentResolvers,
+  Admin: adminResolvers,
 } as const;
 
 let schema = makeExecutableSchema({
   typeDefs: [
     authorizedDirectiveTypeDefs,
+    adminDirectiveTypeDefs,
     scalarTypeDefs,
     paginationTypeDefs,
     authTypeDefs,
@@ -101,6 +109,7 @@ let schema = makeExecutableSchema({
     statisticTypeDefs,
     orderTypeDefs,
     paymentTypeDefs,
+    adminTypeDefs,
   ],
   resolvers: [
     {
@@ -115,6 +124,10 @@ let schema = makeExecutableSchema({
 });
 
 schema = authorizedDirectiveTransformer(schema, { exclude: ["signIn", "signUp"] });
+
+// Setelah `@authorized` supaya `@admin` jadi wrapper terluar: request anonymous
+// berhenti di sini dengan 401, bukan 403.
+schema = adminDirectiveTransformer(schema);
 
 // Applied setelah `authorizedDirectiveTransformer` supaya kill switch jadi
 // wrapper terluar: operation yang dimatikan berhenti di sini, sebelum resolver

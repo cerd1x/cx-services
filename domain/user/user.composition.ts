@@ -1,4 +1,4 @@
-import { User as UserType } from "./core/model/user.model";
+import { User as UserType, type UserRole } from "./core/model/user.model";
 import { ID } from "$services/shared/kernel/id";
 import { CreateUserUseCase } from "./core/usecase/create-user.usecase";
 import { UserByUsernameUseCase } from "./core/usecase/user-by-username.usecase";
@@ -8,6 +8,7 @@ import { IsUsernameTakenUseCase } from "./core/usecase/is-username-taken.usecase
 import { IsUserIdTakenUseCase } from "./core/usecase/is-user-id-taken.usecase";
 import { DeleteUserUseCase } from "./core/usecase/delete-user.usecase";
 import { UpdateUserAvatarUseCase } from "./core/usecase/update-user-avatar.usecase";
+import { UpdateUserRoleUseCase } from "./core/usecase/update-user-role.usecase";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ServiceContainer } from "$services/shared/base";
@@ -24,6 +25,7 @@ export class UserService {
   #isUserIdTaken: IsUserIdTakenUseCase;
   #deleteUser: DeleteUserUseCase;
   #updateUserAvatar: UpdateUserAvatarUseCase;
+  #updateUserRole: UpdateUserRoleUseCase;
 
   @logMethod(logger)
   static init(
@@ -35,6 +37,7 @@ export class UserService {
     isUserIdTaken: IsUserIdTakenUseCase,
     deleteUser: DeleteUserUseCase,
     updateUserAvatar: UpdateUserAvatarUseCase,
+    updateUserRole: UpdateUserRoleUseCase,
   ): UserService {
     UserService.#instanceUserService = new UserService(
       createUser,
@@ -45,6 +48,7 @@ export class UserService {
       isUserIdTaken,
       deleteUser,
       updateUserAvatar,
+      updateUserRole,
     );
     return UserService.#instanceUserService;
   }
@@ -66,6 +70,7 @@ export class UserService {
     isUserIdTaken: IsUserIdTakenUseCase,
     deleteUser: DeleteUserUseCase,
     updateUserAvatar: UpdateUserAvatarUseCase,
+    updateUserRole: UpdateUserRoleUseCase,
   ) {
     this.#createUser = createUser;
     this.#userByUsername = userByUsername;
@@ -75,6 +80,7 @@ export class UserService {
     this.#isUserIdTaken = isUserIdTaken;
     this.#deleteUser = deleteUser;
     this.#updateUserAvatar = updateUserAvatar;
+    this.#updateUserRole = updateUserRole;
   }
 
   @logMethod(logger)
@@ -121,6 +127,11 @@ export class UserService {
   async updateUserAvatar(id: ID, avatarUrl?: string | null): Promise<UserType> {
     return this.#updateUserAvatar.execute({ id, avatarUrl });
   }
+
+  @logMethod(logger)
+  async updateUserRole(id: ID, role: UserRole | string): Promise<UserType> {
+    return this.#updateUserRole.execute({ id, role });
+  }
 }
 
 export type UserAdapters = {
@@ -138,6 +149,7 @@ export function createUserService({ userRepo }: UserAdapters): UserService {
   const isUserIdTaken = new IsUserIdTakenUseCase().setContext(container);
   const deleteUser = new DeleteUserUseCase().setContext(container);
   const updateUserAvatar = new UpdateUserAvatarUseCase().setContext(container);
+  const updateUserRole = new UpdateUserRoleUseCase().setContext(container);
 
   container.set(CreateUserUseCase, createUser);
   container.set(UserByIdUseCase, userById);
@@ -151,6 +163,7 @@ export function createUserService({ userRepo }: UserAdapters): UserService {
     isUserIdTaken,
     deleteUser,
     updateUserAvatar,
+    updateUserRole,
   );
 }
 

@@ -5,6 +5,16 @@ import { z } from "zod";
 
 export const myUserID = z.instanceof(ID);
 
+/**
+ * Peran user untuk RBAC. Diturunkan dari kolom `user.role`.
+ *
+ * Sengaja `z.enum` dan bukan enum Drizzle supaya peran baru bisa ditambah
+ * tanpa `ALTER TABLE` — tabel `user` sudah berisi data production.
+ */
+export const userRoleSchema = z.enum(["user", "admin"]);
+
+export type UserRole = z.infer<typeof userRoleSchema>;
+
 export const userSchema = z.object({
   id: myUserID.optional(),
   name: z.string().min(1, "Name is required").max(100, "Name must be at most 100 characters"),
@@ -16,6 +26,7 @@ export const userSchema = z.object({
   email: z.email(),
   password: z.string().min(6, "Password must be at least 8 characters"),
   avatarUrl: z.string().nullable(),
+  role: userRoleSchema.default("user"),
 });
 
 export type UserType = z.infer<typeof userSchema>;
@@ -31,6 +42,7 @@ export class User {
   email!: string;
   password!: string;
   avatarUrl!: string | null;
+  role!: UserRole;
 
   constructor(data: {
     name: string;
@@ -38,6 +50,7 @@ export class User {
     email: string;
     password: string;
     avatarUrl?: string | null;
+    role?: UserRole;
     id?: number;
   }) {
     this.name = data.name;
@@ -45,6 +58,7 @@ export class User {
     this.email = data.email;
     this.password = data.password;
     this.avatarUrl = data.avatarUrl ?? null;
+    this.role = data.role ?? "user";
     this.id = data.id ? ID.new(data.id) : undefined;
   }
 
@@ -54,8 +68,14 @@ export class User {
     email: string;
     password: string;
     avatarUrl?: string | null;
+    role?: UserRole;
   }): User {
     return new User(data);
+  }
+
+  /** true bila user punya hak akses admin. */
+  get isAdmin(): boolean {
+    return this.role === "admin";
   }
 
   get idHash(): string {

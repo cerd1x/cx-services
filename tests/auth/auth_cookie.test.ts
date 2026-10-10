@@ -27,6 +27,7 @@ describe("signUp with mocked UserRepository + AuthRepository", () => {
     save: mock(),
     update: mock(),
     delete: mock(),
+    updateRole: mock(),
   } satisfies UserRepository;
 
   const mockUserService = {

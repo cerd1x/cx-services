@@ -11,8 +11,10 @@ import {
   orderService,
   paymentService,
   apiKillswitchService,
+  adminService,
 } from "$services/composition/root.container";
 import { ID } from "$services/shared/kernel/id";
+import type { UserRole } from "$services/domain/user";
 import { appConfigs } from "$config";
 
 export type CookieSetter = {
@@ -48,8 +50,13 @@ export type YogaContext = YogaInitialContext & {
   order: typeof orderService;
   payment: typeof paymentService;
   killswitch: typeof apiKillswitchService;
+  admin: typeof adminService;
   headers: Record<string, string | undefined>;
-  userAuth: { id: ID; username: string } | null;
+  /**
+   * Identitas pemohon hasil verifikasi token. `role` ikut di sini supaya
+   * directive `@admin` bisa menilai hak akses tanpa query ulang ke D1 per field.
+   */
+  userAuth: { id: ID; username: string; role: UserRole } | null;
   cookies: Record<string, string>;
   cookie: Record<string, CookieSetter>;
 };
@@ -89,7 +96,7 @@ export async function createContext(
     }
   }
 
-  let userAuth: { id: ID; username: string } | null = null;
+  let userAuth: { id: ID; username: string; role: UserRole } | null = null;
 
   if (token) {
     try {
@@ -101,7 +108,7 @@ export async function createContext(
       }
 
       if (user.id) {
-        userAuth = { id: user.id, username: user.username };
+        userAuth = { id: user.id, username: user.username, role: user.role };
       }
     } catch {
       userAuth = null;
@@ -122,6 +129,7 @@ export async function createContext(
     order: orderService,
     payment: paymentService,
     killswitch: apiKillswitchService,
+    admin: adminService,
     headers: {},
     userAuth,
     cookies,

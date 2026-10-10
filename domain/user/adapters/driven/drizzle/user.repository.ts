@@ -1,8 +1,10 @@
 import { eq } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { userTable } from "$services/shared/infra/db/drizzle-schema";
+import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import { User } from "../../../core/model/user.model";
 import { UserRepository } from "../../../core/ports/out/user-repository.port";
+import type { UserRole } from "../../../core/model/user.model";
 
 export class UserRepositoryImpl implements UserRepository {
   async isWithUsername(username: string): Promise<boolean> {
@@ -42,6 +44,7 @@ export class UserRepositoryImpl implements UserRepository {
       email: row.email,
       password: row.password,
       avatarUrl: row.avatar,
+      role: row.role,
     });
   }
 
@@ -56,6 +59,7 @@ export class UserRepositoryImpl implements UserRepository {
           email: row.email,
           password: row.password,
           avatarUrl: row.avatar,
+          role: row.role,
         }),
     );
   }
@@ -73,6 +77,7 @@ export class UserRepositoryImpl implements UserRepository {
       email: row.email,
       password: row.password,
       avatarUrl: row.avatar,
+      role: row.role,
     });
   }
 
@@ -97,11 +102,39 @@ export class UserRepositoryImpl implements UserRepository {
       email: row.email,
       password: row.password,
       avatarUrl: row.avatar,
+      role: row.role,
     });
   }
 
   async delete(id: number): Promise<void> {
     await getDB().delete(userTable).where(eq(userTable.id, id));
+  }
+
+  /**
+   * `update()` di atas sengaja tidak menyentuh kolom `role` — lihat catatan di
+   * `UserRepository.updateRole`.
+   */
+  async updateRole(id: number, role: UserRole): Promise<User> {
+    const result = await getDB()
+      .update(userTable)
+      .set({ role })
+      .where(eq(userTable.id, id))
+      .returning();
+
+    const row = result[0];
+    if (!row) {
+      throw new NotFoundError(`user #${id}`, { exact: true });
+    }
+
+    return new User({
+      id: row.id,
+      name: row.name,
+      username: row.username,
+      email: row.email,
+      password: row.password,
+      avatarUrl: row.avatar,
+      role: row.role,
+    });
   }
 
   async save(user: User): Promise<User> {
@@ -124,6 +157,7 @@ export class UserRepositoryImpl implements UserRepository {
       email: row.email,
       password: row.password,
       avatarUrl: row.avatar,
+      role: row.role,
     });
   }
 }
