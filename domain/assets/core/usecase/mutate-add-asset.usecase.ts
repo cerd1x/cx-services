@@ -4,6 +4,7 @@ import { ID } from "$services/shared/kernel";
 import { TransactionService } from "$services/domain/transactions";
 import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";
 import { CoreUsecase } from "$services/shared/base";
+import { ValidationError } from "$services/shared/kernel/errors/service-error";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
 
@@ -17,7 +18,18 @@ export class MutateAddAssetUseCase extends CoreUsecase<Asset, MutateAddAssetInpu
   @logMethod(logger)
   async execute(input: MutateAddAssetInput): Promise<Asset> {
     const { userId, assetId, amount } = input;
-    const balanceAmount = Balance.new(amount);
+
+    let balanceAmount: Balance;
+    try {
+      balanceAmount = Balance.new(amount);
+    } catch (error) {
+      throw new ValidationError(`Invalid amount: ${amount}`, { cause: error });
+    }
+
+    if (balanceAmount.value <= 0) {
+      throw new ValidationError("amount must be positive");
+    }
+
     const result = await this.deps
       .get(ApplyAssetMutationUseCase)
       .execute({ userId, assetId, type: "add", amount: balanceAmount });
@@ -25,6 +37,10 @@ export class MutateAddAssetUseCase extends CoreUsecase<Asset, MutateAddAssetInpu
 
     const capital = Balance.new(result.balance);
     capital.subtract(balanceAmount);
+
+    if (capital.value < 0) {
+      throw new ValidationError("Computed capital must be non-negative");
+    }
 
     await TransactionService.getInstance().createTransaction({
       userId: userId.toNumb,

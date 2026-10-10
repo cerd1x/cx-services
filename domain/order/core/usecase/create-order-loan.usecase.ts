@@ -8,6 +8,12 @@ import { AssetService } from "$services/domain/assets";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
+import {
+  assertCurrencyCode,
+  assertItemCount,
+  assertMoney,
+  assertOptionalPositiveInt,
+} from "./order-input.validator";
 import { logger } from "../value-objects/logger";
 
 export type CreateOrderLoanInput = {
@@ -26,6 +32,12 @@ export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLo
   async execute(input: CreateOrderLoanInput): Promise<OrderType> {
     const orderRepo = this.deps.get(OrderRepository);
     const data = input;
+
+    assertCurrencyCode(data.currency);
+    assertItemCount(data.itemCount);
+    assertMoney(data.price, "price");
+    assertOptionalPositiveInt(data.customerId, "customerId");
+    assertOptionalPositiveInt(data.payWithAssetId, "payWithAssetId");
 
     const totalAmount = data.price * data.itemCount;
     const amount = Balance.new(`${data.currency} ${totalAmount}`);

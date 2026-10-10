@@ -51,8 +51,15 @@ export function sanitizeLogValue(
   if (ID.is(value)) return `ID #${value.toNumb}`;
   if (value instanceof Date) return value.toISOString();
   if (value instanceof Error) {
-    // Debug: teruskan Error asli agar console menampilkan stack trace lengkap.
-    return debug ? value : `${value.name}: ${value.message}`;
+    if (debug) return value;
+    const cause = (value as { cause?: unknown }).cause;
+    const causeStr =
+      cause instanceof Error
+        ? ` (cause: ${cause.name}: ${cause.message})`
+        : cause !== undefined && cause !== null
+          ? ` (cause: ${String(cause)})`
+          : "";
+    return `${value.name}: ${value.message}${causeStr}`;
   }
   if (Array.isArray(value)) {
     seen.add(value);

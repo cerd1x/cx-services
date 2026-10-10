@@ -1,0 +1,36 @@
+import { ValidationError } from "$services/shared/kernel/errors/service-error";
+
+export function assertPositiveInt(value: unknown, field: string): void {
+  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+    throw new ValidationError(`${field} must be a positive integer`);
+  }
+}
+
+export function assertOptionalPositiveInt(value: number | undefined, field: string): void {
+  if (value === undefined) return;
+  assertPositiveInt(value, field);
+}
+
+export function assertMoney(price: number, field = "price"): void {
+  if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
+    throw new ValidationError(`${field} must be a positive finite number`);
+  }
+}
+
+export function assertItemCount(itemCount: number): void {
+  if (typeof itemCount !== "number" || !Number.isInteger(itemCount) || itemCount <= 0) {
+    throw new ValidationError("itemCount must be a positive integer");
+  }
+}
+
+export function assertCurrencyCode(currency: string): void {
+  if (typeof currency !== "string" || !/^[A-Za-z]{3}$/.test(currency)) {
+    throw new ValidationError("currency must be a 3-letter code (e.g. IDR)");
+  }
+}
+
+export function assertNonEmptyString(value: unknown, field: string): void {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new ValidationError(`${field} must be a non-empty string`);
+  }
+}

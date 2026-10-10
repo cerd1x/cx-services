@@ -84,21 +84,15 @@ describe("TransactionService", () => {
       ).rejects.toThrow("Failed to create transaction: no id returned");
     });
 
-    it("allows creation even with negative amount (no validation yet)", async () => {
-      txRepo.save.mockImplementation(async (t: Transaction) => {
-        t.id = ID.new(1);
-        return t;
-      });
-
-      const result = await TransactionService.getInstance().createTransaction({
-        type: "expense",
-        amount: Balance.new("IDR -5000"),
-        capital: Balance.new("IDR -2000"),
-        createdAt: today,
-      });
-
-      expect(result.id?.toNumb).toBe(1);
-      expect(txRepo.save).toHaveBeenCalled();
+    it("rejects negative amount/capital", async () => {
+      await expect(
+        TransactionService.getInstance().createTransaction({
+          type: "expense",
+          amount: Balance.new("IDR -5000"),
+          capital: Balance.new("IDR -2000"),
+          createdAt: today,
+        }),
+      ).rejects.toThrow("amount must be a positive, finite balance");
     });
 
     it("throws on invalid currency", () => {

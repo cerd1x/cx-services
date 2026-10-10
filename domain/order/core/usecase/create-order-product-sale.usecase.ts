@@ -10,8 +10,15 @@ import { PaymentServiceCtx } from "./payment-service.ctx";
 import { AssetService } from "$services/domain/assets";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
 import { CoreUsecase } from "$services/shared/base";
+import { ValidationError } from "$services/shared/kernel/errors/service-error";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
+import {
+  assertCurrencyCode,
+  assertItemCount,
+  assertMoney,
+  assertOptionalPositiveInt,
+} from "./order-input.validator";
 
 export type CreateOrderProductSaleInput = {
   userId: number;
@@ -34,6 +41,12 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
     const orderRepo = this.deps.get(OrderRepository);
     const data = input;
 
+    assertCurrencyCode(data.currency);
+    assertItemCount(data.itemCount);
+    assertOptionalPositiveInt(data.customerId, "customerId");
+    assertOptionalPositiveInt(data.payToAssetId, "payToAssetId");
+    if (data.price !== undefined) assertMoney(data.price, "price");
+
     const product = await ProductService.getInstance().product(data.productId, data.userId);
 
     if (product.userId !== data.userId) {
@@ -47,9 +60,20 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
     }
 
     const appliedPrice = data.price ?? product.price;
+
+    assertMoney(appliedPrice, "price");
+
     const saleAmount = appliedPrice * data.itemCount;
     const currency = data.currency.toUpperCase();
-    const capital = Balance.new(`${currency} ${(product.capital ?? 0) * data.itemCount}`);
+    const capitalAmount = (product.capital ?? 0) * data.itemCount;
+
+    if (!Number.isFinite(capitalAmount) || capitalAmount < 0) {
+      throw new ValidationError(
+        `Invalid capital for product "${product.name}": ${product.capital}`,
+      );
+    }
+
+    const capital = Balance.new(`${currency} ${capitalAmount}`);
     const amount = Balance.new(`${currency} ${saleAmount}`);
     const description = data.description ?? `Sale: ${product.name} x${data.itemCount}`;
     const paymentMethod = data.paymentMethod ?? "cash";
