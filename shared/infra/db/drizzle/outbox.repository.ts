@@ -51,10 +51,7 @@ export class OutboxRepositoryImpl implements OutboxRepository {
   async markProcessed(ids: number[]): Promise<void> {
     if (ids.length === 0) return;
     const db = getDB() as DB;
-    await db
-      .update(outboxTable)
-      .set({ processed: true })
-      .where(inArray(outboxTable.id, ids));
+    await db.update(outboxTable).set({ processed: true }).where(inArray(outboxTable.id, ids));
   }
 
   async markProcessedByCorrelation(correlationId: string): Promise<void> {

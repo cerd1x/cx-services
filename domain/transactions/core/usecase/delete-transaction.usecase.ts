@@ -10,17 +10,12 @@ export type DeleteTransactionInput = {
   userId: ID;
 };
 
-export class DeleteTransactionUseCase extends CoreUsecase<
-  void,
-  DeleteTransactionInput
-> {
+export class DeleteTransactionUseCase extends CoreUsecase<void, DeleteTransactionInput> {
   @logMethod(logger)
   async execute(input: DeleteTransactionInput): Promise<void> {
     const txRepo = this.deps.get(TransactionRepository);
     const { id, userId } = input;
-    const { id: idTx } = await this.deps
-      .get(TransactionByIdUseCase)
-      .execute({ id, userId });
+    const { id: idTx } = await this.deps.get(TransactionByIdUseCase).execute({ id, userId });
 
     if (!idTx) throw Error("Not Found");
 

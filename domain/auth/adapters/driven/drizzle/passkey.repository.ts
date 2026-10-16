@@ -31,10 +31,7 @@ export class PasskeyRepositoryImpl implements PasskeyRepository {
   }
 
   async findByUserId(userId: number): Promise<PasskeyRecord[]> {
-    const rows = await getDB()
-      .select()
-      .from(passkeyTable)
-      .where(eq(passkeyTable.userId, userId));
+    const rows = await getDB().select().from(passkeyTable).where(eq(passkeyTable.userId, userId));
     return rows.map((row) => this.#toRecord(row));
   }
 
@@ -48,12 +45,7 @@ export class PasskeyRepositoryImpl implements PasskeyRepository {
   async deleteByCredentialId(userId: number, credentialId: string): Promise<boolean> {
     const rows = await getDB()
       .delete(passkeyTable)
-      .where(
-        and(
-          eq(passkeyTable.userId, userId),
-          eq(passkeyTable.credentialId, credentialId),
-        ),
-      )
+      .where(and(eq(passkeyTable.userId, userId), eq(passkeyTable.credentialId, credentialId)))
       .returning();
     return rows.length > 0;
   }

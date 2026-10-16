@@ -2,9 +2,7 @@
   "version": "7",
   "dialect": "sqlite",
   "id": "2cea6989-b331-4c43-b842-86892287ccf6",
-  "prevIds": [
-    "b0aa066b-c1b8-4231-92a7-d3b321cc350d"
-  ],
+  "prevIds": ["b0aa066b-c1b8-4231-92a7-d3b321cc350d"],
   "ddl": [
     {
       "name": "api_killswitch",
@@ -1487,13 +1485,9 @@
       "table": "user"
     },
     {
-      "columns": [
-        "asset_id"
-      ],
+      "columns": ["asset_id"],
       "tableTo": "asset",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1502,13 +1496,9 @@
       "table": "asset_mutation"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1517,13 +1507,9 @@
       "table": "asset_mutation"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1532,13 +1518,9 @@
       "table": "asset"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1547,13 +1529,9 @@
       "table": "contact"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1562,13 +1540,9 @@
       "table": "gemini_oauth_token"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1577,13 +1551,9 @@
       "table": "invoice"
     },
     {
-      "columns": [
-        "customer_id"
-      ],
+      "columns": ["customer_id"],
       "tableTo": "contact",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
@@ -1592,13 +1562,9 @@
       "table": "invoice"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1607,13 +1573,9 @@
       "table": "order"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1622,13 +1584,9 @@
       "table": "passkey"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1637,13 +1595,9 @@
       "table": "payment"
     },
     {
-      "columns": [
-        "invoice_id"
-      ],
+      "columns": ["invoice_id"],
       "tableTo": "invoice",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
@@ -1652,13 +1606,9 @@
       "table": "payment"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1667,13 +1617,9 @@
       "table": "product"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1682,13 +1628,9 @@
       "table": "setting"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1697,13 +1639,9 @@
       "table": "token"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -1712,135 +1650,105 @@
       "table": "transaction"
     },
     {
-      "columns": [
-        "operation"
-      ],
+      "columns": ["operation"],
       "nameExplicit": false,
       "name": "api_killswitch_pk",
       "table": "api_killswitch",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "asset_mutation_pk",
       "table": "asset_mutation",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "asset_pk",
       "table": "asset",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "contact_pk",
       "table": "contact",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "gemini_oauth_token_pk",
       "table": "gemini_oauth_token",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "invoice_pk",
       "table": "invoice",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "order_pk",
       "table": "order",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "outbox_pk",
       "table": "outbox",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "passkey_pk",
       "table": "passkey",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "payment_pk",
       "table": "payment",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "product_pk",
       "table": "product",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "setting_pk",
       "table": "setting",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "token_pk",
       "table": "token",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "transaction_pk",
       "table": "transaction",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "user_pk",
       "table": "user",
@@ -1901,54 +1809,42 @@
       "table": "transaction"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "nameExplicit": false,
       "name": "gemini_oauth_token_user_id_unique",
       "entityType": "uniques",
       "table": "gemini_oauth_token"
     },
     {
-      "columns": [
-        "invoice_number"
-      ],
+      "columns": ["invoice_number"],
       "nameExplicit": false,
       "name": "invoice_invoice_number_unique",
       "entityType": "uniques",
       "table": "invoice"
     },
     {
-      "columns": [
-        "credential_id"
-      ],
+      "columns": ["credential_id"],
       "nameExplicit": false,
       "name": "passkey_credential_id_unique",
       "entityType": "uniques",
       "table": "passkey"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "nameExplicit": false,
       "name": "setting_user_id_unique",
       "entityType": "uniques",
       "table": "setting"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "nameExplicit": false,
       "name": "token_user_id_unique",
       "entityType": "uniques",
       "table": "token"
     },
     {
-      "columns": [
-        "username"
-      ],
+      "columns": ["username"],
       "nameExplicit": false,
       "name": "user_username_unique",
       "entityType": "uniques",

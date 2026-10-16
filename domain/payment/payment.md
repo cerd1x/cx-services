@@ -218,9 +218,11 @@ domain/payment/
 [`services/domain/payment/app/use-cases/process-payment.use-case.ts`](./app/use-cases/process-payment.use-case.ts)
 
 **Singleton pattern.** 1. Validasi input via `Payment.new(...).validateAll()` (amount > 0, currency ISO, method valid). 2. Transisi `pending → processing`. 3. `save` ke repository (status `processing`). 4. Rekonstruksi entity dari data tersimpan. 5. Panggil `gateway.charge(...)`:
+
 - Sukses → simpan `gatewayRef`, transisi `processing → completed`.
 - Gagal (response `success: false`) → transisi `processing → failed`, tulis `metadata.lastError`.
 - Gateway throw → transisi `processing → failed`, tulis `lastError` (pesan atau `"Unknown gateway error"`).
+
 6. `update` hasil akhir (status, gatewayRef, metadata, retryCount).
 
 #### 10. `core/usecase/create-invoice.use-case.ts`
@@ -228,6 +230,7 @@ domain/payment/
 [`services/domain/payment/app/use-cases/create-invoice.use-case.ts`](./app/use-cases/create-invoice.use-case.ts)
 
 **Singleton pattern.**
+
 - `execute(input)` — generate nomor `INV-yyyymmdd-xxxx`, `Invoice.new(...).validateAll()` (subtotal/total otomatis), `invoiceRepo.save(invoice.toData())`.
 - `getInvoice(id, userId)` — by ID; throw `InvoiceValidationError` jika tidak ditemukan.
 - `listInvoices(userId)` — semua invoice user.
@@ -239,6 +242,7 @@ domain/payment/
 [`services/domain/payment/app/use-cases/retry-payment.use-case.ts`](./app/use-cases/retry-payment.use-case.ts)
 
 **Singleton pattern.**
+
 1. `findById` → throw `PaymentRetryExhaustedError` jika tidak ada.
 2. Rekonstruksi entity `Payment` dari data tersimpan.
 3. Gate: `!payment.canRetry() || !retryPolicy.shouldRetry(retryCount)` → throw `PaymentRetryExhaustedError(paymentId, maxRetries)`.
@@ -321,6 +325,7 @@ Implementasi `InvoiceRepository`. `items` disimpan sebagai JSON string, diparse 
 [`services/domain/payment/adapters/driven/payment-gateway/mock-gateway.adapter.ts`](./adapters/driven/payment-gateway/mock-gateway.adapter.ts)
 
 Implementasi **`PaymentGateway`** untuk dev/test (deterministik):
+
 - `failNext(count = 1)` — simulasi `count` charge berikutnya gagal (helper testing).
 - `charge` gagal jika `amount <= 0` atau (`method === "credit_card"` dan `amount > 100000000`) → `"Credit card payment limit exceeded"`.
 - `refund` & `getStatus` selalu sukses (mock).
@@ -509,93 +514,96 @@ Module `payment` berdiri sendiri (tidak sama dengan `transactions`): payment men
 
 ### Fitur Utama (Features)
 
-| Kategori | Fitur | Deskripsi |
-|----------|-------|-----------|
-| **Payment Processing** | `processPayment` | Proses pembayaran end-to-end: validasi input → state machine `pending→processing` → charge gateway → `completed`/`failed` + `gatewayRef`/`lastError` |
-| | **State Machine** | Transisi status di-guard `VALID_TRANSITIONS`: `pending→[processing,cancelled]`, `processing→[completed,failed]`, `completed→[refunded]`, `failed→[pending]` (via retry), `refunded/cancelled` = terminal |
-| | **Payment Methods** | 6 method: `cash`, `bank_transfer`, `ewallet`, `credit_card`, `debit_card`, `credit` (selaras dengan module `transactions`) |
-| | **Multi-Currency** | ISO 4217 3-huruf (IDR, USD, EUR, dll), validasi di Zod schema |
-| | **Gateway Abstraction** | Port `PaymentGateway` — swap provider (Midtrans, Xendit, Stripe, Asset) tanpa ubah use case |
-| **Retry & Resilience** | `retryPayment` | Retry pembayaran `failed` dengan exponential backoff: base 1s ×2^attempt, cap 30s, max 3 attempt (konfigurable via `RetryPolicy`) |
-| | **Retry Metadata** | Setiap retry gagal catat `nextRetryDelayMs` di `metadata` untuk scheduling |
-| | **Retry Exhausted** | Throw `PaymentRetryExhaustedError` jika melewati `maxRetries` atau bukan status `failed` |
-| | **Idempotency** | `gatewayRef` unik per charge; `AssetPaymentGateway` encode ref sebagai `asset:<userId>.<assetId>.<ts>.<nonce>.<currency>.<amount>` |
-| **Invoice Management** | `createInvoice` | Buat tagihan dengan nomor `INV-<yyyyMMdd>-<xxxx>`, subtotal & total otomatis dari items + tax |
-| | **Invoice Lifecycle** | `draft → issued → paid/partially_paid/overdue → cancelled` (state machine) |
-| | `issueInvoice` | Hanya dari `draft`; set `issuedAt` |
-| | `cancelInvoice` | Tolak jika sudah `paid` ("Cannot cancel a paid invoice") |
-| | **Overdue Detection** | `isOverdue()` otomatis cek `dueAt` vs now + status bukan `cancelled/paid` |
-| **Asset-Based Payment** | `AssetPaymentGateway` | Debit/kredit saldo asset internal user via `AssetService` (no external gateway) |
-| | **Auto Asset Resolve** | 1) `request.assetId` 2) match `balance.code === currency` 3) fallback `defaultAssetName` ("MyCash") 4) first user asset |
-| | **Partial Refund** | Refund parsial didukung (amount optional, default = original amount) |
-| **Data Integrity** | **Ownership Guard** | Semua query repository difilter `userId` — user hanya akses data milik sendiri |
-| | **Soft Validation** | Zod schema di entity + chainable validation methods (`validateAmount`, `validateStatus`, `validateAll`) |
-| | **Metadata Extensibility** | `metadata: Record<string, unknown>` di payment & invoice untuk data custom (retry info, gateway raw response, dll) |
-| **Architecture** | **Hexagonal (Ports & Adapters)** | Domain/use case terpisah dari infrastructure (Drizzle, MockGateway) |
-| | **DI Container** | `ServiceContainer` auto-inject via `this.deps.get(TokenClass)` — no singleton boilerplate |
-| | **GraphQL Integration** | SDL + Resolver + `@authorized` directive; hash ID untuk keamanan |
-| | **Testing Ready** | Unit test (mock repo/gateway), Integration test (D1Mock), 46 test total |
+| Kategori                | Fitur                            | Deskripsi                                                                                                                                                                                                |
+| ----------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Payment Processing**  | `processPayment`                 | Proses pembayaran end-to-end: validasi input → state machine `pending→processing` → charge gateway → `completed`/`failed` + `gatewayRef`/`lastError`                                                     |
+|                         | **State Machine**                | Transisi status di-guard `VALID_TRANSITIONS`: `pending→[processing,cancelled]`, `processing→[completed,failed]`, `completed→[refunded]`, `failed→[pending]` (via retry), `refunded/cancelled` = terminal |
+|                         | **Payment Methods**              | 6 method: `cash`, `bank_transfer`, `ewallet`, `credit_card`, `debit_card`, `credit` (selaras dengan module `transactions`)                                                                               |
+|                         | **Multi-Currency**               | ISO 4217 3-huruf (IDR, USD, EUR, dll), validasi di Zod schema                                                                                                                                            |
+|                         | **Gateway Abstraction**          | Port `PaymentGateway` — swap provider (Midtrans, Xendit, Stripe, Asset) tanpa ubah use case                                                                                                              |
+| **Retry & Resilience**  | `retryPayment`                   | Retry pembayaran `failed` dengan exponential backoff: base 1s ×2^attempt, cap 30s, max 3 attempt (konfigurable via `RetryPolicy`)                                                                        |
+|                         | **Retry Metadata**               | Setiap retry gagal catat `nextRetryDelayMs` di `metadata` untuk scheduling                                                                                                                               |
+|                         | **Retry Exhausted**              | Throw `PaymentRetryExhaustedError` jika melewati `maxRetries` atau bukan status `failed`                                                                                                                 |
+|                         | **Idempotency**                  | `gatewayRef` unik per charge; `AssetPaymentGateway` encode ref sebagai `asset:<userId>.<assetId>.<ts>.<nonce>.<currency>.<amount>`                                                                       |
+| **Invoice Management**  | `createInvoice`                  | Buat tagihan dengan nomor `INV-<yyyyMMdd>-<xxxx>`, subtotal & total otomatis dari items + tax                                                                                                            |
+|                         | **Invoice Lifecycle**            | `draft → issued → paid/partially_paid/overdue → cancelled` (state machine)                                                                                                                               |
+|                         | `issueInvoice`                   | Hanya dari `draft`; set `issuedAt`                                                                                                                                                                       |
+|                         | `cancelInvoice`                  | Tolak jika sudah `paid` ("Cannot cancel a paid invoice")                                                                                                                                                 |
+|                         | **Overdue Detection**            | `isOverdue()` otomatis cek `dueAt` vs now + status bukan `cancelled/paid`                                                                                                                                |
+| **Asset-Based Payment** | `AssetPaymentGateway`            | Debit/kredit saldo asset internal user via `AssetService` (no external gateway)                                                                                                                          |
+|                         | **Auto Asset Resolve**           | 1) `request.assetId` 2) match `balance.code === currency` 3) fallback `defaultAssetName` ("MyCash") 4) first user asset                                                                                  |
+|                         | **Partial Refund**               | Refund parsial didukung (amount optional, default = original amount)                                                                                                                                     |
+| **Data Integrity**      | **Ownership Guard**              | Semua query repository difilter `userId` — user hanya akses data milik sendiri                                                                                                                           |
+|                         | **Soft Validation**              | Zod schema di entity + chainable validation methods (`validateAmount`, `validateStatus`, `validateAll`)                                                                                                  |
+|                         | **Metadata Extensibility**       | `metadata: Record<string, unknown>` di payment & invoice untuk data custom (retry info, gateway raw response, dll)                                                                                       |
+| **Architecture**        | **Hexagonal (Ports & Adapters)** | Domain/use case terpisah dari infrastructure (Drizzle, MockGateway)                                                                                                                                      |
+|                         | **DI Container**                 | `ServiceContainer` auto-inject via `this.deps.get(TokenClass)` — no singleton boilerplate                                                                                                                |
+|                         | **GraphQL Integration**          | SDL + Resolver + `@authorized` directive; hash ID untuk keamanan                                                                                                                                         |
+|                         | **Testing Ready**                | Unit test (mock repo/gateway), Integration test (D1Mock), 46 test total                                                                                                                                  |
 
 ---
 
 ### Cara Menggunakan (Usage Guide)
- 
+
 #### 1. Inisialisasi Module (App Startup)
- 
+
 Module payment diinisialisasi di `payment.composition.ts` dan diekspos sebagai singleton `paymentService`:
- 
+
 ```ts
 import { paymentService } from "$services/domain/payment";
- 
+
 // paymentService sudah siap pakai setelah app startup (root.container.ts)
 ```
- 
+
 **Wajib dipanggil sekali di startup** (sudah ter-wiring di `composition/root.container.ts`):
+
 ```ts
 import "$services/domain/payment"; // side-effect: inisialisasi paymentService
 ```
- 
+
 Default menggunakan **`MockPaymentGateway`** untuk development/testing.
- 
+
 ---
- 
+
 #### 2. Menggunakan `AssetPaymentGateway` (Debit Saldo Asset User)
- 
+
 Untuk payment nyata yang memotong saldo asset internal user, ganti gateway di `payment.composition.ts`:
- 
+
 ```ts
 import { AssetPaymentGateway } from "$services/domain/payment";
 import { assetService } from "$services/domain/assets";
- 
+
 // di payment.composition.ts
 const gateway = new AssetPaymentGateway(assetService, {
   defaultAssetName: "MyCash",     // asset fallback name (default: "MyCash")
   currencyFallback: "IDR",        // fallback currency (default: "IDR")
 });
- 
+
 const processPayment = new ProcessPaymentUseCase().setContext(
   new ServiceContainer().set(PaymentGateway, gateway)...
 );
 ```
- 
+
 Atau via `PaymentService.init()`:
+
 ```ts
 const gateway = new AssetPaymentGateway(assetService);
 PaymentService.init(processPayment, createInvoice, retryPayment, ...);
 ```
- 
+
 **Logika resolve asset** (otomatis):
+
 1. Jika `request.assetId` diberikan → pakai asset tersebut
 2. Cari asset user dengan `balance.code === request.currency` (mis. IDR)
 3. Fallback: cari asset bernama `defaultAssetName` (`"MyCash"`)
 4. Fallback: asset pertama milik user
- 
+
 **Refund** juga otomatis kredit balik ke asset yang sama (parse dari `gatewayRef`).
- 
+
 ---
- 
+
 #### 3. Memproses Pembayaran (GraphQL Mutation)
- 
+
 ```graphql
 mutation ProcessPayment($input: ProcessPaymentInput!) {
   processPayment(input: $input) {
@@ -609,8 +617,9 @@ mutation ProcessPayment($input: ProcessPaymentInput!) {
   }
 }
 ```
- 
+
 **Variables:**
+
 ```json
 {
   "input": {
@@ -622,8 +631,9 @@ mutation ProcessPayment($input: ProcessPaymentInput!) {
   }
 }
 ```
- 
+
 **Response sukses:**
+
 ```json
 {
   "data": {
@@ -639,8 +649,9 @@ mutation ProcessPayment($input: ProcessPaymentInput!) {
   }
 }
 ```
- 
+
 **Response gagal (gateway decline):**
+
 ```json
 {
   "data": {
@@ -658,11 +669,11 @@ mutation ProcessPayment($input: ProcessPaymentInput!) {
   }
 }
 ```
- 
+
 ---
- 
+
 #### 4. Retry Pembayaran Gagal
- 
+
 ```graphql
 mutation RetryPayment($paymentId: ID!) {
   retryPayment(paymentId: $paymentId) {
@@ -677,15 +688,15 @@ mutation RetryPayment($paymentId: ID!) {
   }
 }
 ```
- 
+
 - Hanya bisa retry jika `status === "failed"` dan `retryCount < maxRetries` (default 3).
 - Setiap retry: `retryCount + 1`, exponential backoff (1s → 2s → 4s → cap 30s).
 - Jika melebihi `maxRetries` → throw `PaymentRetryExhaustedError`.
- 
+
 ---
- 
+
 #### 5. Membuat Invoice
- 
+
 ```graphql
 mutation CreateInvoice($input: CreateInvoiceInput!) {
   createInvoice(input: $input) {
@@ -699,8 +710,9 @@ mutation CreateInvoice($input: CreateInvoiceInput!) {
   }
 }
 ```
- 
+
 **Variables:**
+
 ```json
 {
   "input": {
@@ -716,15 +728,16 @@ mutation CreateInvoice($input: CreateInvoiceInput!) {
   }
 }
 ```
- 
+
 - `subtotal` & `totalAmount` dihitung otomatis: `Σ(quantity × unitPrice) + tax`.
 - Status awal: `draft`.
- 
+
 ---
- 
+
 #### 6. Lifecycle Invoice
- 
+
 **Issue (draft → issued):**
+
 ```graphql
 mutation IssueInvoice($id: ID!) {
   issueInvoice(id: $id) {
@@ -734,9 +747,11 @@ mutation IssueInvoice($id: ID!) {
   }
 }
 ```
+
 Hanya legal dari status `draft`.
- 
+
 **Cancel (draft/issued → cancelled):**
+
 ```graphql
 mutation CancelInvoice($id: ID!) {
   cancelInvoice(id: $id) {
@@ -745,13 +760,15 @@ mutation CancelInvoice($id: ID!) {
   }
 }
 ```
+
 Tolak jika status `paid` ("Cannot cancel a paid invoice").
- 
+
 ---
- 
+
 #### 7. Query Data
- 
+
 **List Payment (filter status):**
+
 ```graphql
 query PaymentsByStatus($status: PaymentStatusEnum!) {
   paymentsByStatus(status: $status) {
@@ -760,19 +777,27 @@ query PaymentsByStatus($status: PaymentStatusEnum!) {
     currency
     method
     status
-    invoice { id invoiceNumber }
+    invoice {
+      id
+      invoiceNumber
+    }
     createdAt
   }
 }
 ```
- 
+
 **Get Invoice by ID:**
+
 ```graphql
 query Invoice($id: ID!) {
   invoice(id: $id) {
     id
     invoiceNumber
-    items { description quantity unitPrice }
+    items {
+      description
+      quantity
+      unitPrice
+    }
     subtotal
     tax
     totalAmount
@@ -783,15 +808,15 @@ query Invoice($id: ID!) {
   }
 }
 ```
- 
+
 ---
- 
+
 #### 8. Menggunakan via Service (Server-Side / Script)
- 
+
 ```ts
 import { paymentService } from "$services/domain/payment";
 import { ID } from "$services/shared/kernel";
- 
+
 // 1. Proses pembayaran
 const payment = await paymentService.processPayment({
   userId: 1,
@@ -801,13 +826,10 @@ const payment = await paymentService.processPayment({
   invoiceId: 5,
   description: "Pembayaran order #123",
 });
- 
+
 // 2. Retry payment gagal
-const retried = await paymentService.retryPayment(
-  ID.new(payment.id!),
-  ID.new(1)
-);
- 
+const retried = await paymentService.retryPayment(ID.new(payment.id!), ID.new(1));
+
 // 3. Buat invoice
 const invoice = await paymentService.createInvoice({
   userId: 1,
@@ -815,91 +837,94 @@ const invoice = await paymentService.createInvoice({
   currency: "IDR",
   tax: 5000,
 });
- 
+
 // 4. Issue invoice
 const issued = await paymentService.issueInvoice(ID.new(invoice.id!), ID.new(1));
- 
+
 // 5. List payment user
 const all = await paymentService.listPayments(ID.new(1));
 const failed = await paymentService.listPaymentsByStatus("failed", ID.new(1));
- 
+
 // 6. List invoice
 const drafts = await paymentService.listInvoicesByStatus("draft", ID.new(1));
 ```
- 
+
 ---
- 
+
 #### 9. Custom Payment Gateway (Production)
- 
+
 Buat adapter baru implementasi `PaymentGateway`:
- 
+
 ```ts
 import { PaymentGateway, GatewayChargeRequest, GatewayChargeResponse } from "$services/domain/payment";
- 
+
 export class MidtransGateway implements PaymentGateway {
   async charge(req: GatewayChargeRequest): Promise<GatewayChargeResponse> {
     // 1. Panggil Midtrans API (Snap/Charge)
     // 2. Return { success: true, gatewayRef: "midtrans-transaction-id", status: "completed" }
     // 3. Jika gagal: { success: false, gatewayRef: "", status: "failed", error: "message" }
   }
- 
+
   async refund(req: GatewayRefundRequest): Promise<GatewayRefundResponse> { ... }
   async getStatus(gatewayRef: string): Promise<GatewayStatusResponse> { ... }
 }
- 
+
 // Lalu ganti di composition:
 const gateway = new MidtransGateway();
 ```
- 
+
 Adapter hanya perlu handle I/O eksternal — **tidak mengubah business logic** di use case.
- 
+
 ---
- 
+
 #### 10. Testing
- 
+
 **Unit Test Use Case (Mock Repo + Mock Gateway):**
+
 ```ts
 import { MockPaymentRepo, MockInvoiceRepo, MockGateway } from "./test-utils";
 import { ProcessPaymentUseCase } from "$services/domain/payment";
- 
+
 const payRepo = new MockPaymentRepo();
 const gateway = new MockGateway();
 const useCase = new ProcessPaymentUseCase().setContext(
-  new ServiceContainer().set(PaymentRepository, payRepo).set(PaymentGateway, gateway)
+  new ServiceContainer().set(PaymentRepository, payRepo).set(PaymentGateway, gateway),
 );
- 
+
 const result = await useCase.execute({ userId: 1, amount: 50000, currency: "IDR", method: "cash" });
 expect(result.status).toBe("completed");
 ```
- 
+
 **Integration Test (Real D1 via Mock):**
+
 ```ts
 import { createMockD1, initTestTables } from "tests/utils/d1-mock";
 import { PaymentRepositoryImpl, InvoiceRepositoryImpl } from "$services/domain/payment";
- 
+
 const env = createMockD1();
 initTestTables(env.sqlite);
 const db = drizzle(env.d1);
- 
+
 const payRepo = new PaymentRepositoryImpl(db);
 const invRepo = new InvoiceRepositoryImpl(db);
 const gateway = new MockGateway();
- 
+
 const useCase = new ProcessPaymentUseCase().setContext(
-  new ServiceContainer().set(PaymentRepository, payRepo).set(PaymentGateway, gateway)
+  new ServiceContainer().set(PaymentRepository, payRepo).set(PaymentGateway, gateway),
 );
- 
+
 await useCase.execute({ userId: 1, amount: 10000, currency: "IDR", method: "ewallet" });
 ```
- 
+
 Run test:
+
 ```bash
 bun test tests/payment/payment_integration.test.ts
 bun test tests/payment/payment_service.test.ts
 ```
- 
+
 ---
- 
+
 ### Catatan Arsitektur
 
 - Module ini mengikuti **Vertical Slice per Module (Modular Hexagonal)**.

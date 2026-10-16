@@ -97,7 +97,11 @@ describe("payment e2e (GraphQL over HTTP)", () => {
     expect(invoice.errors).toBeUndefined();
     const invoiceId = invoice.data!.createInvoice.id;
 
-    await gql(`mutation($id: ID!) { issueInvoice(id: $id) { id status } }`, { id: invoiceId }, authHeaders(session));
+    await gql(
+      `mutation($id: ID!) { issueInvoice(id: $id) { id status } }`,
+      { id: invoiceId },
+      authHeaders(session),
+    );
 
     const paid = await gql<{ processPayment: PaymentDto }>(
       `mutation($input: ProcessPaymentInput!) {

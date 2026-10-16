@@ -43,12 +43,7 @@ describe("User queries through services", () => {
   });
 
   it("users query returns a list (public name field)", async () => {
-    await UserService.getInstance().createUser(
-      "Alice",
-      "alice",
-      "password123",
-      "alice@test.com",
-    );
+    await UserService.getInstance().createUser("Alice", "alice", "password123", "alice@test.com");
     await UserService.getInstance().createUser("Bob", "bob", "password456", "bob@test.com");
 
     const all = await UserService.getInstance().users();

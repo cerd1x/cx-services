@@ -1,5 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
-import type { BetaReportDoc, BetaReportPayload, SendEmail, BetaReportFile } from "$services/shared/infra/beta-report";
+import type {
+  BetaReportDoc,
+  BetaReportPayload,
+  SendEmail,
+  BetaReportFile,
+} from "$services/shared/infra/beta-report";
 
 let app: any;
 let betaReportStore: any;

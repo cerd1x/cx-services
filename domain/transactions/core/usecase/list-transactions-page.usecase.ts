@@ -12,7 +12,10 @@ import {
 
 export type ListTransactionsPageInput = PageRequest & { userId: ID };
 
-export class ListTransactionsPageUseCase extends CoreUsecase<TransactionPage, ListTransactionsPageInput> {
+export class ListTransactionsPageUseCase extends CoreUsecase<
+  TransactionPage,
+  ListTransactionsPageInput
+> {
   @logMethod(logger)
   async execute(input: ListTransactionsPageInput): Promise<TransactionPage> {
     const { userId, ...request } = input;

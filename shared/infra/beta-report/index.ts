@@ -1,5 +1,12 @@
-import { BetaReportStore, MemoryBetaReportBackend, R2BetaReportBackend } from "$services/shared/infra/beta-report/beta-report.store";
-import { BetaReportEmailer, type BetaReportEmailConfig } from "$services/shared/infra/beta-report/beta-report.email";
+import {
+  BetaReportStore,
+  MemoryBetaReportBackend,
+  R2BetaReportBackend,
+} from "$services/shared/infra/beta-report/beta-report.store";
+import {
+  BetaReportEmailer,
+  type BetaReportEmailConfig,
+} from "$services/shared/infra/beta-report/beta-report.email";
 import type { R2Bucket, SendEmail } from "@cloudflare/workers-types";
 
 export * from "$services/shared/infra/beta-report/beta-report.store";

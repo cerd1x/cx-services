@@ -71,8 +71,7 @@ export function parseProductCSV(text: string): ParsedProduct[] {
       const name = nameIdx >= 0 ? cols[nameIdx] : cols[0];
       if (!name || name.trim().length === 0) return null;
 
-      const price =
-        priceIdx >= 0 ? parseFloat(cols[priceIdx]?.replace(/[^0-9.-]/g, "") || "0") : 0;
+      const price = priceIdx >= 0 ? parseFloat(cols[priceIdx]?.replace(/[^0-9.-]/g, "") || "0") : 0;
       if (price <= 0) return null;
 
       return {
@@ -105,21 +104,27 @@ export function parseVCF(text: string): ParsedContact[] {
         ? email.map((e) => String(e.valueOf?.() ?? "")).find(Boolean)
         : typeof email === "string"
           ? email
-          : email ? String(email.valueOf?.() ?? "") : undefined;
+          : email
+            ? String(email.valueOf?.() ?? "")
+            : undefined;
 
       const tel = card.get("tel");
       const telStr = Array.isArray(tel)
         ? tel.map((t) => String(t.valueOf?.() ?? "")).find(Boolean)
         : typeof tel === "string"
           ? tel
-          : tel ? String(tel.valueOf?.() ?? "") : undefined;
+          : tel
+            ? String(tel.valueOf?.() ?? "")
+            : undefined;
 
       const org = card.get("org");
       const orgStr = Array.isArray(org)
         ? org.map((o) => String(o.valueOf?.() ?? "")).find(Boolean)
         : typeof org === "string"
           ? org
-          : org ? String(org.valueOf?.() ?? "") : undefined;
+          : org
+            ? String(org.valueOf?.() ?? "")
+            : undefined;
 
       return {
         name: name.trim(),

@@ -33,7 +33,7 @@ modul auth existing:
 
 ### Storage Challenge (Stateless)
 
-Challenge WebAuthn **tidak disimpan di DB**. Challenge di-*bundle* ke dalam
+Challenge WebAuthn **tidak disimpan di DB**. Challenge di-_bundle_ ke dalam
 signed token (HMAC-SHA256 dengan `appConfigs.app.secretKey`, sama seperti
 `CsrfToken`) dengan payload:
 

@@ -10,9 +10,7 @@ export const settingTable = sqliteTable("setting", {
     .references(() => userTable.id, { onDelete: "cascade" }),
   currency: text("currency", { length: 4 }).notNull().default("IDR"),
   darkMode: integer("dark_mode", { mode: "boolean" }).notNull().default(false),
-  dateFormat: text("date_format", { length: 30 })
-    .notNull()
-    .default("d MMM yyyy, HH:mm"),
+  dateFormat: text("date_format", { length: 30 }).notNull().default("d MMM yyyy, HH:mm"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),

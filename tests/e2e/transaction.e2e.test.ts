@@ -104,7 +104,9 @@ describe("transaction e2e (GraphQL over HTTP)", () => {
       { input: { name: "Cash Wallet", type: "cash", balance: "IDR 1000000" } },
       authHeaders(session),
     );
-    const { data: data2 } = await gql<{ createAsset: { id: string; name: string; balance: string } }>(
+    const { data: data2 } = await gql<{
+      createAsset: { id: string; name: string; balance: string };
+    }>(
       `mutation($input: CreateAssetInput!) {
         createAsset(input: $input) { id name balance }
       }`,
@@ -140,7 +142,9 @@ describe("transaction e2e (GraphQL over HTTP)", () => {
       authHeaders(session),
     );
     expect(
-      transfers.data!.transactions.some((t) => t.type === "transfer" && t.category === "Move Balances"),
+      transfers.data!.transactions.some(
+        (t) => t.type === "transfer" && t.category === "Move Balances",
+      ),
     ).toBe(true);
   });
 });

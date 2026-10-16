@@ -2,7 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
-import { Logger, LogLevel, formatLog, isLogDebug, logger, sanitizeLogValue, setLogDebug } from "$services/shared/infra/logger";
+import {
+  Logger,
+  LogLevel,
+  formatLog,
+  isLogDebug,
+  logger,
+  sanitizeLogValue,
+  setLogDebug,
+} from "$services/shared/infra/logger";
 
 async function waitFor(fn: () => void, timeout = 1500) {
   const start = Date.now();

@@ -14,14 +14,14 @@ cx-dompetqu ──HTTP/GraphQL──▶ cx-services
 
 ## Stack
 
-| Bagian            | Teknologi                                            |
-| ----------------- | ---------------------------------------------------- |
-| HTTP              | Elysia + `@elysiajs/cors` + `elysia-rate-limit`      |
-| GraphQL           | GraphQL Yoga + `@graphql-tools/schema`               |
-| ORM / DB          | Drizzle ORM (`drizzle-orm/d1`) → Cloudflare D1        |
-| Auth              | JWT (`jsonwebtoken`) + WebAuthn (`@simplewebauthn`) |
-| Runtime           | Cloudflare Workers (`nodejs_compat`) atau Bun/Node  |
-| Test              | `bun:test` (unit + integrasi D1Mock + e2e)           |
+| Bagian   | Teknologi                                           |
+| -------- | --------------------------------------------------- |
+| HTTP     | Elysia + `@elysiajs/cors` + `elysia-rate-limit`     |
+| GraphQL  | GraphQL Yoga + `@graphql-tools/schema`              |
+| ORM / DB | Drizzle ORM (`drizzle-orm/d1`) → Cloudflare D1      |
+| Auth     | JWT (`jsonwebtoken`) + WebAuthn (`@simplewebauthn`) |
+| Runtime  | Cloudflare Workers (`nodejs_compat`) atau Bun/Node  |
+| Test     | `bun:test` (unit + integrasi D1Mock + e2e)          |
 
 ## Arsitektur (Hexagonal)
 
@@ -39,13 +39,13 @@ Detail lengkap: [`AGENT.md`](./AGENT.md).
 
 ## Entry point
 
-| File         | Runtime                    | Cara jalan                        |
-| ------------ | -------------------------- | --------------------------------- |
-| `worker.ts`  | Cloudflare Workers         | `bun run dev` / `wrangler deploy` |
-| `server.ts`  | Bun / Node (butuh D1)      | `bun run dev:bun`                 |
-| `app.ts`     | Elysia app + handler.fetch | dipakai `worker.ts`               |
+| File        | Runtime                    | Cara jalan                        |
+| ----------- | -------------------------- | --------------------------------- |
+| `worker.ts` | Cloudflare Workers         | `bun run dev` / `wrangler deploy` |
+| `server.ts` | Bun / Node (butuh D1)      | `bun run dev:bun`                 |
+| `app.ts`    | Elysia app + handler.fetch | dipakai `worker.ts`               |
 
-`worker.ts` hanya *wiring binding* (D1, R2, Email) lalu meneruskan request ke Elysia app.
+`worker.ts` hanya _wiring binding_ (D1, R2, Email) lalu meneruskan request ke Elysia app.
 
 ## Command
 
@@ -80,13 +80,13 @@ Salin `.env.example` → `.env` (Bun/Node) dan `.dev.vars.example` → `.dev.var
 (`wrangler dev`). `wrangler.jsonc` menyimpan binding (`CX_DB`, `BETA_REPORT_R2`)
 dan `vars` non-rahasia.
 
-| Variabel                 | Wajib | Fungsi                                        |
-| ------------------------ | ----- | --------------------------------------------- |
-| `SECRET_KEY`             | ya    | tanda tangan JWT + HMAC challenge WebAuthn    |
-| `ORIGIN`                 | ya*   | allowlist CORS (pisahkan dengan koma)          |
-| `GQL_PATH`               | tidak | default `/graphql`                            |
-| `CLOUDFLARE_*`           | tidak | kredensial `drizzle-kit` untuk D1 remote       |
-| `BETA_REPORT_*`          | tidak | storage R2 + email + admin token               |
+| Variabel        | Wajib | Fungsi                                     |
+| --------------- | ----- | ------------------------------------------ |
+| `SECRET_KEY`    | ya    | tanda tangan JWT + HMAC challenge WebAuthn |
+| `ORIGIN`        | ya*   | allowlist CORS (pisahkan dengan koma)      |
+| `GQL_PATH`      | tidak | default `/graphql`                         |
+| `CLOUDFLARE_*`  | tidak | kredensial `drizzle-kit` untuk D1 remote   |
+| `BETA_REPORT_*` | tidak | storage R2 + email + admin token           |
 
 > `*` Wajib bila API diakses langsung dari browser (mobile/Flutter). Bila web
 > selalu lewat reverse proxy same-origin (default `cx-web`), `ORIGIN` boleh kosong.
@@ -105,7 +105,7 @@ wrangler d1 migrations apply cxapp-db --remote   # terapkan ke D1 production
 
 `cx-web` tidak mengimpor kode dari project ini. Integrasi terjadi lewat HTTP:
 
-- `cx-web` me-*forward* `/api/*` → `API_ORIGIN` (lihat `src/routes/api/[...slugs]/+server.ts`).
+- `cx-web` me-_forward_ `/api/*` → `API_ORIGIN` (lihat `src/routes/api/[...slugs]/+server.ts`).
 - Karena request tetap same-origin dari sisi browser, cookie sesi `__sst__` / `__rft__`
   tetap milik domain web dan passkey (`rpID`) tidak berubah.
 - Type GraphQL sisi web di-generate dari SDL project ini:

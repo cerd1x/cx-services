@@ -7,11 +7,9 @@ describe("user e2e (GraphQL over HTTP)", () => {
   it("users returns the signed-up user", async () => {
     const { session, user } = await signUpUser();
 
-    const { data, errors } = await gql<{ users: Array<{ id: string; name: string; username: string }> }>(
-      `{ users { id name username } }`,
-      undefined,
-      authHeaders(session),
-    );
+    const { data, errors } = await gql<{
+      users: Array<{ id: string; name: string; username: string }>;
+    }>(`{ users { id name username } }`, undefined, authHeaders(session));
 
     expect(errors).toBeUndefined();
     expect(data!.users.length).toBeGreaterThanOrEqual(1);
@@ -35,7 +33,9 @@ describe("user e2e (GraphQL over HTTP)", () => {
     const { session } = await signUpUser();
     const newUser = `created_${Date.now()}`;
 
-    const { data, errors } = await gql<{ createUser: { id: string; name: string; username: string } }>(
+    const { data, errors } = await gql<{
+      createUser: { id: string; name: string; username: string };
+    }>(
       `mutation($input: CreateUserInput!) {
         createUser(input: $input) { id name username }
       }`,
@@ -59,7 +59,9 @@ describe("user e2e (GraphQL over HTTP)", () => {
     const { session, user } = await signUpUser();
 
     const avatarUrl = "https://example.com/avatar.png";
-    const { data, errors } = await gql<{ updateUserAvatar: { id: string; avatarUrl: string | null } }>(
+    const { data, errors } = await gql<{
+      updateUserAvatar: { id: string; avatarUrl: string | null };
+    }>(
       `mutation($input: UpdateUserAvatarInput!) {
         updateUserAvatar(input: $input) { id avatarUrl }
       }`,

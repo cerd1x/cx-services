@@ -34,19 +34,19 @@ List secret yang tersedia ada di `.dev.vars.example`. Nilai lokal memakai `.dev.
 
 ## Scripts di `package.json`
 
-| Script    | Perintah                                  |
-| --------- | ----------------------------------------- |
-| `build`   | `bun run scripts/build.ts`                |
-| `dev`     | `wrangler dev`                            |
-| `deploy`  | `wrangler deploy`                         |
-| `db:...`  | Drizzle-kit migration (lihat README)      |
+| Script   | Perintah                             |
+| -------- | ------------------------------------ |
+| `build`  | `bun run scripts/build.ts`           |
+| `dev`    | `wrangler dev`                       |
+| `deploy` | `wrangler deploy`                    |
+| `db:...` | Drizzle-kit migration (lihat README) |
 
 ## Konfigurasi (`wrangler.jsonc`)
 
-| Binding          | Tipe | Keterangan                          |
-| ---------------- | ---- | ----------------------------------- |
-| `CX_DB`          | D1   | database `cxapp-db`                |
-| `BETA_REPORT_R2` | R2   | bucket `cxapp-beta-reports`         |
+| Binding          | Tipe | Keterangan                  |
+| ---------------- | ---- | --------------------------- |
+| `CX_DB`          | D1   | database `cxapp-db`         |
+| `BETA_REPORT_R2` | R2   | bucket `cxapp-beta-reports` |
 
 ## Masalah Umum
 

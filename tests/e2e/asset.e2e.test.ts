@@ -67,7 +67,13 @@ describe("asset e2e (GraphQL over HTTP)", () => {
     expect(subtract.data!.subtractBalance.balance).toBe("IDR 1300000");
 
     const mutations = await gql<{
-      assetMutations: Array<{ id: string; type: string; amount: number; balanceBefore: string; balanceAfter: string }>;
+      assetMutations: Array<{
+        id: string;
+        type: string;
+        amount: number;
+        balanceBefore: string;
+        balanceAfter: string;
+      }>;
     }>(
       `query($assetId: ID!) { assetMutations(assetId: $assetId) { id type amount balanceBefore balanceAfter } }`,
       { assetId },

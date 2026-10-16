@@ -63,9 +63,9 @@ barrel `domain/user`.
 
 Tidak ada tabel baru. Kolom yang dipakai modul ini:
 
-| Tabel     | Kolom | Tipe    | Nullable | Default |
-| --------- | ----- | ------- | -------- | ------- |
-| `user`    | `role` | `text` | tidak    | `'user'` |
+| Tabel  | Kolom  | Tipe   | Nullable | Default  |
+| ------ | ------ | ------ | -------- | -------- |
+| `user` | `role` | `text` | tidak    | `'user'` |
 
 Migrasi: `drizzle/20261010104536_breezy_gambit/migration.sql`
 
@@ -93,11 +93,11 @@ tabel yang sudah berisi data.
 Tiga bentuk baca, masing-masing punya Zod schema yang di-`infer` — tidak ada type
 yang ditulis manual.
 
-| Type                  | Isi                                                                                     |
-| --------------------- | --------------------------------------------------------------------------------------- |
-| `AdminUserView`       | User tanpa `password`, plus `role`. `createdAt` bertipe `Date`.                            |
-| `AdminOverview`       | `totalUsers`, `totalAdmins`, `totalTransactions`, `totalAssets`, `totalIncome`, `totalExpense`. |
-| `AdminTransactionView`| Proyeksi transaksi datar, selalu menyertakan `userId`.                                    |
+| Type                   | Isi                                                                                             |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| `AdminUserView`        | User tanpa `password`, plus `role`. `createdAt` bertipe `Date`.                                 |
+| `AdminOverview`        | `totalUsers`, `totalAdmins`, `totalTransactions`, `totalAssets`, `totalIncome`, `totalExpense`. |
+| `AdminTransactionView` | Proyeksi transaksi datar, selalu menyertakan `userId`.                                          |
 
 `AdminUserView` sengaja **tidak** memakai entitas `User` milik modul user: bentuk
 itu menyertakan `password`, yang tidak boleh pernah keluar lewat GraphQL.
@@ -108,7 +108,7 @@ relevan bagi user biasa.
 Ada dua konstanta batas:
 
 ```ts
-ADMIN_PAGE_MAX_LIMIT = 200;      // batas atas limit per request
+ADMIN_PAGE_MAX_LIMIT = 200; // batas atas limit per request
 ADMIN_PAGE_DEFAULT_LIMIT = 50;
 ```
 
@@ -145,13 +145,13 @@ method-nya hanya boleh dipanggil dari use case yang sudah melewati gate `@admin`
 
 ### Use Case [L146-159]
 
-| Use Case                            | Output                  | Guard                                                |
-| ----------------------------------- | ----------------------- | ---------------------------------------------------- |
-| `ListAdminUsersUseCase`             | `AdminUserView[]`       | —                                                    |
-| `GetAdminOverviewUseCase`           | `AdminOverview`         | —                                                    |
-| `ListAdminUserTransactionsUseCase`  | `AdminTransactionView[]`| `limit` positif & ≤ 200                               |
-| `SetUserRoleUseCase`                | `User`                  | tolak `actorId === userId`, delegasi ke `userService` |
-| `DeleteAnyUserUseCase`              | `boolean`               | tolak `actorId === userId`, delegasi ke `userService` |
+| Use Case                           | Output                   | Guard                                                 |
+| ---------------------------------- | ------------------------ | ----------------------------------------------------- |
+| `ListAdminUsersUseCase`            | `AdminUserView[]`        | —                                                     |
+| `GetAdminOverviewUseCase`          | `AdminOverview`          | —                                                     |
+| `ListAdminUserTransactionsUseCase` | `AdminTransactionView[]` | `limit` positif & ≤ 200                               |
+| `SetUserRoleUseCase`               | `User`                   | tolak `actorId === userId`, delegasi ke `userService` |
+| `DeleteAnyUserUseCase`             | `boolean`                | tolak `actorId === userId`, delegasi ke `userService` |
 
 Dua guard anti-lockout itu penting, bukan sekadar formalitas. `cerdix` adalah
 satu-satunya admin; kalau dia boleh menurunkan role-nya sendiri sementara tidak
@@ -182,7 +182,7 @@ Kolom `created_at` disimpan sebagai teks `CURRENT_TIMESTAMP` (UTC), jadi
 dikelompokkan per `type`:
 
 ```ts
-sql`sum(cast(replace(substr(${transactionTable.amount}, 5), ',', '') as real))`
+sql`sum(cast(replace(substr(${transactionTable.amount}, 5), ',', '') as real))`;
 ```
 
 Kolom `amount` disimpan sebagai teks `"<ISO> <angka>"` (lihat `Balance.new`).
@@ -272,14 +272,14 @@ hash (`string`), bukan integer database, dan `DateTime` adalah `Date`.
 
 ### Wiring [L273-290]
 
-| File                                         | Perubahan                                                                 |
-| -------------------------------------------- | ------------------------------------------------------------------------- |
-| `composition/root.container.ts:17,32`        | `import "$services/domain/admin"` + export `adminService`                 |
-| `shared/infra/graphql/yoga-context.ts`       | `admin` pada `YogaContext`; `role` ditambahkan ke `userAuth`              |
-| `shared/infra/graphql/yoga-server.ts`        | typeDefs + resolver didaftarkan; transformer `@admin` dipasang            |
-| `shared/infra/graphql/directives.ts`         | `adminDirectiveTypeDefs` + `adminDirectiveTransformer`                     |
-| `shared/infra/db/drizzle-schema/user.schema.ts` | kolom `role` + `userRoleValues`                                         |
-| `domain/user/**`                             | `userRoleSchema`, `User.role`, `UserRepository.updateRole`, `UpdateUserRoleUseCase` |
+| File                                            | Perubahan                                                                           |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `composition/root.container.ts:17,32`           | `import "$services/domain/admin"` + export `adminService`                           |
+| `shared/infra/graphql/yoga-context.ts`          | `admin` pada `YogaContext`; `role` ditambahkan ke `userAuth`                        |
+| `shared/infra/graphql/yoga-server.ts`           | typeDefs + resolver didaftarkan; transformer `@admin` dipasang                      |
+| `shared/infra/graphql/directives.ts`            | `adminDirectiveTypeDefs` + `adminDirectiveTransformer`                              |
+| `shared/infra/db/drizzle-schema/user.schema.ts` | kolom `role` + `userRoleValues`                                                     |
+| `domain/user/**`                                | `userRoleSchema`, `User.role`, `UserRepository.updateRole`, `UpdateUserRoleUseCase` |
 
 `role` **tidak** ikut ditulis oleh `UserRepository.update()` maupun `save()`.
 Penulisannya hanya lewat `updateRole()` yang terpisah. Kalau `role` ikut

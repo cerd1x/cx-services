@@ -85,25 +85,25 @@ Jangan skip urutan hanya karena command sebelumnya berhasil.
 
 ## Referensi Script yang Tersedia
 
-| Script                     | Keterangan                                          | Kategori      |
-| -------------------------- | --------------------------------------------------- | ------------- |
-| `bun run dev`              | Jalankan dev server                                 | Dev Server    |
-| `bun run build`            | Build production                                    | Build         |
-| `bun run gql:gen`          | Generate GraphQL types                              | Build         |
-| `bun run gql:watch`        | Watch & regenerate GraphQL types                    | Dev Server    |
-| `bun run check`            | Type checking (svelte-check + tsgo)                 | Read-only     |
-| `bun run lint`             | Linting dengan oxlint                               | Read-only     |
-| `bun run lint:fix`         | Auto-fix lint                                       | Mutasi (file) |
-| `bun run db:push`          | Push schema ke database                             | Mutasi DB     |
-| `bun run db:generate`      | Generate migration file                             | Mutasi DB     |
-| `bun run db:migrate`       | Jalankan migration                                  | Mutasi DB     |
-| `bun run db:studio`        | Buka Drizzle Studio                                 | Dev Server    |
-| `bun run deploy`           | Build & deploy Worker ke Cloudflare                  | Deploy        |
-| `bun run dev:bun`          | Jalankan `server.ts` via Bun (host inject D1 manual) | Dev Server    |
-| `bun run test`             | Semua test (unit + integration + e2e)               | Read-only     |
-| `bun run test:unit`        | Unit + integration test                             | Read-only     |
-| `bun run test:e2e`         | e2e GraphQL test                                    | Read-only     |
-| `bun run e2e:<domain>`     | e2e runner per domain                               | Read-only     |
+| Script                 | Keterangan                                           | Kategori      |
+| ---------------------- | ---------------------------------------------------- | ------------- |
+| `bun run dev`          | Jalankan dev server                                  | Dev Server    |
+| `bun run build`        | Build production                                     | Build         |
+| `bun run gql:gen`      | Generate GraphQL types                               | Build         |
+| `bun run gql:watch`    | Watch & regenerate GraphQL types                     | Dev Server    |
+| `bun run check`        | Type checking (svelte-check + tsgo)                  | Read-only     |
+| `bun run lint`         | Linting dengan oxlint                                | Read-only     |
+| `bun run lint:fix`     | Auto-fix lint                                        | Mutasi (file) |
+| `bun run db:push`      | Push schema ke database                              | Mutasi DB     |
+| `bun run db:generate`  | Generate migration file                              | Mutasi DB     |
+| `bun run db:migrate`   | Jalankan migration                                   | Mutasi DB     |
+| `bun run db:studio`    | Buka Drizzle Studio                                  | Dev Server    |
+| `bun run deploy`       | Build & deploy Worker ke Cloudflare                  | Deploy        |
+| `bun run dev:bun`      | Jalankan `server.ts` via Bun (host inject D1 manual) | Dev Server    |
+| `bun run test`         | Semua test (unit + integration + e2e)                | Read-only     |
+| `bun run test:unit`    | Unit + integration test                              | Read-only     |
+| `bun run test:e2e`     | e2e GraphQL test                                     | Read-only     |
+| `bun run e2e:<domain>` | e2e runner per domain                                | Read-only     |
 
 ## Runtime Workers (Cloudflare)
 

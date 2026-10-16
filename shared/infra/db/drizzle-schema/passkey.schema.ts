@@ -12,5 +12,7 @@ export const passkeyTable = sqliteTable("passkey", {
   counter: integer("counter").notNull().default(0),
   transports: text("transports"),
   deviceName: text("device_name"),
-  createdAt: text("created_at").notNull().default(sql`(CURRENT_TIMESTAMP)`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });

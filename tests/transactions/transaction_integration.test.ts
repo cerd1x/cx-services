@@ -32,7 +32,6 @@ describe("Transaction integration", () => {
     sqlite?.close();
   });
 
-
   async function seedTransaction(overrides?: {
     type?: string;
     amount?: Balance;

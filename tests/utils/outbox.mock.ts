@@ -1,17 +1,19 @@
 import { OutboxRepository } from "$services/shared/kernel/outbox/outbox-repository.port";
 import type { AssetSwapGateway } from "$services/domain/transactions";
 
-type OutboxRow = { id: number; correlationId: string; eventType: string; payload: string; processed: boolean };
+type OutboxRow = {
+  id: number;
+  correlationId: string;
+  eventType: string;
+  payload: string;
+  processed: boolean;
+};
 
 export class InMemoryOutboxRepository extends OutboxRepository {
   rows: OutboxRow[] = [];
   #seq = 1;
 
-  async save(event: {
-    correlationId: string;
-    eventType: string;
-    payload: string;
-  }): Promise<void> {
+  async save(event: { correlationId: string; eventType: string; payload: string }): Promise<void> {
     this.rows.push({
       id: this.#seq++,
       correlationId: event.correlationId,

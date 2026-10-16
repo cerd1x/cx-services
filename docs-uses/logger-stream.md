@@ -15,16 +15,17 @@ logger.child("signIn")            → namespace [AuthService → signIn]
 
 ## Konsep
 
-| Piece              | Peran                                            |
-| ------------------ | ------------------------------------------------ |
-| `StreamLogger`     | Logger utama dengan namespace `path` bertingkat  |
-| `LogEntry`         | Satu event log (`level`, `path`, `args`, `timestamp`) |
-| `LoggerSink`       | Consumer/forwarder `(entry) => void`             |
-| `consoleSink()`    | Sink render flat → ke `Logger` (dengan sanitasi) |
-| `treeSink()`       | Sink default → rentetan bertingkat satu pohon (indentasi) |
-| `streamLog()`         | Factory: `StreamLogger` + `treeSink`          |
+| Piece           | Peran                                                     |
+| --------------- | --------------------------------------------------------- |
+| `StreamLogger`  | Logger utama dengan namespace `path` bertingkat           |
+| `LogEntry`      | Satu event log (`level`, `path`, `args`, `timestamp`)     |
+| `LoggerSink`    | Consumer/forwarder `(entry) => void`                      |
+| `consoleSink()` | Sink render flat → ke `Logger` (dengan sanitasi)          |
+| `treeSink()`    | Sink default → rentetan bertingkat satu pohon (indentasi) |
+| `streamLog()`   | Factory: `StreamLogger` + `treeSink`                      |
 
-Semua method (*immutable view*):
+Semua method (_immutable view_):
+
 - `child(name)` → logger baru dengan path `[...path, name]`, sink diwariskan
 - `pipe(sink)` → logger baru dengan sink tambahan
 - `debug/info/success/warn/error() → this` → chainable, kembali ke logger yang sama
@@ -36,9 +37,9 @@ Semua method (*immutable view*):
 ```ts
 import { Logger, LogLevel, stream } from "$services/shared/infra/logger";
 
-export const logger = streamLog(
-  Logger.create(LogLevel.Info, ".logger/auth-service-log.log"),
-).child("AuthService");
+export const logger = streamLog(Logger.create(LogLevel.Info, ".logger/auth-service-log.log")).child(
+  "AuthService",
+);
 ```
 
 ### Konfigurasi via `appConfigs.logger` (recommended)
@@ -49,9 +50,7 @@ import { appConfigs } from "./app.config";
 
 // Otomatis baca `appConfigs.logger.output` dan `appConfigs.logger.dir`
 // output: "console" | "file" | "console|file"
-export const logger = streamLog(
-  Logger.fromConfig(appConfigs.logger),
-).child("MyService");
+export const logger = streamLog(Logger.fromConfig(appConfigs.logger)).child("MyService");
 ```
 
 Pakai di service dengan decorator `@logMethod`:
@@ -127,7 +126,7 @@ const collector: LoggerSink = (entry) => collected.push(entry);
 
 const log = StreamLogger.from([consoleSink(Logger.create())])
   .child("orders")
-  .pipe(collector);          // tambah sink depan/memberi logger baru
+  .pipe(collector); // tambah sink depan/memberi logger baru
 
 log.info("created", { id: 42, total: 100000 });
 // konsol  : [orders] created {id: 42, total: 100000}
@@ -152,12 +151,12 @@ streamLog(logger)
 
 ## LogEntry
 
-| Field       | Type                                   | Keterangan                      |
-| ----------- | -------------------------------------- | ------------------------------- |
-| `level`     | `"DBG" \| "INF" \| "SUC" \| "WRN" \| "ERR"` | Tingkat log            |
-| `path`      | `string[]`                             | Namespace saat ini             |
-| `args`      | `unknown[]`                            | Argumen mentah (belum di-sanitize) |
-| `timestamp` | `number`                               | `Date.now()`                   |
+| Field       | Type                                        | Keterangan                         |
+| ----------- | ------------------------------------------- | ---------------------------------- |
+| `level`     | `"DBG" \| "INF" \| "SUC" \| "WRN" \| "ERR"` | Tingkat log                        |
+| `path`      | `string[]`                                  | Namespace saat ini                 |
+| `args`      | `unknown[]`                                 | Argumen mentah (belum di-sanitize) |
+| `timestamp` | `number`                                    | `Date.now()`                       |
 
 > Sink terima `args` **mentah**. Sanitasi hanya terjadi di `consoleSink`. Jika sink custom perlu data aman, pakai `sanitizeLogValue(entry.args[i])`.
 
@@ -217,17 +216,17 @@ logYogaFetch(yoga); // [HTTP → POST] enter: {url} → result {status} ({ms})
 
 ## API reference
 
-| API                              | Keterangan                                            |
-| -------------------------------- | ----------------------------------------------------- |
-| `Logger.fromConfig(config)`    | Buat Logger dari `{ output, dir }` (console|file) |
-| `Logger.create(level, logFile, name)` | Buat Logger dengan file path (legacy)   |
-| `Logger.getInstance(level, logFile, name)` | Singleton Logger (legacy)        |
-| `streamLog(logger)`            | Buat StreamLogger + `treeSink(logger)`              |
-| `StreamLogger.from(sinks)` | Buat StreamLogger kosong dengan daftar sink           |
-| `.child(name)`             | Turunkan namespace (immutable)                        |
-| `.pipe(sink)`              | Forward entry ke sink tambahan (immutable)            |
-| `.path`                    | Path namespace sebagai string (`A → B`)               |
-| `.info/.success/.warn/.error/.debug(...args)` | Log & return `this` (chainable) |
-| `treeSink(logger)`        | Sink rentetan bertingkat: `enter:`/`params:` buka level, `success/result/error` tutup (indentasi) |
-| `consoleSink(logger)`      | Sink flat ke `Logger` (sanitasi + file log)                |
-| `LoggerSink`               | `(entry: LogEntry) => void`                           |
+| API                                           | Keterangan                                                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `Logger.fromConfig(config)`                   | Buat Logger dari `{ output, dir }` (console                                                       | file) |
+| `Logger.create(level, logFile, name)`         | Buat Logger dengan file path (legacy)                                                             |
+| `Logger.getInstance(level, logFile, name)`    | Singleton Logger (legacy)                                                                         |
+| `streamLog(logger)`                           | Buat StreamLogger + `treeSink(logger)`                                                            |
+| `StreamLogger.from(sinks)`                    | Buat StreamLogger kosong dengan daftar sink                                                       |
+| `.child(name)`                                | Turunkan namespace (immutable)                                                                    |
+| `.pipe(sink)`                                 | Forward entry ke sink tambahan (immutable)                                                        |
+| `.path`                                       | Path namespace sebagai string (`A → B`)                                                           |
+| `.info/.success/.warn/.error/.debug(...args)` | Log & return `this` (chainable)                                                                   |
+| `treeSink(logger)`                            | Sink rentetan bertingkat: `enter:`/`params:` buka level, `success/result/error` tutup (indentasi) |
+| `consoleSink(logger)`                         | Sink flat ke `Logger` (sanitasi + file log)                                                       |
+| `LoggerSink`                                  | `(entry: LogEntry) => void`                                                                       |

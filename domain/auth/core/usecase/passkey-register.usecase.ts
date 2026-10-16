@@ -1,7 +1,4 @@
-import {
-  verifyRegistrationResponse,
-  type RegistrationResponseJSON,
-} from "@simplewebauthn/server";
+import { verifyRegistrationResponse, type RegistrationResponseJSON } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { AuthenticationError } from "$services/shared/kernel/errors/service-error";
 import { WebAuthnChallenge } from "../value-objects/webauthn.vo";
@@ -47,10 +44,9 @@ export class PasskeyRegisterUseCase extends CoreUsecase<void, PasskeyRegisterInp
       throw new AuthenticationError("Passkey already registered");
     }
 
-    const transports =
-      input.attestationResponse.response.transports?.length
-        ? JSON.stringify(input.attestationResponse.response.transports)
-        : null;
+    const transports = input.attestationResponse.response.transports?.length
+      ? JSON.stringify(input.attestationResponse.response.transports)
+      : null;
 
     await repo.save({
       userId: input.userId,

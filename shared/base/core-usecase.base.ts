@@ -6,9 +6,10 @@ export abstract class CoreUsecaseInterface<TOutput, TInput = void> {
   abstract execute(input: TInput): Promise<TOutput>;
 }
 
-export abstract class CoreUsecase<TOutput, TInput = void>
-  implements CoreUsecaseInterface<TOutput, TInput>
-{
+export abstract class CoreUsecase<TOutput, TInput = void> implements CoreUsecaseInterface<
+  TOutput,
+  TInput
+> {
   #container!: ServiceContainer;
 
   setContext(container: ServiceContainer): this;

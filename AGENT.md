@@ -216,7 +216,7 @@ Setiap module di `domain/<module>/` memiliki struktur yang **WAJIB**:
 > Domain model (Zod schema + Entity class) ada di `core/model/<module>.model.ts`. Definisi tabel Drizzle
 > (`sqliteTable`) tetap di `shared/infra/db/drizzle-schema/`. Adapter HANYA flesibel:
 > mengimplementasikan abstract class dari `core/ports/out/` (repository, gateway) atau
->menjawab permintaan dari core (resolver). `core/` tidak boleh meng-import driver DB.
+> menjawab permintaan dari core (resolver). `core/` tidak boleh meng-import driver DB.
 
 ### 9 Modules
 
@@ -479,10 +479,7 @@ import {
 import { Balance } from "../value-objects/balance.vo";
 import { ID, isMybe } from "$services/shared/kernel";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
-import type {
-  AssetMutationInput,
-  AssetMutationData,
-} from "./asset-mutation.model";
+import type { AssetMutationInput, AssetMutationData } from "./asset-mutation.model";
 import { CoreUsecase, ServiceContainer } from "$services/shared/base";
 
 // Token untuk repository (class yang implement interface dependency)
@@ -813,13 +810,13 @@ Drizzle Tables: `user`, `token`, `asset`, `asset_mutation`, `contact`, `product`
 
 ## Path Aliases
 
-| Alias         | Target                                    |
-| ------------- | ----------------------------------------- |
-| `$services`   | `./`                                      |
-| `$services/*` | `./*`                                     |
-| `$config`     | `./app.config.ts`                         |
-| `$gql`        | `./shared/infra/graphql/types`            |
-| `$gql/*`      | `./shared/infra/graphql/types/*`          |
+| Alias         | Target                           |
+| ------------- | -------------------------------- |
+| `$services`   | `./`                             |
+| `$services/*` | `./*`                            |
+| `$config`     | `./app.config.ts`                |
+| `$gql`        | `./shared/infra/graphql/types`   |
+| `$gql/*`      | `./shared/infra/graphql/types/*` |
 
 ---
 

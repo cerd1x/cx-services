@@ -1,9 +1,5 @@
 import type { Loggable } from "$services/shared/infra/decorators/logger-decorator";
-import {
-  Logger,
-  LogLevel,
-  streamLog,
-} from "$services/shared/infra/logger";
+import { Logger, LogLevel, streamLog } from "$services/shared/infra/logger";
 
 export const httpStream = streamLog(
   Logger.create(LogLevel.Info, ".logger/http-graphql-log.log"),
@@ -32,11 +28,7 @@ export function logYogaFetch(fetchFn: YogaFetch): YogaFetch {
 
 type ResolverFn = (...args: unknown[]) => unknown;
 
-function wrapResolver(
-  log: Loggable,
-  field: string,
-  fn: ResolverFn,
-): ResolverFn {
+function wrapResolver(log: Loggable, field: string, fn: ResolverFn): ResolverFn {
   return async function (this: unknown, ...args: unknown[]) {
     const step = log.child?.(field) ?? log;
     const label = step === log ? `[${field}]` : "";

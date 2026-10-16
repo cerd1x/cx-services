@@ -1,14 +1,6 @@
 import { Logger, LogLevel, streamLog } from "./shared/infra/logger";
-import {
-  betaReportEmailer,
-  betaReportStore,
-  isBetaReportAdmin,
-} from "./shared/infra/beta-report";
-import type {
-  BetaReportFile,
-  BetaReportMeta,
-  BetaReportPayload,
-} from "./shared/infra/beta-report";
+import { betaReportEmailer, betaReportStore, isBetaReportAdmin } from "./shared/infra/beta-report";
+import type { BetaReportFile, BetaReportMeta, BetaReportPayload } from "./shared/infra/beta-report";
 import { appConfigs, corsOrigins } from "./app.config";
 import { apiKillswitchService } from "./composition/root.container";
 
@@ -68,10 +60,7 @@ function isKillswitchAdminRequest(request: Request): boolean {
   return request.headers.get("x-admin-token") === token;
 }
 
-function resolveBetaReportKey(
-  id: string | undefined,
-  items: BetaReportMeta[],
-): string | null {
+function resolveBetaReportKey(id: string | undefined, items: BetaReportMeta[]): string | null {
   if (!id) return null;
   if (id.includes("/")) return id;
   return items.find((m) => m.id === id)?.key ?? null;
@@ -81,8 +70,7 @@ async function getApp() {
   if (_app) return _app;
   const { Elysia } = await import("elysia");
   const { cors } = await import("@elysiajs/cors");
-  const { gqlYogaAsPluginElysia } =
-    await import("./shared/infra/graphql/yoga-server");
+  const { gqlYogaAsPluginElysia } = await import("./shared/infra/graphql/yoga-server");
   const { rateLimit } = await import("elysia-rate-limit");
   _app = new Elysia({
     /**
@@ -117,13 +105,10 @@ async function getApp() {
       rateLimit({
         max: 60,
         duration: 60_000,
-        errorResponse: new Response(
-          JSON.stringify({ error: "Too many requests" }),
-          {
-            status: 429,
-            headers: { "Content-Type": "application/json" },
-          },
-        ),
+        errorResponse: new Response(JSON.stringify({ error: "Too many requests" }), {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        }),
         // Di development (bukan production), nonaktifkan rate-limit
         // untuk menghindari warning "failed to determine client address"
         // ketika request datang dari local server tanpa header address.
@@ -156,10 +141,7 @@ async function getApp() {
         set.status = 401;
         return { error: "Unauthorized" };
       }
-      const key = resolveBetaReportKey(
-        params?.id,
-        await betaReportStore.list(),
-      );
+      const key = resolveBetaReportKey(params?.id, await betaReportStore.list());
       if (!key) {
         set.status = 404;
         return { error: "Not found" };
