@@ -42,7 +42,6 @@ Detail lengkap: [`AGENT.md`](./AGENT.md).
 | File        | Runtime                    | Cara jalan                        |
 | ----------- | -------------------------- | --------------------------------- |
 | `worker.ts` | Cloudflare Workers         | `bun run dev` / `wrangler deploy` |
-| `server.ts` | Bun / Node (butuh D1)      | `bun run dev:bun`                 |
 | `app.ts`    | Elysia app + handler.fetch | dipakai `worker.ts`               |
 
 `worker.ts` hanya _wiring binding_ (D1, R2, Email) lalu meneruskan request ke Elysia app.
@@ -55,7 +54,6 @@ bun install
 bun run dev            # wrangler dev (D1 + R2 lokal, port 8787)
 bun run build          # bundel worker.ts -> build/worker.js (Bun)
 bun run deploy         # build + wrangler deploy
-bun run dev:bun        # server.ts (butuh globalThis.CX_DB)
 
 bun run gql:gen        # generate shared/infra/graphql/types/types.generated.ts
 bun run check          # type-check (bun check)

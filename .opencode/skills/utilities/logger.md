@@ -92,7 +92,7 @@ export const logger = Logger.getInstance();
 | **Bun first**       | Jika runtime Bun, pakai `Bun.write` (append). Jika gagal fallback ke fs.   |
 | **Node fallback**   | Fallback ke `fs.appendFileSync`. Buat direktori parent jika belum ada.     |
 | **File format**     | `[ISO_TIMESTAMP] [LEVEL] message\n` — JSON untuk object.                   |
-| **Env config**      | `LOGGER_DIR` (default `.logger`) — lokasi file log di `api-server.ts`.     |
+| **Env config**      | `LOGGER_DIR` (default `.logger-file`) — dibaca di `app.config.ts`.         |
 
 ## Cara Pakai
 

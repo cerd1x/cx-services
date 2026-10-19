@@ -6,9 +6,7 @@
   "main": "app.ts",
   "scripts": {
     "dev": "bun run build && wrangler dev",
-    "dev:bun": "bun run server.ts",
     "build": "bun run scripts/build.ts",
-    "start:server:bun": "bun run build/server_with_bunjs.js",
     "deploy": "NODE_ENV=production bun run build && wrangler deploy",
     "gql:gen": "graphql-codegen --config codegen.ts",
     "gql:watch": "graphql-codegen --config codegen.ts --watch",

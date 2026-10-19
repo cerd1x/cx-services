@@ -101,5 +101,5 @@ export const appConfigs = {
   },
 };
 
-/** Daftar origin web untuk CORS. Dipakai `app.ts` dan `server.ts`. */
+/** Daftar origin web untuk CORS. Dipakai `app.ts`. */
 export const corsOrigins = toList(appConfigs.app.origin);

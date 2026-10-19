@@ -9,8 +9,7 @@ Full-stack finance management. Backend: **Elysia + GraphQL Yoga** on Cloudflare 
 
 ## Entry Points
 
-- `app.ts` — Elysia server entry (Workers/Bun), mount Yoga at `/graphql`
-- `server.ts` — Elysia server entry (Node.js standalone, port 3001)
+- `app.ts` — Elysia server entry (Cloudflare Workers), mount Yoga at `/graphql`
 - `composition/root.container.ts` — Master DI composition root
 
 ---
@@ -84,8 +83,7 @@ Full-stack finance management. Backend: **Elysia + GraphQL Yoga** on Cloudflare 
 │
 ├── tests/                            # Unit & integration tests lintas modul
 │
-├── app.ts                            # Elysia entry (Cloudflare Workers)
-└── server.ts                         # Standalone Elysia server (port 3001)
+└── app.ts                            # Elysia entry (Cloudflare Workers)
 ```
 
 ### Prinsip Vertical Slice

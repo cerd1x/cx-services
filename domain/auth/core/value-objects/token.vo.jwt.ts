@@ -3,7 +3,7 @@
  *
  * **Implementasi: `jsonwebtoken`.**
  *
- * Hanya untuk runtime Node/Bun (`server.ts`, unit test). **Jangan dipakai di
+ * Hanya untuk runtime Node/Bun (unit test). **Jangan dipakai di
  * Cloudflare Workers**: paket ini hard-depend pada `crypto.KeyObject`, sedangkan
  * `scripts/build.ts` memakai `target: "browser"` sehingga Bun meng-inline
  * polyfill `node:crypto` ke bundle. Polyfill tersebut tidak meng-export
