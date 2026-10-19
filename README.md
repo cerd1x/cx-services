@@ -58,7 +58,7 @@ bun run deploy         # build + wrangler deploy
 bun run dev:bun        # server.ts (butuh globalThis.CX_DB)
 
 bun run gql:gen        # generate shared/infra/graphql/types/types.generated.ts
-bun run check          # type-check (tsgo)
+bun run check          # type-check (bun check)
 
 bun run test           # semua test (unit + integrasi + e2e)
 bun run test:e2e       # hanya e2e

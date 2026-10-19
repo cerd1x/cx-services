@@ -54,7 +54,7 @@ Jangan skip urutan hanya karena command sebelumnya berhasil.
 ### 6. Type Checking & Linting
 
 - ketika ai melakukan execution pada project mu dalam mode development analisa maupun cek error maka gunakan:
-- ✅ `bun run check` untuk type checking (`tsgo`)
+- ✅ `bun run check` untuk type checking (`bun check`)
 - ✅ `bun run fmt` untuk format pada file `.{js,ts}`
 - ✅ `bun run lint:fix` untuk linter pada file `.{js,ts}`
 - ❌ Jangan pakai `rs:check` / `rs:fmt` (khusus SvelteKit, tidak ada di project ini)
@@ -91,7 +91,7 @@ Jangan skip urutan hanya karena command sebelumnya berhasil.
 | `bun run build`        | Build production                                     | Build         |
 | `bun run gql:gen`      | Generate GraphQL types                               | Build         |
 | `bun run gql:watch`    | Watch & regenerate GraphQL types                     | Dev Server    |
-| `bun run check`        | Type checking (svelte-check + tsgo)                  | Read-only     |
+| `bun run check`        | Type checking (bun check)                            | Read-only     |
 | `bun run lint`         | Linting dengan `bun lint`                            | Read-only     |
 | `bun run lint:fix`     | Auto-fix lint (`bun lint --fix`)                     | Mutasi (file) |
 | `bun run db:push`      | Push schema ke database                              | Mutasi DB     |

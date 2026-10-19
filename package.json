@@ -12,7 +12,7 @@
     "deploy": "NODE_ENV=production bun run build && wrangler deploy",
     "gql:gen": "graphql-codegen --config codegen.ts",
     "gql:watch": "graphql-codegen --config codegen.ts --watch",
-    "check": "tsgo --noEmit -p tsconfig.json",
+    "check": "bun check --no-script -p tsconfig.json",
     "lint": "bun lint",
     "fmt": "bun fmt",
     "lint:fix": "bun lint --fix",
@@ -60,14 +60,11 @@
     "@graphql-codegen/cli": "^7.2.0",
     "@graphql-codegen/typescript": "^6.1.0",
     "@graphql-codegen/typescript-resolvers": "^6.1.0",
-    "@libsql/client": "^0.17.4",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^26.6.2",
-    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
     "bun-types": "^1.4.0",
     "drizzle-kit": "1.0.0-rc.4-ca0f029",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
-    "typescript": "~6.0.3",
     "wrangler": "^4.149.0"
   },
   "packageManager": "bun@1.4.0"
