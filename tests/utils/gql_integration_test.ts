@@ -16,9 +16,8 @@ export async function gqlRequest<T extends object>(
     }),
   );
 
-  let result: object | undefined = (await res.json())?.data;
-
-  let data = result ? (result as T) : ({} as T);
+  const body = (await res.json()) as { data?: T };
+  const data = body.data ?? ({} as T);
 
   return { data, req: res };
 }

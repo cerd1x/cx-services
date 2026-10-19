@@ -1,5 +1,5 @@
 import { Logger, streamLog } from "./shared/infra/logger";
-import { Elysia, status } from "elysia";
+import { Elysia, status, type Context } from "elysia";
 import { cors } from "@elysia/cors";
 import { rateLimit } from "elysia-rate-limit";
 import { betaReportEmailer, betaReportStore, isBetaReportAdmin } from "./shared/infra/beta-report";
@@ -7,19 +7,19 @@ import type { BetaReportFile, BetaReportMeta, BetaReportPayload } from "./shared
 import { appConfigs, corsOrigins } from "./app.config";
 import { apiKillswitchService } from "./composition/root.container";
 import { gqlYogaAsPluginElysia } from "./shared/infra/graphql/yoga-server";
-
+import { WebStandardAdapter } from "elysia/adapter/web-standard";
 const l = streamLog(Logger.fromConfig(appConfigs.logger)).child("ApiServer");
 
 /**
  * Cloudflare Workers melarang pembuatan objek I/O (`Response`) di global scope,
  * jadi rate-limit memakai `Error` sebagai `errorResponse` lalu dipetakan ke
- * response 429 lewat `.error()`. Bentuk body JSON dipertahankan seperti semula.
+ * response 429 lewat `.onError()`. Bentuk body JSON dipertahankan seperti semula.
  */
 class RateLimitExceededError extends Error {
   override name = "RateLimitExceededError";
 }
 
-async function receiveBetaReport({ body, set }: any) {
+async function receiveBetaReport({ body, set }: Context) {
   const payload = (body ?? {}) as BetaReportPayload;
   const logs = Array.isArray(payload.logs) ? payload.logs : [];
   const meta = await betaReportStore.save(payload);
@@ -83,6 +83,10 @@ function getApp() {
 
 function createApp() {
   return new Elysia({
+    // Elysia 2 tidak lagi menyediakan `CloudflareAdapter` (itu API Elysia 1.x).
+    // Padanan resminya untuk Workers adalah WebStandardAdapter; AOT dengan
+    // `target: "workerd"` juga mengunci adapter ini saat build.
+    adapter: WebStandardAdapter,
     cookie: {
       secrets: appConfigs.app.secretKey,
       expires: new Date(appConfigs.cookie.sessionMaxAge),
@@ -93,7 +97,7 @@ function createApp() {
     },
   })
     .use((ctx) => {
-      ctx.request(({ request: { url, method } }: any) => {
+      ctx.onRequest(({ request: { url, method } }) => {
         let _url = new URL(url);
         l.info(`${method} - ${_url.pathname}`);
       });
@@ -111,6 +115,13 @@ function createApp() {
         duration: 60_000,
         // `Response` tidak boleh dibuat di global scope (Workers), jadi pakai Error.
         errorResponse: new RateLimitExceededError("Too many requests"),
+        // Di Workers `server.requestIP()` tidak tersedia, sehingga generator
+        // bawaan mengembalikan key kosong dan semua client berbagi satu bucket.
+        // Pakai header Cloudflare agar limit dihitung per IP.
+        generator: (request) =>
+          request.headers.get("cf-connecting-ip") ??
+          request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          "anonymous",
         // Di development (bukan production), nonaktifkan rate-limit
         // untuk menghindari warning "failed to determine client address"
         // ketika request datang dari local server tanpa header address.
@@ -121,7 +132,7 @@ function createApp() {
         },
       }),
     )
-    .error(RateLimitExceededError, () => status(429, { error: "Too many requests" }))
+    .onError("global", RateLimitExceededError, () => status(429, { error: "Too many requests" }))
     .get("/", () => {
       return "🦊 Cerdix API Server Running";
     })
@@ -131,7 +142,7 @@ function createApp() {
     }))
     .post("/beta/report", receiveBetaReport)
     .post("/api/beta/report", receiveBetaReport)
-    .get("/beta/report/list", async ({ request, set }: any) => {
+    .get("/beta/report/list", async ({ request, set }: Context) => {
       if (!isBetaReportAdminRequest(request)) {
         set.status = 401;
         return { error: "Unauthorized" };
@@ -139,7 +150,7 @@ function createApp() {
       const items = await betaReportStore.list();
       return { status: "ok", items };
     })
-    .get("/beta/report/:id", async ({ params, request, set }: any) => {
+    .get("/beta/report/:id", async ({ params, request, set }: Context) => {
       if (!isBetaReportAdminRequest(request)) {
         set.status = 401;
         return { error: "Unauthorized" };
@@ -161,7 +172,7 @@ function createApp() {
         },
       });
     })
-    .post("/beta/report/email", async ({ request, body, set }: any) => {
+    .post("/beta/report/email", async ({ request, body, set }: Context) => {
       if (!isBetaReportAdminRequest(request)) {
         set.status = 401;
         return { error: "Unauthorized" };
@@ -200,7 +211,7 @@ function createApp() {
         messageId: result.messageId,
       };
     })
-    .get("/admin/killswitch", async ({ request, set }: any) => {
+    .get("/admin/killswitch", async ({ request, set }: Context) => {
       if (!isKillswitchAdminRequest(request)) {
         set.status = 401;
         return { error: "Unauthorized" };
@@ -216,7 +227,7 @@ function createApp() {
         })),
       };
     })
-    .post("/admin/killswitch/:operation", async ({ params, request, body, set }: any) => {
+    .post("/admin/killswitch/:operation", async ({ params, request, body, set }: Context) => {
       if (!isKillswitchAdminRequest(request)) {
         set.status = 401;
         return { error: "Unauthorized" };
@@ -230,7 +241,7 @@ function createApp() {
         disabledAt: entry.disabledAt,
       };
     })
-    .delete("/admin/killswitch/:operation", async ({ params, request, set }: any) => {
+    .delete("/admin/killswitch/:operation", async ({ params, request, set }: Context) => {
       if (!isKillswitchAdminRequest(request)) {
         set.status = 401;
         return { error: "Unauthorized" };
@@ -238,10 +249,11 @@ function createApp() {
       const result = await apiKillswitchService.enableOperation(params?.operation);
       return { status: "enabled", ...result };
     })
-    .use(gqlYogaAsPluginElysia({ logging: true }));
+    .use(gqlYogaAsPluginElysia({ logging: true }))
+    .compile();
 }
 
-const app: any = createApp();
+const app = createApp();
 
 const handler = {
   async fetch(request: Request) {

@@ -1,6 +1,7 @@
 /// <reference types="bun-types" />
 import { dirname, resolve } from "node:path";
 import { existsSync } from "node:fs";
+import type { BunPlugin } from "bun";
 import { aot } from "elysia/plugin/aot/bun";
 
 /**
@@ -12,9 +13,9 @@ import { aot } from "elysia/plugin/aot/bun";
  */
 const rootDir = process.cwd();
 
-const aliasPlugin = {
+const aliasPlugin: BunPlugin = {
   name: "cx-alias",
-  setup(build: any) {
+  setup(build) {
     // Cloudflare Workers: paksa ponyfill "global" (Web streams) untuk
     // @whatwg-node/fetch. Tanpa ini, plugin AOT Elysia membuat resolusi jatuh
     // ke build Node (node-fetch) yang memakai node:stream dan gagal di workerd.
@@ -22,11 +23,11 @@ const aliasPlugin = {
       path: resolve(rootDir, "node_modules/@whatwg-node/fetch/dist/global-ponyfill.js"),
     }));
 
-    build.onResolve({ filter: /^\$services\// }, (args: any) => ({
+    build.onResolve({ filter: /^\$services\// }, (args) => ({
       path: resolvePath(rootDir, args.path.replace("$services/", "")),
     }));
 
-    build.onResolve({ filter: /^\$(config|gql)(\/|$)/ }, (args: any) => {
+    build.onResolve({ filter: /^\$(config|gql)(\/|$)/ }, (args) => {
       const sub =
         args.path === "$config" || args.path.startsWith("$config/")
           ? "app.config"
@@ -35,7 +36,7 @@ const aliasPlugin = {
       return { path: resolvePath(rootDir, sub + stripped) };
     });
 
-    build.onResolve({ filter: /\.gql(\?raw)?$/ }, (args: any) => {
+    build.onResolve({ filter: /\.gql(\?raw)?$/ }, (args) => {
       const importerDir = args.importer ? dirname(args.importer) : rootDir;
       const parsed = args.path.split("?")[0].split("/");
       const fileName = parsed.pop()!;
@@ -45,7 +46,7 @@ const aliasPlugin = {
       return { path: found, namespace: "gql-raw" };
     });
 
-    build.onLoad({ filter: /.*/, namespace: "gql-raw" }, async (args: any) => ({
+    build.onLoad({ filter: /.*/, namespace: "gql-raw" }, async (args) => ({
       contents: await Bun.file(args.path).text(),
       loader: "text",
     }));
@@ -92,7 +93,10 @@ const result = await Bun.build({
   minify: false,
   sourcemap: true,
   external: NODE_BUILTINS,
-  plugins: [aliasPlugin, aot("./app.ts", { target: "workerd" })],
+  // `strip: true` memastikan tidak ada handler-JIT (`new Function`) yang ikut
+  // ke bundle. Cloudflare Workers melarang kompilasi di luar startup, jadi
+  // build harus gagal kalau masih ada route yang belum ter-precompile.
+  plugins: [aliasPlugin, aot("./app.ts", { target: "workerd", strip: true })],
   root: rootDir,
 });
 

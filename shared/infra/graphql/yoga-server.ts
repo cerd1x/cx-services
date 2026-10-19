@@ -57,7 +57,7 @@ import { GraphQLError } from "graphql";
 import { createContext, withSetCookies } from "./yoga-context";
 import type { YogaContext, CookieJar } from "./yoga-context";
 import { ServiceError } from "$services/shared/kernel/errors/service-error";
-import type { Elysia } from "elysia";
+import type { Context, Elysia } from "elysia";
 import { depthLimitRule, noIntrospectionInProductionRule } from "./security-rules";
 import { appConfigs } from "$config";
 import { withResolverLogging } from "./graphql-stream";
@@ -212,12 +212,12 @@ export const gqlYogaAsPluginElysia = (opts: GqlYogaPluginOptions = {}) => {
 
   return (app: Elysia) =>
     app
-      .get(path, async ({ request }: any) => {
+      .get(path, async ({ request }: Context) => {
         // Teruskan Response yoga apa adanya: Content-Type GraphiQL (text/html)
         // harus dipertahankan, dan body tidak boleh di-buffer.
         return runYoga(request);
       })
-      .post(path, { parse: "none" }, async ({ request, body }: any) => {
+      .post(path, { parse: "none" }, async ({ request, body }: Context) => {
         // Elysia 2 memanggil hook/schema SEBELUM handler, jadi `parse: "none"`
         // dievaluasi lebih dulu. Body mentah tetap diambil dari `request.text()`
         // agar stream tidak terkunci saat diteruskan ke yoga.
