@@ -21,6 +21,7 @@ input CreateOrderProductSaleInput {
   customerId: ID
   description: String
   payToAssetId: ID
+  paymentStatus: TransactionPaymentStatus
 }
 
 input CreateOrderExpenseInput {
@@ -50,6 +51,7 @@ input CreateOrderLoanInput {
   customerId: ID
   description: String
   payWithAssetId: ID
+  paymentStatus: TransactionPaymentStatus
 }
 
 input UpdateOrderInput {

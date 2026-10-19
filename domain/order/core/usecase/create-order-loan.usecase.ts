@@ -25,6 +25,7 @@ export type CreateOrderLoanInput = {
   customerId?: number;
   description?: string;
   payWithAssetId?: number;
+  paymentStatus?: "paid" | "unpaid";
 };
 
 export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLoanInput> {
@@ -60,6 +61,7 @@ export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLo
           : { type: "cash" },
         customerId: data.customerId,
         status: "success",
+        paymentStatus: data.paymentStatus,
         payWithAssetId: data.payWithAssetId,
       });
       savedTxId = createdTx.id ?? null;

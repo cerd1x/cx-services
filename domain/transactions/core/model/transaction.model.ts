@@ -39,13 +39,6 @@ const paymentMethodTypeSchema = z.enum([
   "credit",
 ]);
 
-const PaymentStatus = {
-  paid: "paid",
-  unpaid: "unpaid",
-} as const;
-
-type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
-
 const paymentStatusSchema = z.enum(["paid", "unpaid"]);
 
 export const paymentMethodSchema = z.object({

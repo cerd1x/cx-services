@@ -96,6 +96,7 @@ export class OrderService {
     customerId?: number;
     description?: string;
     payToAssetId?: number;
+    paymentStatus?: "paid" | "unpaid";
   }): Promise<OrderType> {
     return this.#createOrderProductSale.execute(data);
   }
@@ -124,6 +125,7 @@ export class OrderService {
     customerId?: number;
     description?: string;
     payWithAssetId?: number;
+    paymentStatus?: "paid" | "unpaid";
   }): Promise<OrderType> {
     return this.#createOrderLoan.execute(data);
   }

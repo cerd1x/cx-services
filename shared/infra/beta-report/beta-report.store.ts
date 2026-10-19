@@ -171,7 +171,7 @@ export class BetaReportStore {
   async get(key: string): Promise<BetaReportFile | null> {
     const body = await this.#backend.get(key);
     if (body == null) return null;
-    let doc: BetaReportDoc | null = null;
+    let doc: BetaReportDoc | null;
     try {
       doc = JSON.parse(body) as BetaReportDoc;
     } catch {

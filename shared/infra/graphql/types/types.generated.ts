@@ -176,6 +176,7 @@ export type CreateOrderLoanInput = {
   itemCount: Scalars["Int"]["input"];
   payWithAssetId?: InputMaybe<Scalars["ID"]["input"]>;
   paymentMethod?: InputMaybe<Scalars["String"]["input"]>;
+  paymentStatus?: InputMaybe<TransactionPaymentStatus>;
   totalAmount: Scalars["Float"]["input"];
 };
 
@@ -186,6 +187,7 @@ export type CreateOrderProductSaleInput = {
   itemCount: Scalars["Int"]["input"];
   payToAssetId?: InputMaybe<Scalars["ID"]["input"]>;
   paymentMethod?: InputMaybe<Scalars["String"]["input"]>;
+  paymentStatus?: InputMaybe<TransactionPaymentStatus>;
   productId: Scalars["ID"]["input"];
   totalAmount: Scalars["Float"]["input"];
 };

@@ -12,7 +12,6 @@ export type YogaFetch = (
 
 export function logYogaFetch(fetchFn: YogaFetch): YogaFetch {
   return async (request, extra) => {
-    const start = Date.now();
     const log = httpStream.child(request.method);
     log.info("enter:", request.url);
 

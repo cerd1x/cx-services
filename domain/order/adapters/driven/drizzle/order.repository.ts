@@ -12,12 +12,7 @@ export class OrderRepositoryImpl implements OrderRepository {
         userId: order.userId!,
         status: order.status,
         paymentMethod: order.paymentMethod as
-          | "cash"
-          | "bank_transfer"
-          | "ewallet"
-          | "credit_card"
-          | "debit_card"
-          | "credit",
+          "cash" | "bank_transfer" | "ewallet" | "credit_card" | "debit_card" | "credit",
         totalAmount: order.totalAmount,
         currency: order.currency,
         itemCount: order.itemCount,
@@ -73,12 +68,7 @@ export class OrderRepositoryImpl implements OrderRepository {
       .set({
         status: order.status,
         paymentMethod: order.paymentMethod as
-          | "cash"
-          | "bank_transfer"
-          | "ewallet"
-          | "credit_card"
-          | "debit_card"
-          | "credit",
+          "cash" | "bank_transfer" | "ewallet" | "credit_card" | "debit_card" | "credit",
         totalAmount: order.totalAmount,
         currency: order.currency,
         itemCount: order.itemCount,

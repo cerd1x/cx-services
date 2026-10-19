@@ -108,6 +108,7 @@ const resolvers: Resolvers<YogaContext> = {
         customerId: args.input.customerId ? ID.new(args.input.customerId).toNumb : undefined,
         description: args.input.description ?? undefined,
         payToAssetId: args.input.payToAssetId ? ID.new(args.input.payToAssetId).toNumb : undefined,
+        paymentStatus: args.input.paymentStatus ?? undefined,
       });
       return {
         id: result.id?.toHash ?? "",
@@ -162,6 +163,7 @@ const resolvers: Resolvers<YogaContext> = {
         payWithAssetId: args.input.payWithAssetId
           ? ID.new(args.input.payWithAssetId).toNumb
           : undefined,
+        paymentStatus: args.input.paymentStatus ?? undefined,
       });
       return {
         id: result.id?.toHash ?? "",

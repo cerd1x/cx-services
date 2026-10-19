@@ -1,2 +1,18 @@
 [test]
 preload = ["./tests/setup.ts"]
+
+[lint]
+ignorePatterns = ["node_modules/", "build/", ".wrangler/", "drizzle/", ".idea/"]
+
+[lint.rules]
+"@typescript-eslint/await-thenable" = "off"
+"@typescript-eslint/no-explicit-any" = "off"
+"@typescript-eslint/no-unsafe-function-type" = "off"
+"@typescript-eslint/no-empty-object-type" = "off"
+"prefer-const" = "off"
+
+[fmt]
+printWidth = 100
+ignorePatterns = ["coverage"]
+svelte = false
+sortTailwindcss = true

@@ -5,7 +5,7 @@ import type { CurrencyType } from "../model/asset.model";
 
 export const isoCodeList = Object.entries(_Currencies).map(([, currencies]) => currencies.code);
 
-const isoCodeSchema = z.enum(isoCodeList);
+const _isoCodeSchema = z.enum(isoCodeList);
 
 const currencyLocaleMap: Record<string, string> = {
   IDR: "id-ID",
@@ -29,7 +29,7 @@ export function currencyToLocale(code: string): string {
   return currencyLocaleMap[code] ?? "en-US";
 }
 
-export type IsoCodeType = z.infer<typeof isoCodeSchema>;
+export type IsoCodeType = z.infer<typeof _isoCodeSchema>;
 export type CurrencyMetaType = (typeof _Currencies)[keyof typeof _Currencies];
 
 export class Balance {

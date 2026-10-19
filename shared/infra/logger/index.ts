@@ -74,7 +74,6 @@ export class Logger {
   static fromConfig(config: { output?: string; dir?: string }): Logger {
     const output = (config.output ?? "console").toLowerCase();
     const isFile = output.includes("file");
-    const isConsole = output.includes("console") || !isFile;
     const logFile = isFile ? `${config.dir ?? ".logger-file"}/app.log` : undefined;
     const logger = new Logger(LogLevel.Info, logFile, undefined);
     return logger;

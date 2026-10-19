@@ -30,6 +30,7 @@ export type CreateOrderProductSaleInput = {
   customerId?: number;
   description?: string;
   payToAssetId?: number;
+  paymentStatus?: "paid" | "unpaid";
 };
 
 export class CreateOrderProductSaleUseCase extends CoreUsecase<
@@ -156,6 +157,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         paymentMethod: { type: paymentMethod as PaymentMethodType },
         customerId: data.customerId,
         status: "success",
+        paymentStatus: data.paymentStatus,
         payToAssetId: data.payToAssetId,
       });
 

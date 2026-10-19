@@ -70,8 +70,8 @@ bun run db:migrate     # drizzle-kit migrate
 bun run db:push        # drizzle-kit push
 bun run db:studio      # drizzle-kit studio
 
-bun run lint           # oxlint
-bun run fmt            # oxfmt
+bun run lint           # bun lint
+bun run fmt            # bun fmt (printWidth 100)
 ```
 
 ## Konfigurasi

@@ -18,7 +18,9 @@ async function waitFor(fn: () => void, timeout = 1500) {
     try {
       fn();
       return;
-    } catch {}
+    } catch {
+      // not ready yet, retry below
+    }
     await new Promise((r) => setTimeout(r, 10));
   }
   fn();
