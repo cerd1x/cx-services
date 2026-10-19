@@ -217,33 +217,26 @@ export const gqlYogaAsPluginElysia = (opts: GqlYogaPluginOptions = {}) => {
         // harus dipertahankan, dan body tidak boleh di-buffer.
         return runYoga(request);
       })
-      .post(
-        path,
-        async ({ request, body }: any) => {
-          // `aot: false` memakai dynamic-handle Elysia yang TIDAK menghormati
-          // `parse: "none"`: hook parse `none` dilewati, lalu fallback
-          // `switch (contentType)` tetap menjalankan `request.json()`, sehingga
-          // stream body terkunci dan yoga gagal dengan
-          // "This ReadableStream is currently locked to a reader.".
-          // Solusinya: kirim Request baru ke yoga dari body yang sudah di-parse.
-          const payload = request.bodyUsed
-            ? typeof body === "string"
-              ? body
-              : body === undefined
-                ? ""
-                : JSON.stringify(body)
-            : await request.text();
-          const res = await runYoga(
-            new Request(request.url, {
-              method: "POST",
-              headers: request.headers,
-              body: payload,
-            }),
-          );
-          return res;
-        },
-        { parse: "none" },
-      );
+      .post(path, { parse: "none" }, async ({ request, body }: any) => {
+        // Elysia 2 memanggil hook/schema SEBELUM handler, jadi `parse: "none"`
+        // dievaluasi lebih dulu. Body mentah tetap diambil dari `request.text()`
+        // agar stream tidak terkunci saat diteruskan ke yoga.
+        const payload = request.bodyUsed
+          ? typeof body === "string"
+            ? body
+            : body === undefined
+              ? ""
+              : JSON.stringify(body)
+          : await request.text();
+        const res = await runYoga(
+          new Request(request.url, {
+            method: "POST",
+            headers: request.headers,
+            body: payload,
+          }),
+        );
+        return res;
+      });
 };
 
 export { yoga };

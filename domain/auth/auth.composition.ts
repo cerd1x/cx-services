@@ -43,6 +43,101 @@ export type AuthPasskeyUsecases = {
   signInWithPassKey: SignInWithPassKeyUseCase;
 } | null;
 
+export class PasskeyService {
+  static #instancePasskeyService: PasskeyService;
+  #findByUserId: PasskeyFindByUserIdUseCase;
+  #delete: PasskeyDeleteUseCase;
+  #generateRegistrationOptions: PasskeyGenerateRegistrationOptionsUseCase;
+  #register: PasskeyRegisterUseCase;
+  #generateAuthenticationOptions: PasskeyGenerateAuthenticationOptionsUseCase;
+  #verifyAuthentication: PasskeyVerifyAuthenticationUseCase;
+
+  static init(
+    findByUserId: PasskeyFindByUserIdUseCase,
+    deletePasskey: PasskeyDeleteUseCase,
+    generateRegistrationOptions: PasskeyGenerateRegistrationOptionsUseCase,
+    register: PasskeyRegisterUseCase,
+    generateAuthenticationOptions: PasskeyGenerateAuthenticationOptionsUseCase,
+    verifyAuthentication: PasskeyVerifyAuthenticationUseCase,
+  ): PasskeyService {
+    PasskeyService.#instancePasskeyService = new PasskeyService(
+      findByUserId,
+      deletePasskey,
+      generateRegistrationOptions,
+      register,
+      generateAuthenticationOptions,
+      verifyAuthentication,
+    );
+    return PasskeyService.#instancePasskeyService;
+  }
+
+  static getInstance(): PasskeyService {
+    if (!PasskeyService.#instancePasskeyService) {
+      throw new Error("PasskeyService not initialized");
+    }
+    return PasskeyService.#instancePasskeyService;
+  }
+
+  private constructor(
+    findByUserId: PasskeyFindByUserIdUseCase,
+    deletePasskey: PasskeyDeleteUseCase,
+    generateRegistrationOptions: PasskeyGenerateRegistrationOptionsUseCase,
+    register: PasskeyRegisterUseCase,
+    generateAuthenticationOptions: PasskeyGenerateAuthenticationOptionsUseCase,
+    verifyAuthentication: PasskeyVerifyAuthenticationUseCase,
+  ) {
+    this.#findByUserId = findByUserId;
+    this.#delete = deletePasskey;
+    this.#generateRegistrationOptions = generateRegistrationOptions;
+    this.#register = register;
+    this.#generateAuthenticationOptions = generateAuthenticationOptions;
+    this.#verifyAuthentication = verifyAuthentication;
+  }
+
+  async findByUserId(userId: number): Promise<PasskeyRecord[]> {
+    return this.#findByUserId.execute(userId);
+  }
+
+  async delete(input: { userId: number; credentialId: string }): Promise<boolean> {
+    return this.#delete.execute(input);
+  }
+
+  async generateRegistrationOptions(input: {
+    user: User;
+    rpID: string;
+    rpName: string;
+  }): Promise<{ options: PublicKeyCredentialCreationOptionsJSON; challenge: string }> {
+    return this.#generateRegistrationOptions.execute(input);
+  }
+
+  async register(input: {
+    userId: number;
+    challenge: string;
+    attestationResponse: RegistrationResponseJSON;
+    origin: string;
+    rpID: string;
+    deviceName?: string;
+  }): Promise<void> {
+    return this.#register.execute(input);
+  }
+
+  async generateAuthenticationOptions(input: {
+    rpID: string;
+  }): Promise<{ options: PublicKeyCredentialRequestOptionsJSON; challenge: string }> {
+    return this.#generateAuthenticationOptions.execute(input);
+  }
+
+  async verifyAuthentication(input: {
+    challenge: string;
+    credentialId: string;
+    assertionResponse: AuthenticationResponseJSON;
+    origin: string;
+    rpID: string;
+  }): Promise<{ userId: number }> {
+    return this.#verifyAuthentication.execute(input);
+  }
+}
+
 export class AuthService {
   static #instanceAuthService: AuthService;
   #signUp: SignUpUseCase;
@@ -180,101 +275,6 @@ export class AuthService {
     token: { session: string | null; refresh: string | null } | null;
   }> {
     return this.#authorize.execute(token);
-  }
-}
-
-export class PasskeyService {
-  static #instancePasskeyService: PasskeyService;
-  #findByUserId: PasskeyFindByUserIdUseCase;
-  #delete: PasskeyDeleteUseCase;
-  #generateRegistrationOptions: PasskeyGenerateRegistrationOptionsUseCase;
-  #register: PasskeyRegisterUseCase;
-  #generateAuthenticationOptions: PasskeyGenerateAuthenticationOptionsUseCase;
-  #verifyAuthentication: PasskeyVerifyAuthenticationUseCase;
-
-  static init(
-    findByUserId: PasskeyFindByUserIdUseCase,
-    deletePasskey: PasskeyDeleteUseCase,
-    generateRegistrationOptions: PasskeyGenerateRegistrationOptionsUseCase,
-    register: PasskeyRegisterUseCase,
-    generateAuthenticationOptions: PasskeyGenerateAuthenticationOptionsUseCase,
-    verifyAuthentication: PasskeyVerifyAuthenticationUseCase,
-  ): PasskeyService {
-    PasskeyService.#instancePasskeyService = new PasskeyService(
-      findByUserId,
-      deletePasskey,
-      generateRegistrationOptions,
-      register,
-      generateAuthenticationOptions,
-      verifyAuthentication,
-    );
-    return PasskeyService.#instancePasskeyService;
-  }
-
-  static getInstance(): PasskeyService {
-    if (!PasskeyService.#instancePasskeyService) {
-      throw new Error("PasskeyService not initialized");
-    }
-    return PasskeyService.#instancePasskeyService;
-  }
-
-  private constructor(
-    findByUserId: PasskeyFindByUserIdUseCase,
-    deletePasskey: PasskeyDeleteUseCase,
-    generateRegistrationOptions: PasskeyGenerateRegistrationOptionsUseCase,
-    register: PasskeyRegisterUseCase,
-    generateAuthenticationOptions: PasskeyGenerateAuthenticationOptionsUseCase,
-    verifyAuthentication: PasskeyVerifyAuthenticationUseCase,
-  ) {
-    this.#findByUserId = findByUserId;
-    this.#delete = deletePasskey;
-    this.#generateRegistrationOptions = generateRegistrationOptions;
-    this.#register = register;
-    this.#generateAuthenticationOptions = generateAuthenticationOptions;
-    this.#verifyAuthentication = verifyAuthentication;
-  }
-
-  async findByUserId(userId: number): Promise<PasskeyRecord[]> {
-    return this.#findByUserId.execute(userId);
-  }
-
-  async delete(input: { userId: number; credentialId: string }): Promise<boolean> {
-    return this.#delete.execute(input);
-  }
-
-  async generateRegistrationOptions(input: {
-    user: User;
-    rpID: string;
-    rpName: string;
-  }): Promise<{ options: PublicKeyCredentialCreationOptionsJSON; challenge: string }> {
-    return this.#generateRegistrationOptions.execute(input);
-  }
-
-  async register(input: {
-    userId: number;
-    challenge: string;
-    attestationResponse: RegistrationResponseJSON;
-    origin: string;
-    rpID: string;
-    deviceName?: string;
-  }): Promise<void> {
-    return this.#register.execute(input);
-  }
-
-  async generateAuthenticationOptions(input: {
-    rpID: string;
-  }): Promise<{ options: PublicKeyCredentialRequestOptionsJSON; challenge: string }> {
-    return this.#generateAuthenticationOptions.execute(input);
-  }
-
-  async verifyAuthentication(input: {
-    challenge: string;
-    credentialId: string;
-    assertionResponse: AuthenticationResponseJSON;
-    origin: string;
-    rpID: string;
-  }): Promise<{ userId: number }> {
-    return this.#verifyAuthentication.execute(input);
   }
 }
 

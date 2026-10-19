@@ -1,9 +1,9 @@
 import { Elysia } from "elysia";
-import { cors } from "@elysiajs/cors";
+import { cors } from "@elysia/cors";
 import { gqlYogaAsPluginElysia } from "./shared/infra/graphql/yoga-server";
 import { Logger, LogLevel, streamLog } from "./shared/infra/logger";
 import { appConfigs, corsOrigins } from "./app.config";
-import { node } from "@elysiajs/node";
+import { node } from "@elysia/node";
 import { rateLimit } from "elysia-rate-limit";
 import { useD1 } from "./shared/infra/db";
 import type { D1Database } from "@cloudflare/workers-types";
@@ -47,7 +47,7 @@ const app = new Elysia({
   },
 })
   .use((ctx) => {
-    ctx.onRequest(({ request: { url, method } }) => {
+    ctx.request(({ request: { url, method } }) => {
       let _url = new URL(url);
       l.info(`${method} - ${_url.pathname}`);
     });

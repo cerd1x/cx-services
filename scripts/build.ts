@@ -1,6 +1,7 @@
 /// <reference types="bun-types" />
 import { dirname, resolve } from "node:path";
 import { existsSync } from "node:fs";
+import { aot } from "elysia/plugin/aot/bun";
 
 /**
  * Bundel `worker.ts` untuk Cloudflare Workers.
@@ -14,6 +15,13 @@ const rootDir = process.cwd();
 const aliasPlugin = {
   name: "cx-alias",
   setup(build: any) {
+    // Cloudflare Workers: paksa ponyfill "global" (Web streams) untuk
+    // @whatwg-node/fetch. Tanpa ini, plugin AOT Elysia membuat resolusi jatuh
+    // ke build Node (node-fetch) yang memakai node:stream dan gagal di workerd.
+    build.onResolve({ filter: /^@whatwg-node\/fetch$/ }, () => ({
+      path: resolve(rootDir, "node_modules/@whatwg-node/fetch/dist/global-ponyfill.js"),
+    }));
+
     build.onResolve({ filter: /^\$services\// }, (args: any) => ({
       path: resolvePath(rootDir, args.path.replace("$services/", "")),
     }));
@@ -84,7 +92,7 @@ const result = await Bun.build({
   minify: false,
   sourcemap: true,
   external: NODE_BUILTINS,
-  plugins: [aliasPlugin],
+  plugins: [aliasPlugin, aot("./app.ts", { target: "workerd" })],
   root: rootDir,
 });
 
@@ -95,3 +103,5 @@ if (!result.success) {
 }
 
 console.log("Build success: build/worker.js");
+// AOT dry-run bisa meninggalkan handle hidup (DB pool, dsb); pastikan build keluar.
+process.exit(0);

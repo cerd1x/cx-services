@@ -1,12 +1,23 @@
-import { Logger, LogLevel, streamLog } from "./shared/infra/logger";
+import { Logger, streamLog } from "./shared/infra/logger";
+import { Elysia, status } from "elysia";
+import { cors } from "@elysia/cors";
+import { rateLimit } from "elysia-rate-limit";
 import { betaReportEmailer, betaReportStore, isBetaReportAdmin } from "./shared/infra/beta-report";
 import type { BetaReportFile, BetaReportMeta, BetaReportPayload } from "./shared/infra/beta-report";
 import { appConfigs, corsOrigins } from "./app.config";
 import { apiKillswitchService } from "./composition/root.container";
+import { gqlYogaAsPluginElysia } from "./shared/infra/graphql/yoga-server";
 
 const l = streamLog(Logger.fromConfig(appConfigs.logger)).child("ApiServer");
 
-let _app: any = null;
+/**
+ * Cloudflare Workers melarang pembuatan objek I/O (`Response`) di global scope,
+ * jadi rate-limit memakai `Error` sebagai `errorResponse` lalu dipetakan ke
+ * response 429 lewat `.error()`. Bentuk body JSON dipertahankan seperti semula.
+ */
+class RateLimitExceededError extends Error {
+  override name = "RateLimitExceededError";
+}
 
 async function receiveBetaReport({ body, set }: any) {
   const payload = (body ?? {}) as BetaReportPayload;
@@ -66,19 +77,12 @@ function resolveBetaReportKey(id: string | undefined, items: BetaReportMeta[]): 
   return items.find((m) => m.id === id)?.key ?? null;
 }
 
-async function getApp() {
-  if (_app) return _app;
-  const { Elysia } = await import("elysia");
-  const { cors } = await import("@elysiajs/cors");
-  const { gqlYogaAsPluginElysia } = await import("./shared/infra/graphql/yoga-server");
-  const { rateLimit } = await import("elysia-rate-limit");
-  _app = new Elysia({
-    /**
-     * Cloudflare Workers melarang `new Function`, sedangkan AOT Elysia (TypeBox)
-     * memakai `new Function` untuk meng-compile route. `aot: false` memindahkan
-     * kompilasi ke runtime tanpa eval.
-     */
-    aot: false,
+function getApp() {
+  return app;
+}
+
+function createApp() {
+  return new Elysia({
     cookie: {
       secrets: appConfigs.app.secretKey,
       expires: new Date(appConfigs.cookie.sessionMaxAge),
@@ -88,8 +92,8 @@ async function getApp() {
       sameSite: appConfigs.cookie.sameSite,
     },
   })
-    .use((ctx: any) => {
-      ctx.onRequest(({ request: { url, method } }: any) => {
+    .use((ctx) => {
+      ctx.request(({ request: { url, method } }: any) => {
         let _url = new URL(url);
         l.info(`${method} - ${_url.pathname}`);
       });
@@ -105,20 +109,19 @@ async function getApp() {
       rateLimit({
         max: 60,
         duration: 60_000,
-        errorResponse: new Response(JSON.stringify({ error: "Too many requests" }), {
-          status: 429,
-          headers: { "Content-Type": "application/json" },
-        }),
+        // `Response` tidak boleh dibuat di global scope (Workers), jadi pakai Error.
+        errorResponse: new RateLimitExceededError("Too many requests"),
         // Di development (bukan production), nonaktifkan rate-limit
         // untuk menghindari warning "failed to determine client address"
         // ketika request datang dari local server tanpa header address.
-        skip: (ctx: any) => {
+        skip: () => {
           if (appConfigs.isProduction) return false;
           // Nonaktifkan di dev
           return true;
         },
       }),
     )
+    .error(RateLimitExceededError, () => status(429, { error: "Too many requests" }))
     .get("/", () => {
       return "🦊 Cerdix API Server Running";
     })
@@ -236,12 +239,12 @@ async function getApp() {
       return { status: "enabled", ...result };
     })
     .use(gqlYogaAsPluginElysia({ logging: true }));
-  return _app;
 }
+
+const app: any = createApp();
 
 const handler = {
   async fetch(request: Request) {
-    const app = await getApp();
     return app.handle(request);
   },
   async handle(request: Request) {
@@ -252,3 +255,4 @@ const handler = {
 export default handler;
 export { l };
 export { getApp };
+export { app };
