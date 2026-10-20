@@ -25,7 +25,7 @@ export class ValidationError extends ServiceError {
   }
 }
 
-export class NotFoundError extends ServiceError {
+export class NotFound extends ServiceError {
   constructor(resource: string, options?: ServiceErrorOptions) {
     super(options?.exact ? resource : `${resource} not found`, 404, options);
     this.name = "NotFoundError";

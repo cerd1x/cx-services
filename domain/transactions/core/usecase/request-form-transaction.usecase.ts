@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { ID } from "$services/shared/kernel";
 import { PasswordUtils } from "$services/shared/kernel/password-utils";
 import { Cache } from "$services/shared/infra/cache";
@@ -24,7 +24,7 @@ export class RequestFormTransactionUseCase extends CoreUsecase<string, ID> {
     const storedHash = RequestFormTransactionUseCase.#formIdCache.get(userId.toHash);
 
     if (!storedHash || storedHash !== hash) {
-      throw new NotFoundError("hash form invalid");
+      throw new NotFound("hash form invalid");
     }
 
     RequestFormTransactionUseCase.#formIdCache.delete(userId.toHash);

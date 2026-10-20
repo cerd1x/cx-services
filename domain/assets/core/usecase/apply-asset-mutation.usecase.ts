@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
 import { Asset } from "../model/asset.model";
 import { Balance } from "../value-objects/balance.vo";
@@ -25,7 +25,7 @@ export class ApplyAssetMutationUseCase extends CoreUsecase<Asset, ApplyAssetMuta
 
     const asset = await assetRepo.findById(userId, assetId);
     if (!asset) {
-      throw new NotFoundError(`Asset ${assetId.toHash}`);
+      throw new NotFound(`Asset ${assetId.toHash}`);
     }
 
     const current = Balance.new(asset.balance);

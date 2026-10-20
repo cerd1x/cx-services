@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { ProductRepository } from "../ports/out/product-repository.port";
 import type { Product as ProductType } from "../model/product.model";
 import { ID } from "$services/shared/kernel";
@@ -19,7 +19,7 @@ export class ProductByIdUseCase extends CoreUsecase<ProductType, ProductByIdInpu
 
     const product = await productRepo.findById(id.toNumb, userId);
     if (!product) {
-      throw new NotFoundError(`Product with id ${id.toNumb}`);
+      throw new NotFound(`Product with id ${id.toNumb}`);
     }
     return product;
   }

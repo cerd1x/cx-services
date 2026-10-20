@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { userTable } from "$services/shared/infra/db/drizzle-schema";
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { User } from "../../../core/model/user.model";
 import { UserRepository } from "../../../core/ports/out/user-repository.port";
 import type { UserRole } from "../../../core/model/user.model";
@@ -123,7 +123,7 @@ export class UserRepositoryImpl implements UserRepository {
 
     const row = result[0];
     if (!row) {
-      throw new NotFoundError(`user #${id}`, { exact: true });
+      throw new NotFound(`user #${id}`, { exact: true });
     }
 
     return new User({

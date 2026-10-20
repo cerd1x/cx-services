@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
 import { Transaction } from "$services/domain/transactions/core/model/transaction.model";
 import { ID } from "$services/shared/kernel/id";
@@ -129,7 +129,7 @@ describe("TransactionService", () => {
 
       await expect(
         TransactionService.getInstance().transaction(ID.new(999), userId),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
     });
   });
 
@@ -236,7 +236,7 @@ describe("TransactionService", () => {
           },
           userId,
         ),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
       expect(txRepo.update).not.toHaveBeenCalled();
     });
   });
@@ -281,7 +281,7 @@ describe("TransactionService", () => {
 
       await expect(
         TransactionService.getInstance().deleteTransaction(ID.new(999), userId),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
       expect(txRepo.delete).not.toHaveBeenCalled();
     });
   });

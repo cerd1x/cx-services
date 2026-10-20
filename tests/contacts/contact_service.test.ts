@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
-import { NotFoundError, ValidationError } from "$services/shared/kernel/errors/service-error";
+import { NotFound, ValidationError } from "$services/shared/kernel/errors/service-error";
 import { createContactService, ContactService } from "$services/domain/contacts";
 import { Contact } from "$services/domain/contacts/core/model/contact.model";
 import { ID } from "$services/shared/kernel/id";
@@ -99,7 +99,7 @@ describe("ContactService", () => {
       contactRepo.findById.mockResolvedValue(null);
 
       await expect(ContactService.getInstance().contact(ID.new(999), ID.new(999))).rejects.toThrow(
-        NotFoundError,
+        NotFound,
       );
     });
   });
@@ -224,7 +224,7 @@ describe("ContactService", () => {
 
       await expect(
         ContactService.getInstance().updateContact(ID.new(999), ID.new(999), { name: "Ghost" }),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
       expect(contactRepo.update).not.toHaveBeenCalled();
     });
   });
@@ -246,7 +246,7 @@ describe("ContactService", () => {
 
       await expect(
         ContactService.getInstance().deleteContact(ID.new(999), ID.new(999)),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
       expect(contactRepo.delete).not.toHaveBeenCalled();
     });
   });
@@ -299,7 +299,7 @@ describe("ContactService", () => {
 
       await expect(
         ContactService.getInstance().mergeContacts(ID.new(1), "08999999999"),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
       expect(contactRepo.delete).not.toHaveBeenCalled();
     });
 

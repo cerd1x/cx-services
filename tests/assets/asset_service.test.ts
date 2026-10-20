@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createTransactionService } from "$services/domain/transactions";
 import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
@@ -116,7 +116,7 @@ describe("AssetService", () => {
       assetRepo.findByName.mockResolvedValue(null);
 
       await expect(AssetService.getInstance().assetByName("Unknown", ID.new(1))).rejects.toThrow(
-        NotFoundError,
+        NotFound,
       );
     });
   });
@@ -165,7 +165,7 @@ describe("AssetService", () => {
 
       await expect(
         AssetService.getInstance().mutateAddAsset(ID.new(1), ID.new(1), "USD 100"),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
 
       expect(assetRepo.update).not.toHaveBeenCalled();
       expect(assetRepo.createAssetMutation).not.toHaveBeenCalled();
@@ -204,7 +204,7 @@ describe("AssetService", () => {
 
       await expect(
         AssetService.getInstance().mutateSubtractAsset(ID.new(1), ID.new(1), "USD 100"),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
     });
   });
 

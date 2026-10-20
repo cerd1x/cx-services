@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { createOrderService, OrderService } from "$services/domain/order";
 import { Order } from "$services/domain/order/core/model/order.model";
 import { Product } from "$services/domain/products/core/model/product.model";
@@ -152,7 +152,7 @@ describe("OrderService", () => {
           price: 100,
           currency: "IDR",
         }),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
     });
 
     it("throws when product belongs to another user", async () => {
@@ -368,9 +368,7 @@ describe("OrderService", () => {
     it("throws NotFoundError when not found", async () => {
       orderRepo.findById.mockResolvedValue(null);
 
-      await expect(OrderService.getInstance().order(ID.new(999), userId)).rejects.toThrow(
-        NotFoundError,
-      );
+      await expect(OrderService.getInstance().order(ID.new(999), userId)).rejects.toThrow(NotFound);
     });
   });
 
@@ -436,7 +434,7 @@ describe("OrderService", () => {
 
       await expect(
         OrderService.getInstance().updateOrder(ID.new(999), { status: "cancelled" }, userId),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
       expect(orderRepo.update).not.toHaveBeenCalled();
     });
   });
@@ -458,7 +456,7 @@ describe("OrderService", () => {
       orderRepo.findById.mockResolvedValue(null);
 
       await expect(OrderService.getInstance().deleteOrder(ID.new(999), userId)).rejects.toThrow(
-        NotFoundError,
+        NotFound,
       );
       expect(orderRepo.delete).not.toHaveBeenCalled();
     });

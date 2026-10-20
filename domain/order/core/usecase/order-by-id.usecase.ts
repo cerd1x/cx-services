@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
@@ -20,7 +20,7 @@ export class OrderByIdUseCase extends CoreUsecase<Order, OrderByIdInput> {
     const order = await orderRepo.findById(id.toNumb, userId.toNumb);
 
     if (!order) {
-      throw new NotFoundError(`Order with id ${id.toNumb}`);
+      throw new NotFound(`Order with id ${id.toNumb}`);
     }
 
     return order;

@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { createProductService, ProductService } from "$services/domain/products";
 import { Product } from "$services/domain/products/core/model/product.model";
 import { ID } from "$services/shared/kernel/id";
@@ -111,9 +111,7 @@ describe("ProductService", () => {
     it("throws NotFoundError when not found", async () => {
       productRepo.findById.mockResolvedValue(null);
 
-      await expect(ProductService.getInstance().product(ID.new(999), 1)).rejects.toThrow(
-        NotFoundError,
-      );
+      await expect(ProductService.getInstance().product(ID.new(999), 1)).rejects.toThrow(NotFound);
     });
 
     it("throws NotFoundError when product belongs to another user", async () => {
@@ -127,9 +125,7 @@ describe("ProductService", () => {
       p.id = ID.new(1);
       productRepo.findById.mockResolvedValue(null);
 
-      await expect(ProductService.getInstance().product(ID.new(1), 2)).rejects.toThrow(
-        NotFoundError,
-      );
+      await expect(ProductService.getInstance().product(ID.new(1), 2)).rejects.toThrow(NotFound);
     });
   });
 
@@ -189,7 +185,7 @@ describe("ProductService", () => {
 
       await expect(
         ProductService.getInstance().updateProduct(ID.new(999), { name: "Ghost" }, 1),
-      ).rejects.toThrow(NotFoundError);
+      ).rejects.toThrow(NotFound);
       expect(productRepo.update).not.toHaveBeenCalled();
     });
   });
@@ -210,7 +206,7 @@ describe("ProductService", () => {
       productRepo.findById.mockResolvedValue(null);
 
       await expect(ProductService.getInstance().deleteProduct(ID.new(999), 1)).rejects.toThrow(
-        NotFoundError,
+        NotFound,
       );
       expect(productRepo.delete).not.toHaveBeenCalled();
     });

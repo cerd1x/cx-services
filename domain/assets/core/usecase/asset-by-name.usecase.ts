@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
 import { Asset } from "../model/asset.model";
 import { ID } from "$services/shared/kernel";
@@ -12,7 +12,7 @@ export class AssetByNameUseCase extends CoreUsecase<Asset, { name: string; userI
     const assetRepo = this.deps.get(AssetRepository);
     const data = await assetRepo.findByName(input.name, input.userId);
     if (!data) {
-      throw new NotFoundError(`Asset ${input.name}`);
+      throw new NotFound(`Asset ${input.name}`);
     }
     return data;
   }

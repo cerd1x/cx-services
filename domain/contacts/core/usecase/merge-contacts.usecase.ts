@@ -1,4 +1,4 @@
-import { NotFoundError, ValidationError } from "$services/shared/kernel/errors/service-error";
+import { NotFound, ValidationError } from "$services/shared/kernel/errors/service-error";
 import { ContactRepository } from "../ports/out/contact-repository.port";
 import { Contact, MAX_PHONES } from "../model/contact.model";
 import { ID } from "$services/shared/kernel";
@@ -27,7 +27,7 @@ export class MergeContactsUseCase extends CoreUsecase<
 
     const matches = await contactRepo.findByPhone(userId.toNumb, normalized);
     if (matches.length === 0) {
-      throw new NotFoundError(`Contact with phone ${normalized}`);
+      throw new NotFound(`Contact with phone ${normalized}`);
     }
 
     const [primary, ...duplicates] = matches;

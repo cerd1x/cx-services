@@ -17,7 +17,7 @@ import { OutboxRepository } from "$services/shared/kernel/outbox/outbox-reposito
 import { EventBus } from "$services/shared/kernel/outbox/event-bus";
 import type { UnitOfWork } from "$services/shared/kernel/uow.port";
 import { ID } from "$services/shared/kernel";
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 
 type AssetRow = {
   id: number;
@@ -305,7 +305,7 @@ describe("swapBalance e2e (in-memory repo)", () => {
 
     await expect(
       TransactionService.getInstance().swapBalance(userId, ID.new(99), bankId, "IDR 100000"),
-    ).rejects.toThrow(NotFoundError);
+    ).rejects.toThrow(NotFound);
 
     expect(repo.mutations).toHaveLength(0);
     const bank = await AssetService.getInstance().assetById(userId, bankId);
@@ -317,7 +317,7 @@ describe("swapBalance e2e (in-memory repo)", () => {
 
     await expect(
       TransactionService.getInstance().swapBalance(userId, walletId, ID.new(99), "IDR 100000"),
-    ).rejects.toThrow(NotFoundError);
+    ).rejects.toThrow(NotFound);
 
     expect(repo.mutations).toHaveLength(0);
     const wallet = await AssetService.getInstance().assetById(userId, walletId);

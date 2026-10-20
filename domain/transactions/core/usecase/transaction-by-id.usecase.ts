@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { TransactionRepository } from "../ports/out/transaction-repository.port";
 import type { Transaction as TransactionType } from "../model/transaction.model";
 import { ID } from "$services/shared/kernel";
@@ -18,7 +18,7 @@ export class TransactionByIdUseCase extends CoreUsecase<TransactionType, Transac
     const tx = await txRepo.findById(input.id.toNumb, input.userId);
 
     if (!tx) {
-      throw new NotFoundError(`Transaction with id ${input.id.toNumb}`);
+      throw new NotFound(`Transaction with id ${input.id.toNumb}`);
     }
     return tx;
   }

@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { ContactRepository } from "../ports/out/contact-repository.port";
 import { Contact } from "../model/contact.model";
 import { ID } from "$services/shared/kernel";
@@ -19,10 +19,10 @@ export class ContactByIdUseCase extends CoreUsecase<Contact, ContactByIdInput> {
 
     const contact = await contactRepo.findById(userId.toNumb, contactId.toNumb);
     if (!contact) {
-      throw new NotFoundError(`Contact with id ${contactId.toNumb}`);
+      throw new NotFound(`Contact with id ${contactId.toNumb}`);
     }
     if (contact.userId.toNumb !== userId.toNumb) {
-      throw new NotFoundError(`Contact with id ${contactId.toNumb}`);
+      throw new NotFound(`Contact with id ${contactId.toNumb}`);
     }
     return contact;
   }

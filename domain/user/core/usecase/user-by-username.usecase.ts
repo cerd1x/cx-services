@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { UserRepository } from "../ports/out/user-repository.port";
 import type { User as UserType } from "../model/user.model";
 import { CoreUsecase } from "$services/shared/base";
@@ -11,7 +11,7 @@ export class UserByUsernameUseCase extends CoreUsecase<UserType, string> {
     const userRepo = this.deps.get(UserRepository);
     const user = await userRepo.findByUsername(username);
     if (!user) {
-      throw new NotFoundError(`username [${username}] NOT FOUND`, { exact: true });
+      throw new NotFound(`username [${username}] NOT FOUND`, { exact: true });
     }
     return user;
   }

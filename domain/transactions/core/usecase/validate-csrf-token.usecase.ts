@@ -1,4 +1,4 @@
-import { NotFoundError } from "$services/shared/kernel/errors/service-error";
+import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { ID } from "$services/shared/kernel";
 import { Cache } from "$services/shared/infra/cache";
 import { CsrfToken } from "$services/shared/kernel/csrf";
@@ -32,18 +32,18 @@ export class ValidateCSRFTokenUseCase extends CoreUsecase<void, ValidateCSRFToke
     const stored = ValidateCSRFTokenUseCase.#csrfCache.get(token);
 
     if (!stored) {
-      throw new NotFoundError("CSRF token invalid or expired");
+      throw new NotFound("CSRF token invalid or expired");
     }
 
     if (stored.userId !== userId.toHash) {
-      throw new NotFoundError("CSRF token does not belong to this user");
+      throw new NotFound("CSRF token does not belong to this user");
     }
 
     const randBytes = Uint8Array.from(stored.randHex.match(/.{2}/g)!.map((h) => parseInt(h, 16)));
     const recomputed = await CsrfToken.sign(randBytes);
 
     if (!ValidateCSRFTokenUseCase.safeEqual(recomputed, token)) {
-      throw new NotFoundError("CSRF token verification failed");
+      throw new NotFound("CSRF token verification failed");
     }
 
     ValidateCSRFTokenUseCase.#csrfCache.delete(token);
