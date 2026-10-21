@@ -156,7 +156,7 @@ export type CreateOrderExpenseInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   itemCount: Scalars["Int"]["input"];
   payWithAssetId?: InputMaybe<Scalars["ID"]["input"]>;
-  paymentMethod?: InputMaybe<Scalars["String"]["input"]>;
+  paymentMethod?: InputMaybe<PaymentMethodType>;
   totalAmount: Scalars["Float"]["input"];
 };
 
@@ -165,7 +165,7 @@ export type CreateOrderInput = {
   customerId?: InputMaybe<Scalars["String"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
   itemCount: Scalars["Int"]["input"];
-  paymentMethod?: InputMaybe<Scalars["String"]["input"]>;
+  paymentMethod?: InputMaybe<PaymentMethodType>;
   totalAmount: Scalars["Float"]["input"];
 };
 
@@ -175,7 +175,7 @@ export type CreateOrderLoanInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   itemCount: Scalars["Int"]["input"];
   payWithAssetId?: InputMaybe<Scalars["ID"]["input"]>;
-  paymentMethod?: InputMaybe<Scalars["String"]["input"]>;
+  paymentMethod?: InputMaybe<PaymentMethodType>;
   paymentStatus?: InputMaybe<TransactionPaymentStatus>;
   totalAmount: Scalars["Float"]["input"];
 };
@@ -186,7 +186,7 @@ export type CreateOrderProductSaleInput = {
   description?: InputMaybe<Scalars["String"]["input"]>;
   itemCount: Scalars["Int"]["input"];
   payToAssetId?: InputMaybe<Scalars["ID"]["input"]>;
-  paymentMethod?: InputMaybe<Scalars["String"]["input"]>;
+  paymentMethod?: InputMaybe<PaymentMethodType>;
   paymentStatus?: InputMaybe<TransactionPaymentStatus>;
   productId: Scalars["ID"]["input"];
   totalAmount: Scalars["Float"]["input"];
@@ -511,7 +511,7 @@ export type Order = {
   description?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["ID"]["output"]>;
   itemCount: Scalars["Int"]["output"];
-  paymentMethod: Scalars["String"]["output"];
+  paymentMethod: PaymentMethodType;
   status: Scalars["String"]["output"];
   totalAmount: Scalars["Float"]["output"];
   updatedAt?: Maybe<Scalars["DateTime"]["output"]>;
@@ -947,7 +947,7 @@ export type UpdateContactInput = {
 export type UpdateOrderInput = {
   customerId?: InputMaybe<Scalars["String"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
-  paymentMethod?: InputMaybe<Scalars["String"]["input"]>;
+  paymentMethod?: InputMaybe<PaymentMethodType>;
   status?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -1675,7 +1675,7 @@ export type OrderResolvers<
   description?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   id?: Resolver<Maybe<ResolversTypes["ID"]>, ParentType, ContextType>;
   itemCount?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
-  paymentMethod?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  paymentMethod?: Resolver<ResolversTypes["PaymentMethodType"], ParentType, ContextType>;
   status?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   totalAmount?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;

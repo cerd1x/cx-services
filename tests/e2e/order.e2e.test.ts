@@ -67,6 +67,35 @@ describe("order e2e (GraphQL over HTTP)", () => {
     expect(del.data!.deleteOrder).toBe(true);
   });
 
+  it("rejects paymentMethod outside the PaymentMethodType enum", async () => {
+    const { session } = await signUpUser();
+
+    const schema = await gql<{
+      __type: {
+        inputFields: { name: string; type: { kind: string; name: string | null } }[];
+      } | null;
+    }>(
+      `{ __type(name: "CreateOrderProductSaleInput") { inputFields { name type { kind name } } } }`,
+      undefined,
+      authHeaders(session),
+    );
+    const paymentMethod = schema.data!.__type?.inputFields.find((f) => f.name === "paymentMethod");
+    expect(paymentMethod?.type.kind).toBe("ENUM");
+    expect(paymentMethod?.type.name).toBe("PaymentMethodType");
+
+    const invalid = await gql<{ createOrder: OrderDto }>(
+      `mutation($input: CreateOrderInput!) {
+        createOrder(input: $input) { id }
+      }`,
+      {
+        input: { totalAmount: 1000, currency: "IDR", itemCount: 1, paymentMethod: "bitcoin" },
+      },
+      authHeaders(session),
+    );
+    expect(invalid.errors).toBeDefined();
+    expect(invalid.data!.createOrder).toBeUndefined();
+  });
+
   it("createOrderProductSale deducts product stock", async () => {
     const { session } = await signUpUser();
 

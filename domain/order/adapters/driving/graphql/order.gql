@@ -17,7 +17,7 @@ input CreateOrderProductSaleInput {
   itemCount: Int!
   totalAmount: Float!
   currency: String!
-  paymentMethod: String
+  paymentMethod: PaymentMethodType
   customerId: ID
   description: String
   payToAssetId: ID
@@ -30,7 +30,7 @@ input CreateOrderExpenseInput {
   itemCount: Int!
   description: String
   customerId: String
-  paymentMethod: String
+  paymentMethod: PaymentMethodType
   payWithAssetId: ID
 }
 
@@ -38,7 +38,7 @@ input CreateOrderInput {
   totalAmount: Float!
   currency: String!
   itemCount: Int!
-  paymentMethod: String
+  paymentMethod: PaymentMethodType
   description: String
   customerId: String
 }
@@ -47,7 +47,7 @@ input CreateOrderLoanInput {
   totalAmount: Float!
   currency: String!
   itemCount: Int!
-  paymentMethod: String
+  paymentMethod: PaymentMethodType
   customerId: ID
   description: String
   payWithAssetId: ID
@@ -56,7 +56,7 @@ input CreateOrderLoanInput {
 
 input UpdateOrderInput {
   status: String
-  paymentMethod: String
+  paymentMethod: PaymentMethodType
   description: String
   customerId: String
 }
@@ -65,7 +65,7 @@ type Order {
   id: ID
   userId: ID
   status: String!
-  paymentMethod: String!
+  paymentMethod: PaymentMethodType!
   totalAmount: Float!
   currency: String!
   itemCount: Int!
