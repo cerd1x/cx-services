@@ -3,7 +3,7 @@
  * crate, extended with cryptocurrency support.
  *
  * ```ts
- * import { Money, iso, crypto } from "$services/lib/money";
+ * import { Money, iso, crypto } from "@lib/money";
  *
  * const price = Money.fromString("1,234.56", iso.USD);
  * price.toString(); // "$1,234.56"

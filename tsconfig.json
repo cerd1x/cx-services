@@ -18,6 +18,7 @@
     "paths": {
       "$services": ["./"],
       "$services/*": ["./*"],
+      "@lib/money": ["./lib/money/index.ts"],
       "$config": ["./app.config.ts"],
       "$gql": ["./shared/infra/graphql/types"],
       "$gql/*": ["./shared/infra/graphql/types/*"]

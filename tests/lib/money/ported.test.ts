@@ -5,16 +5,7 @@
  * behaviour shows up here first.
  */
 import { describe, expect, it } from "bun:test";
-import {
-  Decimal,
-  Exchange,
-  ExchangeRate,
-  Money,
-  MoneyError,
-  Round,
-  crypto,
-  iso,
-} from "$services/lib/money";
+import { Decimal, Exchange, ExchangeRate, Money, MoneyError, Round, crypto, iso } from "@lib/money";
 
 describe("ported behaviour", () => {
   describe("construction", () => {

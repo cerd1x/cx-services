@@ -2,7 +2,7 @@ import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import type { Order as OrderType } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
-import { Balance } from "../../../assets/core/value-objects/balance.vo";
+import { parseMoney } from "$services/shared/kernel/money";
 import { TransactionService } from "$services/domain/transactions";
 import { AssetService } from "$services/domain/assets";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
@@ -40,8 +40,8 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
     assertOptionalPositiveInt(data.payWithAssetId, "payWithAssetId");
 
     const totalAmount = data.price * data.itemCount;
-    const amount = Balance.new(`${data.currency} ${totalAmount}`);
-    const capital = Balance.new(`${data.currency} ${totalAmount}`);
+    const amount = parseMoney(`${data.currency} ${totalAmount}`);
+    const capital = parseMoney(`${data.currency} ${totalAmount}`);
 
     let savedTxId: ID | null = null;
     let assetMutated = false;

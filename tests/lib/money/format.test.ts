@@ -7,7 +7,7 @@ import {
   Position,
   iso,
   type FormatParams,
-} from "$services/lib/money";
+} from "@lib/money";
 
 function params(overrides: Partial<FormatParams> = {}): FormatParams {
   return { ...DEFAULT_FORMAT_PARAMS, ...overrides };

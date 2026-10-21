@@ -1,5 +1,5 @@
 import { Asset } from "../model/asset.model";
-import { Balance } from "../value-objects/balance.vo";
+import { Money, iso } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { CreateAssetUseCase } from "./create-asset.usecase";
 import { CoreUsecase } from "$services/shared/base";
@@ -14,7 +14,7 @@ export class CreateDefaultAssetCashUseCase extends CoreUsecase<Asset, ID> {
       userId,
       name: "MyCash",
       type: "cash",
-      balance: Balance.zero("IDR"),
+      balance: Money.zero(iso.IDR),
     });
   }
 }

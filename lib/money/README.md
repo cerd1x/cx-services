@@ -1,4 +1,4 @@
-# `@services/lib/money`
+# `@lib/money`
 
 A TypeScript port of the [`rusty-money`](https://docs.rs/rusty-money/latest/rusty_money/)
 crate (v0.5.1) with added cryptocurrency support.
@@ -9,7 +9,7 @@ same formatting output. Where the Rust API returns a `Result`, the TypeScript
 API throws a typed `MoneyError`.
 
 ```ts
-import { Money, iso, crypto } from "$services/lib/money";
+import { Money, iso, crypto } from "@lib/money";
 
 const price = Money.fromString("1,234.56", iso.USD);
 price.toString(); // "$1,234.56"
@@ -200,7 +200,7 @@ The Rust `Result` becomes a thrown `MoneyError`. The variant is available as
 the `kind` discriminant.
 
 ```ts
-import { isMoneyError, MoneyError } from "$services/lib/money";
+import { isMoneyError, MoneyError } from "@lib/money";
 
 try {
   Money.fromString("not a number", iso.USD);

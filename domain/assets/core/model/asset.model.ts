@@ -1,7 +1,6 @@
 import { z } from "zod";
-import * as Currencies from "dinero.js/currencies";
-import { Balance, isoCodeList, type CurrencyMetaType } from "../value-objects/balance.vo";
-import { BalanceModel } from "./balance.model";
+import { LOCALES, Money, type Currency } from "@lib/money";
+import { formatMoney, isoCodeList } from "$services/shared/kernel/money";
 import { ID, isMybe } from "$services/shared/kernel";
 import { myUserID } from "../../../user/core/model/user.model";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
@@ -15,12 +14,25 @@ export const AssetType = {
 } as const;
 
 export type AssetType = (typeof AssetType)[keyof typeof AssetType];
+/** Metadata mata uang, mengikuti descriptor dari `@lib/money`. */
 export const currencySchema = z.object({
   code: z.enum(isoCodeList),
-  base: z.number(),
   exponent: z.number(),
+  locale: z.enum(LOCALES),
+  minorUnits: z.number(),
+  name: z.string(),
+  symbol: z.string(),
+  symbolFirst: z.boolean(),
+  kind: z.enum(["fiat", "crypto"]),
+  isCrypto: z.boolean(),
 });
-export const zBalanceSchema = z.instanceof(Balance);
+/**
+ * Skema saldo. `Money` punya constructor privat, jadi `z.instanceof` tidak
+ * bisa dipakai — dicek manual lewat `instanceof`.
+ */
+export const zBalanceSchema = z.custom<Money>((value) => value instanceof Money, {
+  error: "nilai ini bukan dari instanceOf Money",
+});
 
 export type CurrencyType = z.infer<typeof currencySchema>;
 
@@ -40,10 +52,10 @@ export class Asset {
   #id?: ID;
   #name: string;
   #type: AssetType;
-  #balance: Balance;
+  #balance: Money;
   #userId: ID;
 
-  private constructor(data: AssetData & { balance: Balance }) {
+  private constructor(data: AssetData & { balance: Money }) {
     if (data.id) this.#id = ID.new(data.id);
     this.#name = data.name;
     this.#type = data.type;
@@ -73,8 +85,13 @@ export class Asset {
     return this.#type;
   }
 
-  get currency(): CurrencyMetaType {
-    return Currencies[this.#balance.code];
+  get currency(): Currency {
+    return this.#balance.currency;
+  }
+
+  /** Saldo asset sebagai objek uang (`@lib/money`). */
+  get money(): Money {
+    return this.#balance;
   }
 
   /**
@@ -82,7 +99,7 @@ export class Asset {
    * Example: "USD 100"
    */
   get balance(): string {
-    return `${this.#balance.code} ${this.#balance.value}`;
+    return formatMoney(this.#balance);
   }
 
   get metadata() {
@@ -90,7 +107,7 @@ export class Asset {
       id: this.#id?.toHash,
       name: this.#name,
       type: this.#type as AssetType,
-      balance: this.#balance.value.toString(),
+      balance: this.#balance.toNumber().toString(),
     };
   }
 
@@ -129,36 +146,43 @@ export class Asset {
 
   /**
    * Aturan mutasi saldo yang butuh dua asset (add/subtract/swap).
-   * `Balance` di sini adalah nilai uang bersih, bukan saldo asset yang
+   * `Money` di sini adalah nilai uang bersih, bukan saldo asset yang
    * sedang dimutasi.
    */
-  static validateMutationAmount(amount: Balance): void {
-    if (amount.value <= 0) {
+  static validateMutationAmount(amount: Money): void {
+    if (amount.toNumber() <= 0) {
       throw new RequiredErr("amount", { class: Asset });
     }
   }
 
-  static canMutateAsset(asset: Asset, type: "add" | "subtract", amount: Balance): void {
+  static canMutateAsset(asset: Asset, type: "add" | "subtract", amount: Money): void {
     this.validateMutationAmount(amount);
     if (type === "subtract") {
-      BalanceModel.canSubtract(Balance.new(asset.balance), amount);
+      Asset.canSubtract(asset.money, amount);
     }
   }
 
-  static validateSwapPreconditions(fromAsset: Asset, toAsset: Asset, amount: Balance): void {
+  static validateSwapPreconditions(fromAsset: Asset, toAsset: Asset, amount: Money): void {
     if (fromAsset.IdStr === toAsset.IdStr) {
       throw new RequiredErr("swap", { class: Asset });
     }
     this.validateMutationAmount(amount);
-    BalanceModel.canSubtract(Balance.new(fromAsset.balance), amount);
+    Asset.canSubtract(fromAsset.money, amount);
   }
 
-  static new(input: AssetInput & { balance: Balance }): Asset {
+  /** Saldo harus cukup untuk dikurangi. */
+  static canSubtract(balance: Money, amount: Money): void {
+    if (balance.lt(amount)) {
+      throw new RequiredErr("balance", { class: Asset });
+    }
+  }
+
+  static new(input: AssetInput & { balance: Money }): Asset {
     const result = assetSchema.safeParse(input);
     if (!result.success) {
       throw new Error(result.error.issues.map((i) => i.message).join(", "));
     }
-    if (input.balance.value < 0) {
+    if (input.balance.toNumber() < 0) {
       throw new Error("Balance must be non-negative");
     }
     return new Asset({

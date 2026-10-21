@@ -5,7 +5,7 @@ import type { User } from "../../../user/core/model/user.model";
 import type { SettingService } from "$services/domain/setting";
 import { SettingServiceCtx, UserServiceLikeCtx } from "./ctx";
 import { AssetService } from "$services/domain/assets";
-import { Balance } from "$services/domain/assets";
+import { Money, iso } from "@lib/money";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
@@ -27,7 +27,7 @@ export class SignUpUseCase extends CoreUsecase<
     try {
       await AssetService.getInstance().createAsset({
         userId: user.id!,
-        balance: Balance.zero("IDR"),
+        balance: Money.zero(iso.IDR),
         name: "MyCash",
         type: "cash",
       });

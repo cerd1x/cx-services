@@ -27,6 +27,12 @@ const aliasPlugin: BunPlugin = {
       path: resolvePath(rootDir, args.path.replace("$services/", "")),
     }));
 
+    // `@lib/money` adalah package workspace. Alias ini memastikan bundle tidak
+    // bergantung pada symlink `node_modules/@lib/money`.
+    build.onResolve({ filter: /^@lib\/money$/ }, () => ({
+      path: resolvePath(rootDir, "lib/money/index"),
+    }));
+
     build.onResolve({ filter: /^\$(config|gql)(\/|$)/ }, (args) => {
       const sub =
         args.path === "$config" || args.path.startsWith("$config/")

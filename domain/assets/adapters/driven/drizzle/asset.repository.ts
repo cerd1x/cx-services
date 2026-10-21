@@ -8,7 +8,8 @@ import {
   type AssetType,
   type AssetUpdate,
 } from "../../../core/model/asset.model";
-import { Balance } from "../../../core/value-objects/balance.vo";
+import { parseMoney } from "$services/shared/kernel/money";
+import type { Money } from "@lib/money";
 import { AssetRepository } from "../../../core/ports/out/asset-repository.port";
 import { ID } from "$services/shared/kernel";
 import type {
@@ -19,7 +20,7 @@ import type {
 type DB = ReturnType<typeof getDB>;
 
 export class AssetRepositoryImpl implements AssetRepository {
-  async save(asset: AssetData & { balance: Balance }, tx?: unknown): Promise<Asset | null> {
+  async save(asset: AssetData & { balance: Money }, tx?: unknown): Promise<Asset | null> {
     const db = (tx ?? getDB()) as DB;
     const result = await db
       .insert(assetTable)
@@ -27,8 +28,8 @@ export class AssetRepositoryImpl implements AssetRepository {
         userId: asset.userId.toNumb ?? null,
         name: asset.name,
         type: asset.type,
-        balance: asset.balance.value,
-        currency: asset.balance.code,
+        balance: asset.balance.toNumber(),
+        currency: asset.balance.currency.code,
       })
       .returning();
 
@@ -39,7 +40,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       userId: ID.new(result[0].userId),
       name: result[0].name,
       type: result[0].type as AssetType,
-      balance: Balance.new(`${result[0].currency} ${result[0].balance}`),
+      balance: parseMoney(`${result[0].currency} ${result[0].balance}`),
     });
   }
 
@@ -52,7 +53,7 @@ export class AssetRepositoryImpl implements AssetRepository {
         userId: ID.new(r.userId),
         name: r.name,
         type: r.type as AssetType,
-        balance: Balance.new(`${r.currency} ${r.balance}`),
+        balance: parseMoney(`${r.currency} ${r.balance}`),
       }),
     );
   }
@@ -71,7 +72,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       userId: ID.new(rows[0].userId),
       name: rows[0].name,
       type: rows[0].type as AssetType,
-      balance: Balance.new(`${rows[0].currency} ${rows[0].balance}`),
+      balance: parseMoney(`${rows[0].currency} ${rows[0].balance}`),
     });
   }
 
@@ -89,7 +90,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       userId: ID.new(rows[0].userId),
       name: rows[0].name,
       type: rows[0].type as AssetType,
-      balance: Balance.new(`${rows[0].currency} ${rows[0].balance}`),
+      balance: parseMoney(`${rows[0].currency} ${rows[0].balance}`),
     });
   }
 
@@ -105,8 +106,8 @@ export class AssetRepositoryImpl implements AssetRepository {
         .set({
           name: data.name,
           type: data.type,
-          balance: data.balance?.value,
-          currency: data.balance?.code,
+          balance: data.balance?.toNumber(),
+          currency: data.balance?.currency.code,
         })
         .where(eq(assetTable.id, id))
         .returning()
@@ -119,7 +120,7 @@ export class AssetRepositoryImpl implements AssetRepository {
         userId: ID.new(current[0].userId),
         name: data.name ?? current[0].name,
         type: (data.type ?? current[0].type) as AssetType,
-        balance: data.balance ?? Balance.new(`${current[0].currency} ${current[0].balance}`),
+        balance: data.balance ?? parseMoney(`${current[0].currency} ${current[0].balance}`),
       });
     }
 
@@ -133,8 +134,8 @@ export class AssetRepositoryImpl implements AssetRepository {
       .set({
         name: data.name ?? undefined,
         type: data.type ?? undefined,
-        balance: data.balance?.value ?? undefined,
-        currency: data.balance?.code ?? undefined,
+        balance: data.balance?.toNumber() ?? undefined,
+        currency: data.balance?.currency.code ?? undefined,
       })
       .where(eq(assetTable.id, id))
       .returning();
@@ -144,7 +145,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       userId: ID.new(result[0].userId),
       name: result[0].name,
       type: result[0].type as AssetType,
-      balance: Balance.new(`${result[0].currency} ${result[0].balance}`),
+      balance: parseMoney(`${result[0].currency} ${result[0].balance}`),
     });
   }
 

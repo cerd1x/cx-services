@@ -2,7 +2,7 @@ import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import type { Order as OrderType } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
-import { Balance } from "../../../assets/core/value-objects/balance.vo";
+import { parseMoney } from "$services/shared/kernel/money";
 import { ProductService } from "$services/domain/products";
 import { TransactionService } from "$services/domain/transactions";
 import { PaymentService } from "$services/domain/payment";
@@ -74,8 +74,8 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       );
     }
 
-    const capital = Balance.new(`${currency} ${capitalAmount}`);
-    const amount = Balance.new(`${currency} ${saleAmount}`);
+    const capital = parseMoney(`${currency} ${capitalAmount}`);
+    const amount = parseMoney(`${currency} ${saleAmount}`);
     const description = data.description ?? `Sale: ${product.name} x${data.itemCount}`;
     const paymentMethod = data.paymentMethod ?? "cash";
 

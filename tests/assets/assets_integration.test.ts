@@ -2,7 +2,12 @@ import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createUserService, UserService } from "$services/domain/user";
 import { createTransactionService } from "$services/domain/transactions";
-import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
+import { Money } from "@lib/money";
+import { parseMoney } from "$services/shared/kernel/money";
+
+// `Money` punya constructor privat, jadi tipe `expect.any` tidak bisa menerima
+// class-nya secara langsung.
+const AnyMoney = Money as unknown as new (...args: any[]) => any;
 import { Asset } from "$services/domain/assets/core/model/asset.model";
 import { User } from "$services/domain/user/core/model/user.model";
 import { ID } from "$services/shared/kernel";
@@ -114,7 +119,7 @@ describe("assets integrations", () => {
       name: "Alice's Bank",
       type: "bank",
       userId: user1Id,
-      balance: Balance.new("IDR 1000000"),
+      balance: parseMoney("IDR 1000000"),
     });
     expect(asset1.name).toBe("Alice's Bank");
     expect(asset1.userId.toNumb).toBe(user1Id.toNumb);
@@ -132,7 +137,7 @@ describe("assets integrations", () => {
       name: "Bob's GoPay",
       type: "ewallet",
       userId: user2Id,
-      balance: Balance.new("IDR 500000"),
+      balance: parseMoney("IDR 500000"),
     });
     expect(asset2.name).toBe("Bob's GoPay");
     expect(asset2.userId.toNumb).toBe(user2Id.toNumb);
@@ -166,7 +171,7 @@ describe("assets integrations", () => {
     expect(assetRepo.update).toHaveBeenCalledWith(
       user1Id,
       1,
-      expect.objectContaining({ balance: expect.any(Balance) }),
+      expect.objectContaining({ balance: expect.any(AnyMoney) }),
       "tx",
     );
   });

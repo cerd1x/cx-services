@@ -13,9 +13,10 @@ import { AdminRepository } from "../../../core/ports/out/admin-repository.port";
 
 /**
  * `amount`/`capital` disimpan sebagai teks `"<ISO> <angka>"` (lihat
- * `Balance.new`). Kode mata uang selalu 3 huruf diikuti satu spasi, jadi angka
- * mulai pada offset ke-5. Konversi dilakukan di SQL supaya agregat atas
- * seluruh tabel tidak perlu menarik semua baris ke memory worker.
+ * `formatMoney()` di `shared/kernel/money.ts`). Kode mata uang selalu 3 huruf
+ * diikuti satu spasi, jadi angka mulai pada offset ke-5. Konversi dilakukan di
+ * SQL supaya agregat atas seluruh tabel tidak perlu menarik semua baris ke
+ * memory worker.
  */
 const amountToReal = (column: typeof transactionTable.amount) =>
   sql<number>`cast(replace(substr(${column}, 5), ',', '') as real)`;

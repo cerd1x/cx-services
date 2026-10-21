@@ -1,0 +1,23 @@
+{
+  "name": "@lib/money",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Money primitives: fixed-point decimals, currencies, formatting and exchange rates",
+  "type": "module",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.ts",
+    "src",
+    "data",
+    "README.md"
+  ]
+}

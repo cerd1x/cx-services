@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { AssetPaymentGateway } from "$services/domain/payment/adapters/driven/payment-gateway/asset-gateway.adapter";
-import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
+import { formatMoney, parseMoney } from "$services/shared/kernel/money";
 import { ID } from "$services/shared/kernel";
 
 function createFakeAssets(initial: Record<number, { name: string; balance: string }>) {
@@ -10,11 +10,10 @@ function createFakeAssets(initial: Record<number, { name: string; balance: strin
   const mutate = (assetId: number, op: "add" | "subtract", amount: string) => {
     const entry = store.get(assetId);
     if (!entry) throw new Error(`Asset ${assetId} not found`);
-    const balance = Balance.new(entry.balance);
-    const delta = Balance.new(amount);
-    if (op === "subtract") balance.subtract(delta);
-    else balance.add(delta);
-    entry.balance = balance.toString();
+    const balance = parseMoney(entry.balance);
+    const delta = parseMoney(amount);
+    const next = op === "subtract" ? balance.subtract(delta) : balance.add(delta);
+    entry.balance = formatMoney(next);
   };
 
   const toEntity = (id: number) => {

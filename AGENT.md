@@ -26,7 +26,7 @@ Full-stack finance management. Backend: **Elysia + GraphQL Yoga** on Cloudflare 
 │   │   │   ├── model/                 # Domain model: entity + aturan (Zod + class)
 │   │   │   │   ├── {domain}.model.ts  # Entity: identitas + invariant
 │   │   │   ├── usecase/               # Use case (satu file per use case)
-│   │   │   ├── value-objects/         # Value objects (Balance, Token, logger, dll)
+│   │   │   ├── value-objects/         # Value objects (Token, logger, dll)
 │   │   │   └── ports/out/             # Outbound ports (abstract repository contracts)
 │   │   └── adapters/
 │   │       ├── driven/                # Output adapters (persistence, external API)
@@ -218,17 +218,17 @@ Setiap module di `domain/<module>/` memiliki struktur yang **WAJIB**:
 
 ### 9 Modules
 
-| Module           | Entity                                    | Service Dependencies                               |
-| ---------------- | ----------------------------------------- | -------------------------------------------------- |
-| **auth**         | Token (JWT VO)                            | userService, authRepo, settingService              |
-| **user**         | User                                      | userRepo                                           |
-| **assets**       | Asset, AssetMutation, Balance (dinero.js) | assetRepo, uow                                     |
-| **contacts**     | Contact                                   | contactRepo                                        |
-| **products**     | Product (price, capital, margin)          | productRepo                                        |
-| **transactions** | Transaction (income/expense/transfer)     | transactionRepo                                    |
-| **setting**      | Setting (currency, darkMode)              | settingRepo                                        |
-| **statistic**    | StatisticData (type-only)                 | statisticRepo                                      |
-| **order**        | Order (saga rollback)                     | orderRepo (orchestrates product/transaction/asset) |
+| Module           | Entity                                     | Service Dependencies                               |
+| ---------------- | ------------------------------------------ | -------------------------------------------------- |
+| **auth**         | Token (JWT VO)                             | userService, authRepo, settingService              |
+| **user**         | User                                       | userRepo                                           |
+| **assets**       | Asset, AssetMutation, Money (`@lib/money`) | assetRepo, uow                                     |
+| **contacts**     | Contact                                    | contactRepo                                        |
+| **products**     | Product (price, capital, margin)           | productRepo                                        |
+| **transactions** | Transaction (income/expense/transfer)      | transactionRepo                                    |
+| **setting**      | Setting (currency, darkMode)               | settingRepo                                        |
+| **statistic**    | StatisticData (type-only)                  | statisticRepo                                      |
+| **order**        | Order (saga rollback)                      | orderRepo (orchestrates product/transaction/asset) |
 
 ---
 
@@ -254,9 +254,9 @@ export class Asset {
   #id?: number;
   #name: string;
   #type: string;
-  #balance: Balance;
+  #balance: Money;
 
-  private constructor(data: AssetData & { balance: Balance }) {
+  private constructor(data: AssetData & { balance: Money }) {
     this.#name = data.name;
     this.#type = data.type;
     this.#balance = data.balance;
@@ -269,10 +269,10 @@ export class Asset {
     return this.#type;
   }
   get metadata() {
-    return { name: this.#name, type: this.#type, balance: this.#balance.value.toString() };
+    return { name: this.#name, type: this.#type, balance: this.#balance.toNumber().toString() };
   }
 
-  static new(input: AssetInput & { balance: Balance }): Asset {
+  static new(input: AssetInput & { balance: Money }): Asset {
     const result = assetSchema.safeParse(input);
     if (!result.success) {
       throw new Error(result.error.issues.map((i) => i.message).join(", "));
@@ -289,7 +289,7 @@ export class Asset {
 - Field schema di-derive dari `.shape` untuk validasi individual
 - `private constructor` + `static new()` factory dengan `safeParse` untuk validasi
 - Semua field sebagai `#private` dengan `getter` untuk akses read-only
-- Gunakan Value Object class untuk konsep domain yang kompleks (contoh: `Balance`, `Token`)
+- Gunakan Value Object class untuk konsep domain yang kompleks (contoh: `Token`). Nilai uang pakai `Money` dari `@lib/money`, bukan VO sendiri
 
 ### Singleton Service
 
@@ -323,38 +323,36 @@ export class SomeService {
 
 Untuk value object dengan logika bisnis, buat class terpisah:
 
+Nilai uang TIDAK perlu value object sendiri — pakai `Money` dari package
+`@lib/money` (workspace `lib/money/`). `Money` immutable: `add`/`subtract`
+mengembalikan instance baru, bukan mengubah instance lama.
+
 ```ts
-// domain/assets/core/value-objects/balance.vo.ts
-import { add, dinero, subtract, type Dinero } from "dinero.js";
-import * as _Currencies from "dinero.js/currencies";
+// shared/kernel/money.ts
+import { Decimal, Money, Round, isoCurrencies, type Currency } from "@lib/money";
 
-export class Balance {
-  #value!: Dinero<number, IsoCodeType>;
+/** Format nominal uang: "KODE NOMINAL", mis. "USD 100". */
+const MONEY_PATTERN = /^([A-Z]{3})\s+(-?[\d,]+(?:\.\d+)?)$/;
 
-  private constructor() {}
+/** Parse "USD 100" menjadi `Money`. */
+export function parseMoney(value: string): Money {
+  const match = value.trim().match(MONEY_PATTERN);
+  if (!match) throw new Error(`Invalid balance format: "${value}"`);
 
-  get value(): number {
-    return this.#value.toJSON().amount;
-  }
+  const [, isoCode, rawAmount] = match;
+  const currency = findSpendableCurrency(isoCode);
+  const amount = parseFloat(rawAmount.replace(/,/g, ""));
 
-  get code(): IsoCodeType {
-    return this.#value.toJSON().currency.code;
-  }
+  const rounded = Money.fromDecimal(Decimal.fromNumber(amount), currency).round(
+    currency.exponent,
+    Round.HalfUp,
+  );
+  return Money.fromMinor(rounded.toMinorUnits(), currency);
+}
 
-  static new(value: string): Balance {
-    const b = new Balance();
-    let v = value.trim().split(" ") as [string, string];
-    let [isoCode, _value] = v;
-    b.#value = dinero({ amount: parseFloat(_value), currency: _Currencies[isoCode], scale: 0 });
-    return b;
-  }
-
-  subtract(value: Balance) {
-    this.#value = subtract(this.#value, value.#value);
-  }
-  add(value: Balance) {
-    this.#value = add(this.#value, value.#value);
-  }
+/** Format `Money` menjadi "KODE NOMINAL". */
+export function formatMoney(money: Money): string {
+  return `${money.currency.code} ${money.toNumber()}`;
 }
 ```
 
@@ -366,8 +364,8 @@ Abstract class untuk repository contracts — method return entity Data types (b
 // domain/assets/core/ports/out/asset-repository.port.ts
 export abstract class AssetRepository {
   abstract save(asset: AssetData): Promise<AssetData>;
-  abstract findAll(): Promise<(AssetData & { balance: Balance })[]>;
-  abstract findByName(name: string): Promise<(AssetData & { balance: Balance }) | null>;
+  abstract findAll(): Promise<(AssetData & { balance: Money })[]>;
+  abstract findByName(name: string): Promise<(AssetData & { balance: Money }) | null>;
   abstract update(name: string, data: Partial<AssetData>): Promise<AssetData>;
   abstract delete(name: string): Promise<void>;
 }
@@ -381,7 +379,7 @@ Satu file per use-case, bukan 1 service class besar. Gunakan singleton pattern v
 // domain/assets/core/usecase/create-asset.usecase.ts
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import type { AssetRepository } from "../ports/out/asset-repository.port";
-import { Balance } from "../value-objects/balance.vo";
+import type { Money } from "@lib/money";
 import { Logger, LogLevel } from "$services/shared/infra/logger";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 
@@ -402,7 +400,7 @@ export class CreateAssetUseCase {
   }
 
   @logMethod(logger)
-  async execute(input: AssetInput & { initialBalance: Balance }): Promise<Asset> {
+  async execute(input: AssetInput & { initialBalance: Money }): Promise<Asset> {
     const asset = Asset.new({ name: input.name, balance: input.initialBalance, type: input.type });
     await this.#assetRepo.save(asset.metadata);
     return asset;
@@ -474,7 +472,7 @@ import {
   type AssetData,
   type AssetUpdate,
 } from "./asset.model";
-import { Balance } from "../value-objects/balance.vo";
+import type { Money } from "@lib/money";
 import { ID, isMybe } from "$services/shared/kernel";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
 import type { AssetMutationInput, AssetMutationData } from "./asset-mutation.model";
@@ -482,7 +480,7 @@ import { CoreUsecase, ServiceContainer } from "$services/shared/base";
 
 // Token untuk repository (class yang implement interface dependency)
 class GetCtx implements AssetRepository {
-  save(_asset: AssetData & { balance: Balance }, _tx?: unknown): Promise<Asset | null> {
+  save(_asset: AssetData & { balance: Money }, _tx?: unknown): Promise<Asset | null> {
     throw new Error("Method not implemented.");
   }
   findAll(_userId: ID, _tx?: unknown): Promise<Asset[]> {
@@ -524,7 +522,7 @@ interface MutateAssetInput {
 class MutateAssetService extends CoreUsecase<string, MutateAssetInput> {
   async execute(input: MutateAssetInput): Promise<string> {
     const assetRepo = this.deps.get(GetCtx);
-    const balance = Balance.new(input.balance);
+    const balance = parseMoney(input.balance);
     const asset = Asset.new({
       userId: input.userId,
       name: input.name,
@@ -609,7 +607,7 @@ Gunakan `Resolvers<YogaContext>` dari generated types. Akses use-case/service vi
 // domain/assets/adapters/driving/graphql/asset.resolver.ts
 import type { Resolvers, AssetType } from "$gql/types.generated";
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
-import { Balance } from "../../core/value-objects/balance.vo";
+import { parseMoney } from "$services/shared/kernel/money";
 import typeDefs from "./asset.gql?raw";
 
 const resolvers: Resolvers<YogaContext> = {
@@ -621,7 +619,7 @@ const resolvers: Resolvers<YogaContext> = {
   },
   Mutation: {
     createAsset: async (_parent, args, { asset }) => {
-      const balance = Balance.new(args.input.balance);
+      const balance = parseMoney(args.input.balance);
       const result = await asset.create({
         name: args.input.name,
         type: args.input.type as AssetType,
@@ -754,7 +752,6 @@ export {
 } from "./assets.composition";
 export type { AssetInput, AssetData } from "./core/model/asset.model";
 export { Asset } from "./core/model/asset.model";
-export { Balance } from "./core/value-objects/balance.vo";
 ```
 
 Barrel selalu export dari `<module>.composition.ts` (class + factory + singleton). Tidak ada lagi re-export dari `app/`. Use case dari modul lain WAJIB meng-import lewat barrel (`$services/domain/assets`), bukan menembus ke `core/usecase/`.
@@ -763,15 +760,16 @@ Barrel selalu export dari `<module>.composition.ts` (class + factory + singleton
 
 ## Shared Kernel (`shared/kernel/`)
 
-| File                      | Purpose                                                    |
-| ------------------------- | ---------------------------------------------------------- |
-| `id.ts`                   | `ID` class — Sqids obfuscation (`.toHash()` / `.toNumb()`) |
-| `password-utils.ts`       | Argon2id hash + verify (legacy PBKDF2 fallback)            |
-| `csrf.ts`                 | HMAC-SHA256 CSRF token                                     |
-| `cookies.ts`              | parse/serialize/delete cookie helpers                      |
-| `uow.port.ts`             | Abstract `UnitOfWork.run(fn)`                              |
-| `is-mybe.ts`              | Null/undefined check                                       |
-| `errors/service-error.ts` | Error hierarchy — lihat di bawah                           |
+| File                      | Purpose                                                     |
+| ------------------------- | ----------------------------------------------------------- |
+| `id.ts`                   | `ID` class — Sqids obfuscation (`.toHash()` / `.toNumb()`)  |
+| `password-utils.ts`       | Argon2id hash + verify (legacy PBKDF2 fallback)             |
+| `csrf.ts`                 | HMAC-SHA256 CSRF token                                      |
+| `cookies.ts`              | parse/serialize/delete cookie helpers                       |
+| `uow.port.ts`             | Abstract `UnitOfWork.run(fn)`                               |
+| `is-mybe.ts`              | Null/undefined check                                        |
+| `money.ts`                | Codec uang: `parseMoney()` / `formatMoney()` (`@lib/money`) |
+| `errors/service-error.ts` | Error hierarchy — lihat di bawah                            |
 
 ### Errors (`shared/kernel/errors/`)
 
@@ -860,7 +858,7 @@ Jalankan: `bun run gql:gen` — **WAJIB** dijalankan setiap ada perubahan SDL (`
 10. GraphQL resolver **WAJIB** pakai `Resolvers<YogaContext>` type
 11. SDL **WAJIB** di-import via `import typeDefs from "./module.gql?raw"`
 12. ID ke external **WAJIB** pake `ID.toHash()` (Sqids), internal pake `ID.toNumb()`
-13. Money **WAJIB** pake `Balance` (dinero.js)
+13. Money **WAJIB** pake `Money` dari `@lib/money` (`lib/money/`) — string "KODE NOMINAL" di-parse via `parseMoney()` dari `$services/shared/kernel/money`
 14. Jangan import `$services/` dari client code (`src/routes/`, `src/lib/`) — lihat `client-server-boundary` skill
 15. Cross-module dependency hanya via services: `auth→user`, `order→product|transaction|asset`, `assets→transaction`
 16. Komposisi module hanya di `<module>.composition.ts` — jangan impor repo/entity module lain secara langsung. Referensi service antar module yang membentuk siklus **WAJIB** resolve saat runtime (`Service.getInstance()` / lazy gateway), jangan tangkap `export const service` di top-level

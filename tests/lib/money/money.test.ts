@@ -8,7 +8,7 @@ import {
   defineFiatCurrency,
   iso,
   isMoneyError,
-} from "$services/lib/money";
+} from "@lib/money";
 
 /** Mirrors the `test` currency set of the Rust crate. */
 const spaceCurrency = defineFiatCurrency({

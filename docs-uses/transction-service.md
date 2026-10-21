@@ -31,8 +31,8 @@ TransactionInput → Transaction.new(input).validateAll()
 | Field            | Type                                  | Required                          |
 | ---------------- | ------------------------------------- | --------------------------------- |
 | `type`           | `"income" \| "expense" \| "transfer"` | ✅                                |
-| `amount`         | `Balance`                             | ✅                                |
-| `capital`        | `Balance`                             | ✅                                |
+| `amount`         | `Money` (`@lib/money`)                | ✅                                |
+| `capital`        | `Money` (`@lib/money`)                | ✅                                |
 | `createdAt`      | `Date`                                | ❌                                |
 | `description`    | `string`                              | ❌                                |
 | `category`       | `string`                              | ❌                                |

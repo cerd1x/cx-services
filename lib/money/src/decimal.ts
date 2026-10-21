@@ -165,17 +165,25 @@ export class Decimal {
    * Builds a decimal from a JavaScript number.
    *
    * The number is converted through its shortest decimal representation, so
-   * `0.1` becomes exactly `0.1` instead of the binary approximation.
+   * `0.1` becomes exactly `0.1` instead of the binary approximation. Numbers
+   * that JavaScript renders in the scientific notation (`1e-7`, `1e+21`) are
+   * expanded into a plain decimal literal first.
    */
   static fromNumber(value: number): Decimal {
     if (!Number.isFinite(value)) {
       throw new DecimalError("Overflow", "Cannot build a decimal from a non-finite number");
     }
-    const parsed = Decimal.fromString(value.toString());
-    if (!parsed) {
-      throw new DecimalError("Overflow", `Cannot build a decimal from ${value}`);
+    const text = value.toString();
+    const direct = Decimal.fromString(text);
+    if (direct) return direct;
+
+    const expanded = expandScientific(text);
+    if (expanded) {
+      const parsed = Decimal.fromString(expanded);
+      if (parsed) return parsed;
     }
-    return parsed;
+
+    throw new DecimalError("Overflow", `Cannot build a decimal from ${value}`);
   }
 
   /**
@@ -483,6 +491,28 @@ export class Decimal {
   get precision(): number {
     return decimalDigits(abs(this.#coefficient));
   }
+}
+
+/**
+ * Expands a literal in the scientific notation into a plain decimal literal.
+ *
+ * `Number.prototype.toString` switches to the exponential form for values
+ * below `1e-6` and above `1e21`, e.g. `1e-7` or `1e+21`.
+ */
+function expandScientific(text: string): string | null {
+  const match = /^([+-]?)(\d+)(?:\.(\d+))?[eE]([+-]?\d+)$/.exec(text);
+  if (!match) return null;
+
+  const sign = match[1]!;
+  const integer = match[2]!;
+  const fraction = match[3] ?? "";
+  const exponent = Number(match[4]!);
+  const digits = integer + fraction;
+  const point = integer.length + exponent;
+
+  if (point <= 0) return `${sign}0.${"0".repeat(-point)}${digits}`;
+  if (point >= digits.length) return `${sign}${digits}${"0".repeat(point - digits.length)}`;
+  return `${sign}${digits.slice(0, point)}.${digits.slice(point)}`;
 }
 
 /**

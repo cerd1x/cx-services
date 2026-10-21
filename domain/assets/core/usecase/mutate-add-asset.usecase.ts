@@ -1,5 +1,6 @@
 import { Asset } from "../model/asset.model";
-import { Balance } from "../value-objects/balance.vo";
+import type { Money } from "@lib/money";
+import { parseMoney } from "$services/shared/kernel/money";
 import { ID } from "$services/shared/kernel";
 import { TransactionService } from "$services/domain/transactions";
 import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";
@@ -19,14 +20,14 @@ export class MutateAddAssetUseCase extends CoreUsecase<Asset, MutateAddAssetInpu
   async execute(input: MutateAddAssetInput): Promise<Asset> {
     const { userId, assetId, amount } = input;
 
-    let balanceAmount: Balance;
+    let balanceAmount: Money;
     try {
-      balanceAmount = Balance.new(amount);
+      balanceAmount = parseMoney(amount);
     } catch (error) {
       throw new ValidationError(`Invalid amount: ${amount}`, { cause: error });
     }
 
-    if (balanceAmount.value <= 0) {
+    if (balanceAmount.toNumber() <= 0) {
       throw new ValidationError("amount must be positive");
     }
 
@@ -35,10 +36,9 @@ export class MutateAddAssetUseCase extends CoreUsecase<Asset, MutateAddAssetInpu
       .execute({ userId, assetId, type: "add", amount: balanceAmount });
     if (!result) return result;
 
-    const capital = Balance.new(result.balance);
-    capital.subtract(balanceAmount);
+    const capital = parseMoney(result.balance).subtract(balanceAmount);
 
-    if (capital.value < 0) {
+    if (capital.toNumber() < 0) {
       throw new ValidationError("Computed capital must be non-negative");
     }
 

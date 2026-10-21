@@ -1,4 +1,4 @@
-import { Balance } from "../../../assets/core/value-objects/balance.vo";
+import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { z } from "zod";
 
@@ -92,8 +92,8 @@ export class Transaction {
   paymentStatus: "paid" | "unpaid" = "unpaid";
   paymentMethod: PaymentMethod = { type: "cash" };
   customerId?: number;
-  amount!: Balance;
-  capital!: Balance;
+  amount!: Money;
+  capital!: Money;
   description?: string;
   category?: string;
   createdAt?: Date;
@@ -102,8 +102,8 @@ export class Transaction {
   constructor(data: {
     type: TransactionType;
     userId?: number;
-    amount: Balance;
-    capital: Balance;
+    amount: Money;
+    capital: Money;
     description?: string;
     category?: string;
     status?: TransactionStatus;
@@ -134,8 +134,8 @@ export class Transaction {
   static new(data: {
     type: TransactionType;
     userId?: number;
-    amount: Balance;
-    capital: Balance;
+    amount: Money;
+    capital: Money;
     createdAt?: Date;
     description?: string;
     category?: string;
@@ -148,9 +148,9 @@ export class Transaction {
   }
 
   /**
-   * Validasi nilai uang mentah (bukan instance `Balance`).
+   * Validasi nilai uang mentah (bukan instance `Money`).
    * Dipisah dari `validate*()` instance karena `amount`/`capital` pada entity
-   * disimpan sebagai `Balance`, sedangkan aturan positivitas berlaku pada
+   * disimpan sebagai `Money`, sedangkan aturan positivitas berlaku pada
    * angka minorannya.
    */
   static validateAmount(amount: number): void {

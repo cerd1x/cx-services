@@ -2,7 +2,7 @@ import { TransactionRepository } from "../ports/out/transaction-repository.port"
 import { Transaction } from "../model/transaction.model";
 import type { Transaction as TransactionType } from "../model/transaction.model";
 import type { PaymentMethod } from "../model/transaction.model";
-import { Balance } from "../../../assets/core/value-objects/balance.vo";
+import type { Money } from "@lib/money";
 import { CoreUsecase } from "$services/shared/base";
 import { ServiceError, ValidationError } from "$services/shared/kernel/errors/service-error";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
@@ -10,8 +10,8 @@ import { logger } from "../value-objects/logger";
 
 export type TransactionInput = {
   type: "income" | "expense" | "transfer" | "outcome";
-  amount: Balance;
-  capital: Balance;
+  amount: Money;
+  capital: Money;
   createdAt?: Date;
   description?: string;
   category?: string;
@@ -36,11 +36,13 @@ export class CreateTransactionUseCase extends CoreUsecase<TransactionType, Trans
       throw new ValidationError("customerId must be a positive integer");
     }
 
-    if (!Number.isFinite(input.amount.value) || input.amount.value <= 0) {
+    const amount = input.amount.toNumber();
+    if (!Number.isFinite(amount) || amount <= 0) {
       throw new ValidationError("amount must be a positive, finite balance");
     }
 
-    if (!Number.isFinite(input.capital.value) || input.capital.value < 0) {
+    const capital = input.capital.toNumber();
+    if (!Number.isFinite(capital) || capital < 0) {
       throw new ValidationError("capital must be a finite, non-negative balance");
     }
 

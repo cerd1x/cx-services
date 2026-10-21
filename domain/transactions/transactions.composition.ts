@@ -5,6 +5,8 @@ import {
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ID } from "$services/shared/kernel";
+import { Money, iso } from "@lib/money";
+import { parseMoney } from "$services/shared/kernel/money";
 import {
   CreateTransactionUseCase,
   type TransactionInput,
@@ -22,7 +24,7 @@ import { ValidateCSRFTokenUseCase } from "./core/usecase/validate-csrf-token.use
 import type { AssetSwapGateway, SwapBalanceResult } from "./core/ports/out/asset-swap-gateway.port";
 import { ServiceContainer } from "$services/shared/base";
 import { EventBus } from "$services/shared/kernel/outbox/event-bus";
-import { AssetService, Balance } from "$services/domain/assets";
+import { AssetService } from "$services/domain/assets";
 import { TransactionRepositoryImpl } from "./adapters/driven/drizzle/transaction.repository";
 import { TransactionRepository } from "./core/ports/out/transaction-repository.port";
 import { AssetSwapGatewayCtx } from "./core/usecase/asset-swap-gateway.ctx";
@@ -242,8 +244,8 @@ EventBus.on("asset.swapped", async (payload) => {
     userId: Number(userId),
     payWithAssetId: Number(fromAssetId),
     payToAssetId: Number(toAssetId),
-    amount: Balance.new(`${currency} ${amount}`),
-    capital: Balance.zero(),
+    amount: parseMoney(`${currency} ${amount}`),
+    capital: Money.zero(iso.IDR),
     type: "transfer",
     category: "Move Balances",
     description: `Swap ( ${fromAssetName} to ${toAssetName} )`,

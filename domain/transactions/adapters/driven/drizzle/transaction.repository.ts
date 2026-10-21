@@ -6,7 +6,7 @@ import { paymentMethodSchema } from "../../../core/model/transaction.model";
 import type { PaymentMethod } from "../../../core/model/transaction.model";
 import { TransactionRepository } from "../../../core/ports/out/transaction-repository.port";
 import type { PageQuery, PageWindow } from "../../../core/model/transaction-page.model";
-import { Balance } from "../../../../assets/core/value-objects/balance.vo";
+import { formatMoney, parseMoney } from "$services/shared/kernel/money";
 import { ID } from "$services/shared/kernel";
 import { logger } from "../../../core/value-objects/logger";
 
@@ -60,8 +60,8 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         paymentStatus: transaction.paymentStatus,
         paymentMethod: JSON.stringify(transaction.paymentMethod),
         customerId: transaction.customerId ?? null,
-        amount: `${transaction.amount.code} ${transaction.amount.value}`,
-        capital: `${transaction.capital.code} ${transaction.capital.value}`,
+        amount: formatMoney(transaction.amount),
+        capital: formatMoney(transaction.capital),
         description: transaction.description ?? null,
         category: transaction.category ?? null,
         date: transaction.createdAt
@@ -82,8 +82,8 @@ export class TransactionRepositoryImpl implements TransactionRepository {
       paymentStatus: row.paymentStatus as Transaction["paymentStatus"],
       paymentMethod: parsePaymentMethod(row.paymentMethod),
       customerId: row.customerId ?? undefined,
-      amount: Balance.new(row.amount),
-      capital: Balance.new(row.capital),
+      amount: parseMoney(row.amount),
+      capital: parseMoney(row.capital),
       description: row.description ?? undefined,
       category: row.category ?? undefined,
       id: row.id,
@@ -223,8 +223,8 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         paymentStatus: transaction.paymentStatus,
         paymentMethod: JSON.stringify(transaction.paymentMethod),
         customerId: transaction.customerId ?? null,
-        amount: `${transaction.amount.code} ${transaction.amount.value}`,
-        capital: `${transaction.capital.code} ${transaction.capital.value}`,
+        amount: formatMoney(transaction.amount),
+        capital: formatMoney(transaction.capital),
         description: transaction.description ?? null,
         category: transaction.category ?? null,
       })

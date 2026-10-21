@@ -1,6 +1,6 @@
 import { AssetRepository } from "../ports/out/asset-repository.port";
 import { Asset, type AssetUpdate } from "../model/asset.model";
-import type { Balance } from "../value-objects/balance.vo";
+import type { Money } from "@lib/money";
 import type { AssetInput } from "../model/asset.model";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
@@ -10,7 +10,7 @@ import { logger } from "../value-objects/logger";
 export type UpdateAssetInput = {
   userId: ID;
   assetId: ID;
-  data: Partial<AssetInput> & { balance?: Balance };
+  data: Partial<AssetInput> & { balance?: Money };
 };
 
 export class UpdateAssetUseCase extends CoreUsecase<Asset, UpdateAssetInput> {

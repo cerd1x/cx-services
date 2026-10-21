@@ -14,7 +14,7 @@ import {
   isCurrencyMismatch,
   iso,
   isoCurrencies,
-} from "$services/lib/money";
+} from "@lib/money";
 
 describe("ISO currencies", () => {
   it("contains the full ISO-4217 table", () => {

@@ -1,6 +1,7 @@
 import type { Resolvers, Asset, AssetType } from "$gql/types.generated";
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
-import { Balance } from "../../../core/value-objects/balance.vo";
+import type { Money } from "@lib/money";
+import { parseMoney } from "$services/shared/kernel/money";
 import type { AssetInput } from "../../../core/model/asset.model";
 import { ID } from "$services/shared/kernel";
 import typeDefs from "./asset.gql?raw";
@@ -58,7 +59,7 @@ const resolvers: Resolvers<YogaContext> = {
       const { name, type, balance } = args.input;
       const result = await asset.createAsset({
         userId: userAuth!.id,
-        balance: Balance.new(balance),
+        balance: parseMoney(balance),
         name,
         type: type as AssetType,
       });
@@ -70,10 +71,10 @@ const resolvers: Resolvers<YogaContext> = {
       };
     },
     updateAsset: async (_parent, args, { asset, userAuth }) => {
-      const input: Partial<AssetInput> & { balance?: Balance } = {};
+      const input: Partial<AssetInput> & { balance?: Money } = {};
       if (args.input.name) input.name = args.input.name;
       if (args.input.type) input.type = args.input.type as AssetType;
-      if (args.input.balance) input.balance = Balance.new(args.input.balance);
+      if (args.input.balance) input.balance = parseMoney(args.input.balance);
 
       const result = await asset.updateAsset(userAuth!.id, ID.new(args.id), input);
       return {

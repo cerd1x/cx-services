@@ -1,10 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import {
-  DECIMAL_MAX_COEFFICIENT,
-  DECIMAL_MAX_SCALE,
-  Decimal,
-  DecimalError,
-} from "$services/lib/money";
+import { DECIMAL_MAX_COEFFICIENT, DECIMAL_MAX_SCALE, Decimal, DecimalError } from "@lib/money";
 
 function decimal(text: string): Decimal {
   const parsed = Decimal.fromString(text);
@@ -150,6 +145,13 @@ describe("Decimal", () => {
     it("builds from a number without binary artefacts", () => {
       expect(Decimal.fromNumber(0.1).toString()).toBe("0.1");
       expect(Decimal.fromNumber(1.5).toString()).toBe("1.5");
+    });
+
+    it("builds from a number in the scientific notation", () => {
+      expect(Decimal.fromNumber(1e-7).toString()).toBe("0.0000001");
+      expect(Decimal.fromNumber(1.5e-7).toString()).toBe("0.00000015");
+      expect(Decimal.fromNumber(1e21).toString()).toBe("1000000000000000000000");
+      expect(Decimal.fromNumber(1.234e21).toString()).toBe("1234000000000000000000");
     });
 
     it("builds from a bigint", () => {

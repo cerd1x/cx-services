@@ -7,7 +7,7 @@ import type {
   GatewayStatusResponse,
 } from "../../../core/ports/out/payment-gateway.port";
 import type { AssetService } from "$services/domain/assets";
-import { Balance } from "../../../../assets/core/value-objects/balance.vo";
+import { parseMoney } from "$services/shared/kernel/money";
 import { ID } from "$services/shared/kernel";
 
 export interface AssetGatewayAsset {
@@ -86,18 +86,18 @@ export class AssetPaymentGateway implements PaymentGateway {
         return this.#failed("Wallet asset not found");
       }
 
-      const balance = Balance.new(asset.balance);
-      const amount = Balance.new(`${currency} ${request.amount}`);
+      const balance = parseMoney(asset.balance);
+      const amount = parseMoney(`${currency} ${request.amount}`);
 
-      if (balance.code.toUpperCase() !== currency) {
+      if (balance.currency.code.toUpperCase() !== currency) {
         return this.#failed(
-          `Currency mismatch: asset holds ${balance.code}, payment is ${currency}`,
+          `Currency mismatch: asset holds ${balance.currency.code}, payment is ${currency}`,
         );
       }
 
-      if (balance.value < amount.value) {
+      if (balance.toNumber() < amount.toNumber()) {
         return this.#failed(
-          `Insufficient asset balance: have ${balance.code} ${balance.value}, need ${currency} ${request.amount}`,
+          `Insufficient asset balance: have ${balance.currency.code} ${balance.toNumber()}, need ${currency} ${request.amount}`,
         );
       }
 
@@ -121,8 +121,8 @@ export class AssetPaymentGateway implements PaymentGateway {
           method: request.method,
           amount: request.amount,
           currency,
-          balanceBefore: balance.value,
-          balanceAfter: refreshed ? Balance.new(refreshed.balance).value : undefined,
+          balanceBefore: balance.toNumber(),
+          balanceAfter: refreshed ? parseMoney(refreshed.balance).toNumber() : undefined,
           description: request.description,
         },
       };
@@ -206,7 +206,7 @@ export class AssetPaymentGateway implements PaymentGateway {
     const list = await this.#assets.assets(ID.new(userId));
 
     const byCurrency = list.find(
-      (asset) => Balance.new(asset.balance).code.toUpperCase() === normalized,
+      (asset) => parseMoney(asset.balance).currency.code.toUpperCase() === normalized,
     );
     if (byCurrency) return ID.new(byCurrency.IdStr).toNumb;
 

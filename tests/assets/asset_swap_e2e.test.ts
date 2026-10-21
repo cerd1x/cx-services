@@ -1,7 +1,8 @@
 import { beforeAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
-import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
+import { Money, iso } from "@lib/money";
+import { parseMoney } from "$services/shared/kernel/money";
 import {
   Asset,
   type AssetData,
@@ -53,18 +54,18 @@ class InMemoryAssetRepository extends AssetRepository {
       userId: ID.new(row.userId),
       name: row.name,
       type: row.type as AssetType,
-      balance: Balance.new(`${row.currency} ${row.balance}`),
+      balance: parseMoney(`${row.currency} ${row.balance}`),
     });
   }
 
-  async save(asset: AssetData & { balance: Balance }): Promise<Asset | null> {
+  async save(asset: AssetData & { balance: Money }): Promise<Asset | null> {
     const row: AssetRow = {
       id: this.#assetSeq++,
       userId: asset.userId.toNumb,
       name: asset.name,
       type: asset.type,
-      balance: asset.balance.value,
-      currency: asset.balance.code,
+      balance: asset.balance.toNumber(),
+      currency: asset.balance.currency.code,
     };
     this.assets.push(row);
     return this.#toEntity(row);
@@ -91,8 +92,8 @@ class InMemoryAssetRepository extends AssetRepository {
     if (data.name !== undefined) row.name = data.name;
     if (data.type !== undefined) row.type = data.type;
     if (data.balance !== undefined) {
-      row.balance = data.balance.value;
-      row.currency = data.balance.code;
+      row.balance = data.balance.toNumber();
+      row.currency = data.balance.currency.code;
     }
     return this.#toEntity(row);
   }
@@ -208,8 +209,8 @@ describe("swapBalance e2e (in-memory repo)", () => {
         userId: Number(userId),
         payWithAssetId: Number(fromAssetId),
         payToAssetId: Number(toAssetId),
-        amount: Balance.new(`${currency} ${amount}`),
-        capital: Balance.zero(),
+        amount: parseMoney(`${currency} ${amount}`),
+        capital: Money.zero(iso.IDR),
         type: "transfer",
         category: "Move Balances",
         description: `Swap ( ${fromAssetName} to ${toAssetName} )`,
@@ -234,13 +235,13 @@ describe("swapBalance e2e (in-memory repo)", () => {
       name: "Wallet",
       type: "cash",
       userId,
-      balance: Balance.new("IDR 1000000"),
+      balance: parseMoney("IDR 1000000"),
     });
     await AssetService.getInstance().createAsset({
       name: "Bank",
       type: "bank",
       userId,
-      balance: Balance.new("IDR 500000"),
+      balance: parseMoney("IDR 500000"),
     });
     return { walletId: ID.new(wallet.metadata.id ? 1 : 1), bankId: ID.new(2) };
   }

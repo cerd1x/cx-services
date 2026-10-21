@@ -2,10 +2,15 @@ import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createTransactionService } from "$services/domain/transactions";
-import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
+import { Money } from "@lib/money";
+import { parseMoney } from "$services/shared/kernel/money";
 import { Asset } from "$services/domain/assets/core/model/asset.model";
 import { ID } from "$services/shared/kernel";
 import { mockAssetSwapGateway, InMemoryOutboxRepository } from "../utils/outbox.mock";
+
+// `Money` punya constructor privat, jadi tipe `expect.any` tidak bisa menerima
+// class-nya secara langsung.
+const AnyMoney = Money as unknown as new (...args: any[]) => any;
 
 describe("AssetService", () => {
   const assetRepo = {
@@ -58,7 +63,7 @@ describe("AssetService", () => {
           name: "BCA",
           type: "bank",
           userId: ID.new(1),
-          balance: Balance.new("IDR 200.000"),
+          balance: parseMoney("IDR 200.000"),
         }),
       );
 
@@ -66,7 +71,7 @@ describe("AssetService", () => {
         name: "BCA",
         type: "bank",
         userId: ID.new(1),
-        balance: Balance.new("IDR 200.000"),
+        balance: parseMoney("IDR 200.000"),
       });
 
       expect(result.name).toBe("BCA");
@@ -74,7 +79,7 @@ describe("AssetService", () => {
       expect(assetRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "BCA",
-          balance: Balance.new("IDR 200.000"),
+          balance: parseMoney("IDR 200.000"),
           type: "bank",
         }),
       );
@@ -154,7 +159,7 @@ describe("AssetService", () => {
         ID.new(1),
         1,
         expect.objectContaining({
-          balance: expect.any(Balance),
+          balance: expect.any(AnyMoney),
         }),
         "tx",
       );

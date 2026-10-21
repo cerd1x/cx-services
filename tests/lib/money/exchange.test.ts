@@ -1,13 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import {
-  Decimal,
-  Exchange,
-  ExchangeRate,
-  Money,
-  MoneyError,
-  crypto,
-  iso,
-} from "$services/lib/money";
+import { Decimal, Exchange, ExchangeRate, Money, MoneyError, crypto, iso } from "@lib/money";
 
 describe("ExchangeRate", () => {
   it("rejects identical currencies", () => {

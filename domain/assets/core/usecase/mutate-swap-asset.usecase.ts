@@ -1,7 +1,7 @@
 import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
 import { Asset } from "../model/asset.model";
-import { Balance } from "../value-objects/balance.vo";
+import { formatMoney, parseMoney } from "$services/shared/kernel/money";
 import { ID } from "$services/shared/kernel";
 import { UnitOfWork } from "$services/shared/kernel/uow.port";
 import { OutboxRepository } from "$services/shared/kernel/outbox/outbox-repository.port";
@@ -28,7 +28,7 @@ export class MutateSwapAssetUseCase extends CoreUsecase<
     const outboxRepo = this.deps.get(OutboxRepository);
     const { userId, fromAssetId, toAssetId, amount } = input;
 
-    const balanceAmount = Balance.new(amount);
+    const balanceAmount = parseMoney(amount);
     const fromAsset = await assetRepo.findById(userId, fromAssetId);
     if (!fromAsset) {
       throw new NotFound(`Source asset ${fromAssetId.toHash}`);
@@ -38,18 +38,15 @@ export class MutateSwapAssetUseCase extends CoreUsecase<
       throw new NotFound(`Destination asset ${toAssetId.toHash}`);
     }
 
-    const fromCurrent = Balance.new(fromAsset.balance);
-    const toCurrent = Balance.new(toAsset.balance);
-
-    fromCurrent.subtract(balanceAmount);
-    toCurrent.add(balanceAmount);
+    const fromNext = parseMoney(fromAsset.balance).subtract(balanceAmount);
+    const toNext = parseMoney(toAsset.balance).add(balanceAmount);
 
     const eventPayload = {
       userId: userId.toNumb,
       fromAssetId: fromAssetId.toNumb,
       toAssetId: toAssetId.toNumb,
-      amount: balanceAmount.value,
-      currency: balanceAmount.code,
+      amount: balanceAmount.toNumber(),
+      currency: balanceAmount.currency.code,
       fromAssetName: fromAsset.name,
       toAssetName: toAsset.name,
     };
@@ -62,10 +59,10 @@ export class MutateSwapAssetUseCase extends CoreUsecase<
           userId,
           assetId: fromAssetId.toNumb,
           type: "swap",
-          amount: balanceAmount.value,
-          currency: balanceAmount.code,
+          amount: balanceAmount.toNumber(),
+          currency: balanceAmount.currency.code,
           balanceBefore: fromAsset.balance,
-          balanceAfter: fromCurrent.toString(),
+          balanceAfter: formatMoney(fromNext),
           description: `Swap To ${toAsset.name}`,
         },
         tx,
@@ -77,17 +74,17 @@ export class MutateSwapAssetUseCase extends CoreUsecase<
           userId,
           assetId: toAssetId.toNumb,
           type: "swap",
-          amount: balanceAmount.value,
-          currency: balanceAmount.code,
+          amount: balanceAmount.toNumber(),
+          currency: balanceAmount.currency.code,
           balanceBefore: toAsset.balance,
-          balanceAfter: toCurrent.toString(),
+          balanceAfter: formatMoney(toNext),
           description: `Swap From ${fromAsset.name}`,
         },
         tx,
       );
 
-      await assetRepo.update(userId, fromAssetId.toNumb, { balance: fromCurrent }, tx);
-      await assetRepo.update(userId, toAssetId.toNumb, { balance: toCurrent }, tx);
+      await assetRepo.update(userId, fromAssetId.toNumb, { balance: fromNext }, tx);
+      await assetRepo.update(userId, toAssetId.toNumb, { balance: toNext }, tx);
 
       await outboxRepo.save(
         {
@@ -108,14 +105,14 @@ export class MutateSwapAssetUseCase extends CoreUsecase<
         userId: fromAsset.userId,
         name: fromAsset.name,
         type: fromAsset.type,
-        balance: fromCurrent,
+        balance: fromNext,
       }),
       to: Asset.new({
         id: toAssetId.toNumb,
         userId: toAsset.userId,
         name: toAsset.name,
         type: toAsset.type,
-        balance: toCurrent,
+        balance: toNext,
       }),
     };
   }

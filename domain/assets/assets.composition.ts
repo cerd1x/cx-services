@@ -1,5 +1,5 @@
 import { Asset, type AssetInput } from "./core/model/asset.model";
-import { Balance } from "./core/value-objects/balance.vo";
+import type { Money } from "@lib/money";
 import { type AssetMutationData } from "./core/model/asset-mutation.model";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
@@ -140,7 +140,7 @@ export class AssetService {
   async updateAsset(
     userId: ID,
     assetId: ID,
-    input: Partial<AssetInput> & { balance?: Balance },
+    input: Partial<AssetInput> & { balance?: Money },
   ): Promise<Asset> {
     return this.#updateAsset.execute({ userId, assetId, data: input });
   }

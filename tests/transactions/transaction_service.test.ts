@@ -3,7 +3,7 @@ import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
 import { Transaction } from "$services/domain/transactions/core/model/transaction.model";
 import { ID } from "$services/shared/kernel/id";
-import { Balance } from "$services/domain/assets/core/value-objects/balance.vo";
+import { parseMoney } from "$services/shared/kernel/money";
 import { mockAssetSwapGateway } from "../utils/outbox.mock";
 
 describe("TransactionService", () => {
@@ -40,8 +40,8 @@ describe("TransactionService", () => {
 
       const result = await TransactionService.getInstance().createTransaction({
         type: "income",
-        amount: Balance.new("IDR 500000"),
-        capital: Balance.new("IDR 300000"),
+        amount: parseMoney("IDR 500000"),
+        capital: parseMoney("IDR 300000"),
         createdAt: today,
         description: "Salary",
         category: "Work",
@@ -49,7 +49,7 @@ describe("TransactionService", () => {
 
       expect(result.id?.toNumb).toBe(1);
       expect(result.type).toBe("income");
-      expect(result.amount?.value ?? result.amount).toBe(500000);
+      expect(result.amount?.toNumber() ?? result.amount).toBe(500000);
       expect(txRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ type: "income", amount: expect.anything() }),
       );
@@ -63,8 +63,8 @@ describe("TransactionService", () => {
 
       const result = await TransactionService.getInstance().createTransaction({
         type: "expense",
-        amount: Balance.new("IDR 25000"),
-        capital: Balance.new("IDR 10000"),
+        amount: parseMoney("IDR 25000"),
+        capital: parseMoney("IDR 10000"),
         createdAt: today,
       });
 
@@ -77,8 +77,8 @@ describe("TransactionService", () => {
       await expect(
         TransactionService.getInstance().createTransaction({
           type: "income",
-          amount: Balance.new("IDR 100"),
-          capital: Balance.new("IDR 50"),
+          amount: parseMoney("IDR 100"),
+          capital: parseMoney("IDR 50"),
           createdAt: today,
         }),
       ).rejects.toThrow("Failed to create transaction: no id returned");
@@ -88,8 +88,8 @@ describe("TransactionService", () => {
       await expect(
         TransactionService.getInstance().createTransaction({
           type: "expense",
-          amount: Balance.new("IDR -5000"),
-          capital: Balance.new("IDR -2000"),
+          amount: parseMoney("IDR -5000"),
+          capital: parseMoney("IDR -2000"),
           createdAt: today,
         }),
       ).rejects.toThrow("amount must be a positive, finite balance");
@@ -99,8 +99,8 @@ describe("TransactionService", () => {
       expect(() =>
         TransactionService.getInstance().createTransaction({
           type: "expense",
-          amount: Balance.new("XYZ 10000"),
-          capital: Balance.new("IDR 5000"),
+          amount: parseMoney("XYZ 10000"),
+          capital: parseMoney("IDR 5000"),
           createdAt: today,
         }),
       ).toThrow("Currency must be a 3-letter code:");
@@ -111,8 +111,8 @@ describe("TransactionService", () => {
     it("returns transaction when found", async () => {
       const t = Transaction.new({
         type: "income",
-        amount: Balance.new("IDR 500000"),
-        capital: Balance.new("IDR 300000"),
+        amount: parseMoney("IDR 500000"),
+        capital: parseMoney("IDR 300000"),
         createdAt: today,
       });
       t.id = ID.new(1);
@@ -121,7 +121,7 @@ describe("TransactionService", () => {
       const result = await TransactionService.getInstance().transaction(ID.new(1), userId);
 
       expect(result.id?.toNumb).toBe(1);
-      expect((result.amount as any)?.value ?? result.amount).toBe(500000);
+      expect((result.amount as any)?.toNumber() ?? result.amount).toBe(500000);
     });
 
     it("throws NotFoundError when not found", async () => {
@@ -137,15 +137,15 @@ describe("TransactionService", () => {
     it("returns all transactions", async () => {
       const t1 = Transaction.new({
         type: "income",
-        amount: Balance.new("IDR 500000"),
-        capital: Balance.new("IDR 300000"),
+        amount: parseMoney("IDR 500000"),
+        capital: parseMoney("IDR 300000"),
         createdAt: today,
       });
       t1.id = ID.new(1);
       const t2 = Transaction.new({
         type: "expense",
-        amount: Balance.new("IDR 25000"),
-        capital: Balance.new("IDR 10000"),
+        amount: parseMoney("IDR 25000"),
+        capital: parseMoney("IDR 10000"),
         createdAt: today,
       });
       t2.id = ID.new(2);
@@ -161,8 +161,8 @@ describe("TransactionService", () => {
     it("returns transactions filtered by type", async () => {
       const t = Transaction.new({
         type: "income",
-        amount: Balance.new("IDR 500000"),
-        capital: Balance.new("IDR 300000"),
+        amount: parseMoney("IDR 500000"),
+        capital: parseMoney("IDR 300000"),
         createdAt: today,
       });
       t.id = ID.new(1);
@@ -180,8 +180,8 @@ describe("TransactionService", () => {
     it("returns transactions within date range", async () => {
       const t = Transaction.new({
         type: "income",
-        amount: Balance.new("IDR 500000"),
-        capital: Balance.new("IDR 300000"),
+        amount: parseMoney("IDR 500000"),
+        capital: parseMoney("IDR 300000"),
         createdAt: today,
       });
       t.id = ID.new(1);
@@ -202,8 +202,8 @@ describe("TransactionService", () => {
     it("updates transaction fields", async () => {
       const existing = new Transaction({
         type: "income",
-        amount: Balance.new("IDR 500000"),
-        capital: Balance.new("IDR 300000"),
+        amount: parseMoney("IDR 500000"),
+        capital: parseMoney("IDR 300000"),
         createdAt: today,
       });
       existing.id = ID.new(1);
@@ -263,8 +263,8 @@ describe("TransactionService", () => {
     it("deletes transaction by id", async () => {
       const existing = new Transaction({
         type: "expense",
-        amount: Balance.new("IDR 25000"),
-        capital: Balance.new("IDR 10000"),
+        amount: parseMoney("IDR 25000"),
+        capital: parseMoney("IDR 10000"),
         createdAt: today,
       });
       existing.id = ID.new(1);

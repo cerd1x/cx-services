@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "app.ts",
+  "workspaces": [
+    "lib/*"
+  ],
   "scripts": {
     "dev": "bun run build && wrangler dev",
     "build": "bun run scripts/build.ts",
@@ -38,11 +41,11 @@
     "@elysia/node": "2.0.0-beta.3",
     "@graphql-tools/schema": "^10.0.38",
     "@graphql-tools/utils": "^11.2.2",
+    "@lib/money": "workspace:*",
     "@noble/hashes": "^2.3.0",
     "@simplewebauthn/server": "^13.3.2",
     "@types/vcf": "^2.0.7",
     "cloudflare": "^7.3.0",
-    "dinero.js": "^2.0.2",
     "elysia": "rc",
     "elysia-rate-limit": "4.6.3",
     "graphql": "^17.0.2",
