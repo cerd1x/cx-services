@@ -23,6 +23,7 @@ bitcoin.toString(); // "₿1.00000000"
 
 - [Amounts](#amounts)
 - [Currencies](#currencies)
+- [Money literals](#money-literals)
 - [Formatting](#formatting)
 - [Arithmetic](#arithmetic)
 - [Rounding](#rounding)
@@ -111,6 +112,29 @@ const points = defineCryptoCurrency({
   symbolFirst: false,
 });
 ```
+
+## Money literals
+
+The library also ships a codec for the `"ISO_CODE VALUE"` literal that is used to
+carry money through GraphQL, the database and the domain boundaries.
+
+```ts
+import { parseMoney, formatMoney, isoCodeList, findSpendableCurrency } from "@lib/money";
+
+const balance = parseMoney("IDR 1,000,000");
+balance.currency.code; // "IDR"
+balance.toNumber(); // 1000000
+
+formatMoney(balance); // "IDR 1000000"
+```
+
+`parseMoney` rounds the amount to the smallest unit of the currency with
+`Round.HalfUp` and throws when the literal is malformed or when the code is not
+a spendable ISO-4217 code (`XXX`, `XDR`, the `XBA`..`XBD` unit codes, …).
+
+`isoCodeList` holds every ISO-4217 code that can be used as a balance, and
+`findSpendableCurrency(code)` looks up a single descriptor and throws
+`Currency must be a 3-letter code: <code>` for the codes that are excluded.
 
 ## Formatting
 

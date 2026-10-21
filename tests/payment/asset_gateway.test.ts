@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { AssetPaymentGateway } from "$services/domain/payment/adapters/driven/payment-gateway/asset-gateway.adapter";
-import { formatMoney, parseMoney } from "$services/shared/kernel/money";
+import { formatMoney, parseMoney } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 function createFakeAssets(initial: Record<number, { name: string; balance: string }>) {

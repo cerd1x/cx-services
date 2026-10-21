@@ -2,7 +2,7 @@ import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import type { Order as OrderType } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
-import { parseMoney } from "$services/shared/kernel/money";
+import { parseMoney } from "@lib/money";
 import { ProductService } from "$services/domain/products";
 import { TransactionService } from "$services/domain/transactions";
 import { PaymentService } from "$services/domain/payment";

@@ -1,8 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
-import { Money, iso } from "@lib/money";
-import { parseMoney } from "$services/shared/kernel/money";
+import { Money, iso, parseMoney } from "@lib/money";
 import {
   Asset,
   type AssetData,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Asset } from "$services/domain/assets/core/model/asset.model";
-import { parseMoney } from "$services/shared/kernel/money";
+import { parseMoney } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 describe("Asset", () => {

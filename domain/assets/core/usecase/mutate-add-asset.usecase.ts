@@ -1,6 +1,5 @@
 import { Asset } from "../model/asset.model";
-import type { Money } from "@lib/money";
-import { parseMoney } from "$services/shared/kernel/money";
+import { parseMoney, type Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { TransactionService } from "$services/domain/transactions";
 import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";

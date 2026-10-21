@@ -1,7 +1,7 @@
 import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
 import { Asset } from "../model/asset.model";
-import { formatMoney, parseMoney } from "$services/shared/kernel/money";
+import { formatMoney, parseMoney } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { UnitOfWork } from "$services/shared/kernel/uow.port";
 import { OutboxRepository } from "$services/shared/kernel/outbox/outbox-repository.port";

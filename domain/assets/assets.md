@@ -90,13 +90,14 @@ domain/assets/
   - **Validation methods:** `requiredId()`, `requiredDescription()`
   - **`static new(input)`** — Factory method, validasi Zod
 
-#### 3. Codec uang — `shared/kernel/money.ts`
+#### 3. Codec uang — `@lib/money`
 
 Saldo **tidak** memakai value object sendiri; tipe uang adalah `Money` dari package
-`@lib/money` (workspace `lib/money/`). Codec string `"ISO CODE VALUE"` tinggal di
-`shared/kernel/money.ts` supaya dipakai lintas domain (assets, transactions, order, payment).
+`@lib/money` (workspace `lib/money/`). Codec string `"ISO CODE VALUE"` juga ada di
+package yang sama (`lib/money/src/literal.ts`) supaya dipakai lintas domain
+(assets, transactions, order, payment).
 
-[`services/shared/kernel/money.ts`](../../shared/kernel/money.ts)
+[`services/lib/money/src/literal.ts`](../../lib/money/src/literal.ts)
 
 - **`isoCodeList`** — List kode ISO 4217 yang bisa dipakai sebagai saldo (kode non-spendable seperti `XXX`/`XDR` dikecualikan)
 - **`findSpendableCurrency(code)`** — Cari descriptor currency; throw `"Currency must be a 3-letter code: <code>"` kalau tidak valid
@@ -530,4 +531,4 @@ OrderService.createOrderExpense() / createOrderLoan()
 - **Mutation Tracking**: Setiap perubahan saldo dicatat di `assetMutationTable` dengan `balanceBefore` dan `balanceAfter`
 - **Cross-module integration**: Dipanggil oleh `OrderService` untuk mutasi saldo saat order penjualan/pengeluaran
 - **Unit of Work**: Mendukung D1 transaction via `D1TxCollector` untuk operasi atomik (mutation + update)
-- **Money**: Aritmetika uang memakai `Money` dari `@lib/money` (immutable, presisi). String `"ISO CODE VALUE"` di-parse/format via `parseMoney()`/`formatMoney()` di `shared/kernel/money.ts`
+- **Money**: Aritmetika uang memakai `Money` dari `@lib/money` (immutable, presisi). String `"ISO CODE VALUE"` di-parse/format via `parseMoney()`/`formatMoney()` di `@lib/money` (`lib/money/src/literal.ts`)

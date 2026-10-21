@@ -1,11 +1,14 @@
-import { Decimal, Money, Round, isoCurrencies, type Currency } from "@lib/money";
+import { Decimal } from "./decimal";
+import { isoCurrencies, type Currency } from "./currency";
+import { Money } from "./money";
+import { Round } from "./round";
 
 /**
- * Kode ISO 4217 yang tidak bisa dipakai sebagai saldo.
+ * ISO-4217 codes that must not be used to store a spendable balance.
  *
- * `XXX` berarti "tanpa mata uang", sedangkan kode `XBA`..`XBD`, `XDR`, `XSU`,
- * `XTS`, `XUA` dan `XAD` adalah unit akun / kode uji, bukan mata uang yang
- * bisa dibelanjakan.
+ * `XXX` means "no currency", while `XBA`..`XBD`, `XDR`, `XSU`, `XTS`, `XUA`
+ * and `XAD` are unit/account/test codes rather than currencies that can be
+ * spent.
  */
 const NON_SPENDABLE_ISO_CODES: ReadonlySet<string> = new Set([
   "XAD",
@@ -20,20 +23,20 @@ const NON_SPENDABLE_ISO_CODES: ReadonlySet<string> = new Set([
   "XXX",
 ]);
 
-/** Kode ISO 4217 yang bisa disimpan sebagai saldo. */
+/** ISO-4217 codes that can be stored as a spendable balance. */
 export const isoCodeList: string[] = Object.keys(isoCurrencies).filter(
   (code) => !NON_SPENDABLE_ISO_CODES.has(code),
 );
 
 const spendableIsoCodes: ReadonlySet<string> = new Set(isoCodeList);
 
-/** Format nominal uang: "KODE NOMINAL", mis. "USD 100" atau "IDR 1,000,000". */
+/** Format of a money literal: "ISO_CODE VALUE", e.g. "USD 100". */
 const MONEY_PATTERN = /^([A-Z]{3})\s+(-?[\d,]+(?:\.\d+)?)$/;
 
 /**
- * Mencari mata uang yang bisa dipakai sebagai saldo.
+ * Looks up a currency that can be stored as a spendable balance.
  *
- * @throws {Error} Kalau kodenya bukan ISO 4217 yang bisa dibelanjakan.
+ * @throws {Error} When the code is not a spendable ISO-4217 code.
  */
 export function findSpendableCurrency(code: string): Currency {
   const currency = isoCurrencies[code];
@@ -44,13 +47,13 @@ export function findSpendableCurrency(code: string): Currency {
 }
 
 /**
- * Parse nominal uang berformat "KODE NOMINAL" menjadi {@link Money}.
+ * Parses a money literal of the form "ISO_CODE VALUE" into a {@link Money}.
  *
- * Nominal dibulatkan ke satuan terkecil mata uang dengan pembulatan
- * {@link Round.HalfUp} (midpoint menjauhi nol).
+ * The amount is rounded to the smallest unit of the currency using
+ * {@link Round.HalfUp} (midpoints away from zero).
  *
- * @throws {Error} Kalau formatnya salah atau kodenya bukan mata uang yang
- * bisa dibelanjakan.
+ * @throws {Error} When the literal is malformed or the code is not a
+ * spendable ISO-4217 code.
  */
 export function parseMoney(value: string): Money {
   const match = value.trim().match(MONEY_PATTERN);
@@ -72,7 +75,9 @@ export function parseMoney(value: string): Money {
   return Money.fromMinor(rounded.toMinorUnits(), currency);
 }
 
-/** Format {@link Money} menjadi "KODE NOMINAL", mis. "USD 100". */
+/**
+ * Renders a {@link Money} as "ISO_CODE VALUE", e.g. "USD 100".
+ */
 export function formatMoney(money: Money): string {
   return `${money.currency.code} ${money.toNumber()}`;
 }

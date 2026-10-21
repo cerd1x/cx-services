@@ -1,11 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { Money } from "@lib/money";
-import {
-  findSpendableCurrency,
-  formatMoney,
-  isoCodeList,
-  parseMoney,
-} from "$services/shared/kernel/money";
+import { Money, findSpendableCurrency, formatMoney, isoCodeList, parseMoney } from "@lib/money";
 
 describe("money codec", () => {
   describe("parseMoney", () => {

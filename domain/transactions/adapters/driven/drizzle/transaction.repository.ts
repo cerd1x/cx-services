@@ -6,7 +6,7 @@ import { paymentMethodSchema } from "../../../core/model/transaction.model";
 import type { PaymentMethod } from "../../../core/model/transaction.model";
 import { TransactionRepository } from "../../../core/ports/out/transaction-repository.port";
 import type { PageQuery, PageWindow } from "../../../core/model/transaction-page.model";
-import { formatMoney, parseMoney } from "$services/shared/kernel/money";
+import { formatMoney, parseMoney } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { logger } from "../../../core/value-objects/logger";
 

@@ -13,7 +13,7 @@ import { AdminRepository } from "../../../core/ports/out/admin-repository.port";
 
 /**
  * `amount`/`capital` disimpan sebagai teks `"<ISO> <angka>"` (lihat
- * `formatMoney()` di `shared/kernel/money.ts`). Kode mata uang selalu 3 huruf
+ * `formatMoney()` di `@lib/money`). Kode mata uang selalu 3 huruf
  * diikuti satu spasi, jadi angka mulai pada offset ke-5. Konversi dilakukan di
  * SQL supaya agregat atas seluruh tabel tidak perlu menarik semua baris ke
  * memory worker.

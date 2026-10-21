@@ -11,7 +11,7 @@ import type {
   TransactionType as EntityTransactionType,
   PaymentMethod as EntityPaymentMethod,
 } from "../../../core/model/transaction.model";
-import { formatMoney, parseMoney } from "$services/shared/kernel/money";
+import { formatMoney, parseMoney } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 const mapTx = (txinp: Transaction): TxType => {

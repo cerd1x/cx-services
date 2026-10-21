@@ -5,8 +5,7 @@ import { setDB, setD1 } from "$services/shared/infra/db";
 import { userTable } from "$services/shared/infra/db/drizzle-schema/user.schema";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
 import { TransactionRepositoryImpl } from "$services/domain/transactions/adapters/driven/drizzle/transaction.repository";
-import type { Money } from "@lib/money";
-import { parseMoney } from "$services/shared/kernel/money";
+import { parseMoney, type Money } from "@lib/money";
 import { mockAssetSwapGateway } from "../utils/outbox.mock";
 import { ID } from "$services/shared/kernel";
 

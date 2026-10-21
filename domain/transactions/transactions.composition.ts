@@ -5,8 +5,7 @@ import {
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ID } from "$services/shared/kernel";
-import { Money, iso } from "@lib/money";
-import { parseMoney } from "$services/shared/kernel/money";
+import { Money, iso, parseMoney } from "@lib/money";
 import {
   CreateTransactionUseCase,
   type TransactionInput,

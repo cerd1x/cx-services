@@ -328,7 +328,7 @@ Nilai uang TIDAK perlu value object sendiri — pakai `Money` dari package
 mengembalikan instance baru, bukan mengubah instance lama.
 
 ```ts
-// shared/kernel/money.ts
+// lib/money/src/literal.ts
 import { Decimal, Money, Round, isoCurrencies, type Currency } from "@lib/money";
 
 /** Format nominal uang: "KODE NOMINAL", mis. "USD 100". */
@@ -607,7 +607,7 @@ Gunakan `Resolvers<YogaContext>` dari generated types. Akses use-case/service vi
 // domain/assets/adapters/driving/graphql/asset.resolver.ts
 import type { Resolvers, AssetType } from "$gql/types.generated";
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
-import { parseMoney } from "$services/shared/kernel/money";
+import { parseMoney } from "@lib/money";
 import typeDefs from "./asset.gql?raw";
 
 const resolvers: Resolvers<YogaContext> = {
@@ -760,16 +760,15 @@ Barrel selalu export dari `<module>.composition.ts` (class + factory + singleton
 
 ## Shared Kernel (`shared/kernel/`)
 
-| File                      | Purpose                                                     |
-| ------------------------- | ----------------------------------------------------------- |
-| `id.ts`                   | `ID` class — Sqids obfuscation (`.toHash()` / `.toNumb()`)  |
-| `password-utils.ts`       | Argon2id hash + verify (legacy PBKDF2 fallback)             |
-| `csrf.ts`                 | HMAC-SHA256 CSRF token                                      |
-| `cookies.ts`              | parse/serialize/delete cookie helpers                       |
-| `uow.port.ts`             | Abstract `UnitOfWork.run(fn)`                               |
-| `is-mybe.ts`              | Null/undefined check                                        |
-| `money.ts`                | Codec uang: `parseMoney()` / `formatMoney()` (`@lib/money`) |
-| `errors/service-error.ts` | Error hierarchy — lihat di bawah                            |
+| File                      | Purpose                                                    |
+| ------------------------- | ---------------------------------------------------------- |
+| `id.ts`                   | `ID` class — Sqids obfuscation (`.toHash()` / `.toNumb()`) |
+| `password-utils.ts`       | Argon2id hash + verify (legacy PBKDF2 fallback)            |
+| `csrf.ts`                 | HMAC-SHA256 CSRF token                                     |
+| `cookies.ts`              | parse/serialize/delete cookie helpers                      |
+| `uow.port.ts`             | Abstract `UnitOfWork.run(fn)`                              |
+| `is-mybe.ts`              | Null/undefined check                                       |
+| `errors/service-error.ts` | Error hierarchy — lihat di bawah                           |
 
 ### Errors (`shared/kernel/errors/`)
 
@@ -858,7 +857,7 @@ Jalankan: `bun run gql:gen` — **WAJIB** dijalankan setiap ada perubahan SDL (`
 10. GraphQL resolver **WAJIB** pakai `Resolvers<YogaContext>` type
 11. SDL **WAJIB** di-import via `import typeDefs from "./module.gql?raw"`
 12. ID ke external **WAJIB** pake `ID.toHash()` (Sqids), internal pake `ID.toNumb()`
-13. Money **WAJIB** pake `Money` dari `@lib/money` (`lib/money/`) — string "KODE NOMINAL" di-parse via `parseMoney()` dari `$services/shared/kernel/money`
+13. Money **WAJIB** pake `Money` dari `@lib/money` (`lib/money/`) — string "KODE NOMINAL" di-parse via `parseMoney()` dari `@lib/money`
 14. Jangan import `$services/` dari client code (`src/routes/`, `src/lib/`) — lihat `client-server-boundary` skill
 15. Cross-module dependency hanya via services: `auth→user`, `order→product|transaction|asset`, `assets→transaction`
 16. Komposisi module hanya di `<module>.composition.ts` — jangan impor repo/entity module lain secara langsung. Referensi service antar module yang membentuk siklus **WAJIB** resolve saat runtime (`Service.getInstance()` / lazy gateway), jangan tangkap `export const service` di top-level

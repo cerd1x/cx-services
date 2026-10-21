@@ -2,8 +2,7 @@ import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createUserService, UserService } from "$services/domain/user";
 import { createTransactionService } from "$services/domain/transactions";
-import { Money } from "@lib/money";
-import { parseMoney } from "$services/shared/kernel/money";
+import { Money, parseMoney } from "@lib/money";
 
 // `Money` punya constructor privat, jadi tipe `expect.any` tidak bisa menerima
 // class-nya secara langsung.

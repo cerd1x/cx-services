@@ -7,7 +7,7 @@ import type {
   GatewayStatusResponse,
 } from "../../../core/ports/out/payment-gateway.port";
 import type { AssetService } from "$services/domain/assets";
-import { parseMoney } from "$services/shared/kernel/money";
+import { parseMoney } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 export interface AssetGatewayAsset {

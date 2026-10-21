@@ -1,7 +1,6 @@
 import type { Resolvers, Asset, AssetType } from "$gql/types.generated";
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
-import type { Money } from "@lib/money";
-import { parseMoney } from "$services/shared/kernel/money";
+import { parseMoney, type Money } from "@lib/money";
 import type { AssetInput } from "../../../core/model/asset.model";
 import { ID } from "$services/shared/kernel";
 import typeDefs from "./asset.gql?raw";

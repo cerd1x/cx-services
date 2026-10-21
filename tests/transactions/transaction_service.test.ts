@@ -3,7 +3,7 @@ import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
 import { Transaction } from "$services/domain/transactions/core/model/transaction.model";
 import { ID } from "$services/shared/kernel/id";
-import { parseMoney } from "$services/shared/kernel/money";
+import { parseMoney } from "@lib/money";
 import { mockAssetSwapGateway } from "../utils/outbox.mock";
 
 describe("TransactionService", () => {

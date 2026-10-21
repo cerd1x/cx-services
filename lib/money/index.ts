@@ -61,6 +61,8 @@ export {
 
 export { Money } from "./src/money";
 
+export { findSpendableCurrency, formatMoney, isoCodeList, parseMoney } from "./src/literal";
+
 export { Exchange, ExchangeRate } from "./src/exchange";
 
 export { CRYPTO_CURRENCIES } from "./data/crypto";

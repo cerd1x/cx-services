@@ -8,8 +8,7 @@ import {
   type AssetType,
   type AssetUpdate,
 } from "../../../core/model/asset.model";
-import { parseMoney } from "$services/shared/kernel/money";
-import type { Money } from "@lib/money";
+import { parseMoney, type Money } from "@lib/money";
 import { AssetRepository } from "../../../core/ports/out/asset-repository.port";
 import { ID } from "$services/shared/kernel";
 import type {
