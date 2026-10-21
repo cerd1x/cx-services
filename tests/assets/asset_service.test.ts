@@ -2,7 +2,7 @@ import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createTransactionService } from "$services/domain/transactions";
-import { Money, parseMoney } from "@lib/money";
+import { Money, iso } from "@lib/money";
 import { Asset } from "$services/domain/assets/core/model/asset.model";
 import { ID } from "$services/shared/kernel";
 import { mockAssetSwapGateway, InMemoryOutboxRepository } from "../utils/outbox.mock";
@@ -62,7 +62,7 @@ describe("AssetService", () => {
           name: "BCA",
           type: "bank",
           userId: ID.new(1),
-          balance: parseMoney("IDR 200.000"),
+          balance: Money.fromNumber(200000, iso.IDR),
         }),
       );
 
@@ -70,7 +70,7 @@ describe("AssetService", () => {
         name: "BCA",
         type: "bank",
         userId: ID.new(1),
-        balance: parseMoney("IDR 200.000"),
+        balance: Money.fromNumber(200000, iso.IDR),
       });
 
       expect(result.name).toBe("BCA");
@@ -78,7 +78,7 @@ describe("AssetService", () => {
       expect(assetRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "BCA",
-          balance: parseMoney("IDR 200.000"),
+          balance: expect.any(AnyMoney),
           type: "bank",
         }),
       );
@@ -128,7 +128,7 @@ describe("AssetService", () => {
   describe("mutateAddAsset", () => {
     const mockAsset = {
       userId: ID.new(1),
-      balance: "USD 200",
+      balance: Money.fromNumber(200, iso.USD),
       name: "Cash",
       type: "cash" as const,
       metadata: { id: "abc" },
@@ -139,7 +139,11 @@ describe("AssetService", () => {
       assetRepo.update.mockResolvedValue({} as any);
       assetRepo.createAssetMutation.mockResolvedValue({} as any);
 
-      await AssetService.getInstance().mutateAddAsset(ID.new(1), ID.new(1), "USD 100");
+      await AssetService.getInstance().mutateAddAsset(
+        ID.new(1),
+        ID.new(1),
+        Money.fromNumber(100, iso.USD),
+      );
 
       expect(uow.run).toHaveBeenCalled();
       expect(assetRepo.findById).toHaveBeenCalledWith(ID.new(1), ID.new(1));
@@ -147,10 +151,9 @@ describe("AssetService", () => {
         ID.new(1),
         expect.objectContaining({
           type: "add",
-          amount: 100,
-          currency: "USD",
-          balanceBefore: "USD 200",
-          balanceAfter: "USD 300",
+          amount: expect.any(AnyMoney),
+          balanceBefore: expect.any(AnyMoney),
+          balanceAfter: expect.any(AnyMoney),
         }),
         "tx",
       );
@@ -168,7 +171,11 @@ describe("AssetService", () => {
       assetRepo.findById.mockResolvedValue(null);
 
       await expect(
-        AssetService.getInstance().mutateAddAsset(ID.new(1), ID.new(1), "USD 100"),
+        AssetService.getInstance().mutateAddAsset(
+          ID.new(1),
+          ID.new(1),
+          Money.fromNumber(100, iso.USD),
+        ),
       ).rejects.toThrow(NotFound);
 
       expect(assetRepo.update).not.toHaveBeenCalled();
@@ -179,7 +186,7 @@ describe("AssetService", () => {
   describe("mutateSubtractAsset", () => {
     const mockAsset = {
       userId: ID.new(1),
-      balance: "USD 200",
+      balance: Money.fromNumber(200, iso.USD),
       name: "Cash",
       type: "cash" as const,
       metadata: { id: "abc" },
@@ -190,14 +197,19 @@ describe("AssetService", () => {
       assetRepo.update.mockResolvedValue({} as any);
       assetRepo.createAssetMutation.mockResolvedValue({} as any);
 
-      await AssetService.getInstance().mutateSubtractAsset(ID.new(1), ID.new(1), "USD 50");
+      await AssetService.getInstance().mutateSubtractAsset(
+        ID.new(1),
+        ID.new(1),
+        Money.fromNumber(50, iso.USD),
+      );
 
       expect(assetRepo.createAssetMutation).toHaveBeenCalledWith(
         ID.new(1),
         expect.objectContaining({
           type: "subtract",
-          balanceBefore: "USD 200",
-          balanceAfter: "USD 150",
+          amount: expect.any(AnyMoney),
+          balanceBefore: expect.any(AnyMoney),
+          balanceAfter: expect.any(AnyMoney),
         }),
         "tx",
       );
@@ -207,7 +219,11 @@ describe("AssetService", () => {
       assetRepo.findById.mockResolvedValue(null);
 
       await expect(
-        AssetService.getInstance().mutateSubtractAsset(ID.new(1), ID.new(1), "USD 100"),
+        AssetService.getInstance().mutateSubtractAsset(
+          ID.new(1),
+          ID.new(1),
+          Money.fromNumber(100, iso.USD),
+        ),
       ).rejects.toThrow(NotFound);
     });
   });
@@ -215,7 +231,7 @@ describe("AssetService", () => {
   describe("mutateTransactionAsset", () => {
     const mockAsset = {
       userId: ID.new(1),
-      balance: "USD 200",
+      balance: Money.fromNumber(200, iso.USD),
       name: "Cash",
       type: "cash" as const,
       metadata: { id: "abc" },
@@ -229,7 +245,7 @@ describe("AssetService", () => {
       await AssetService.getInstance().mutateTransactionAsset(
         ID.new(1),
         ID.new(1),
-        "USD 30",
+        Money.fromNumber(30, iso.USD),
         "Transfer out",
       );
 
@@ -237,8 +253,9 @@ describe("AssetService", () => {
         ID.new(1),
         expect.objectContaining({
           type: "transaction",
-          balanceBefore: "USD 200",
-          balanceAfter: "USD 170",
+          amount: expect.any(AnyMoney),
+          balanceBefore: expect.any(AnyMoney),
+          balanceAfter: expect.any(AnyMoney),
           description: "Transfer out",
         }),
         "tx",

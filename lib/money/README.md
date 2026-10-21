@@ -23,7 +23,7 @@ bitcoin.toString(); // "₿1.00000000"
 
 - [Amounts](#amounts)
 - [Currencies](#currencies)
-- [Money literals](#money-literals)
+- [Money in services](#money-in-services)
 - [Formatting](#formatting)
 - [Arithmetic](#arithmetic)
 - [Rounding](#rounding)
@@ -113,28 +113,32 @@ const points = defineCryptoCurrency({
 });
 ```
 
-## Money literals
+## Money in services
 
-The library also ships a codec for the `"ISO_CODE VALUE"` literal that is used to
-carry money through GraphQL, the database and the domain boundaries.
+The library does **not** ship a string codec. Inside the domain, money is always
+a `Money` instance; string / database conversions live at the boundaries of the
+consuming service:
+
+- **GraphQL** — the custom scalar `Money` in
+  `shared/infra/graphql/scalars/money.ts` parses and serializes the wire format
+  `"KODE NOMINAL"` (e.g. `"IDR 1500000"`, `"USD 100.5"`). It accepts only
+  spendable ISO-4217 codes (`XXX`, `XDR`, `XBA`..`XBD`, `XSU`, `XTS`, `XUA`, `XAD`
+  are rejected) and rounds the amount to the currency exponent with `Round.HalfUp`.
+- **Database** — `shared/infra/db/money.ts`:
+  - `toMinorUnits(money)` / `fromMinorUnits(value, code)` for tables that have a
+    `currency` column; values are stored as integer **minor units** (satuan
+    terkecil), so `IDR 1500000` is stored as `150000000` (IDR exponent is 2).
+  - `serializeMoney(money)` / `deserializeMoney(text)` for tables without a
+    `currency` column; values are stored as JSON:
+    `{"amount":"1500000.00","currency":"IDR"}`.
 
 ```ts
-import { parseMoney, formatMoney, isoCodeList, findSpendableCurrency } from "@lib/money";
+import { Money, iso } from "@lib/money";
+import { toMinorUnits, fromMinorUnits } from "$services/shared/infra/db/money";
 
-const balance = parseMoney("IDR 1,000,000");
-balance.currency.code; // "IDR"
-balance.toNumber(); // 1000000
-
-formatMoney(balance); // "IDR 1000000"
+toMinorUnits(Money.fromNumber(1500000, iso.IDR)); // 150000000n
+fromMinorUnits(150000000, "IDR").toNumber(); // 1500000
 ```
-
-`parseMoney` rounds the amount to the smallest unit of the currency with
-`Round.HalfUp` and throws when the literal is malformed or when the code is not
-a spendable ISO-4217 code (`XXX`, `XDR`, the `XBA`..`XBD` unit codes, …).
-
-`isoCodeList` holds every ISO-4217 code that can be used as a balance, and
-`findSpendableCurrency(code)` looks up a single descriptor and throws
-`Currency must be a 3-letter code: <code>` for the codes that are excluded.
 
 ## Formatting
 

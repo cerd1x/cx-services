@@ -3,7 +3,7 @@ export {
   AssetType,
   assetSchema,
   currencySchema,
-  zBalanceSchema,
+  moneySchema,
   type AssetInput,
   type AssetData,
   type AssetUpdate,

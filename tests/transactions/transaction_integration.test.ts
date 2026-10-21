@@ -5,7 +5,7 @@ import { setDB, setD1 } from "$services/shared/infra/db";
 import { userTable } from "$services/shared/infra/db/drizzle-schema/user.schema";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
 import { TransactionRepositoryImpl } from "$services/domain/transactions/adapters/driven/drizzle/transaction.repository";
-import { parseMoney, type Money } from "@lib/money";
+import { Money, iso } from "@lib/money";
 import { mockAssetSwapGateway } from "../utils/outbox.mock";
 import { ID } from "$services/shared/kernel";
 
@@ -41,8 +41,8 @@ describe("Transaction integration", () => {
     const tx = await TransactionService.getInstance().createTransaction({
       userId,
       type: (overrides?.type ?? "income") as "income" | "expense" | "transfer" | "outcome",
-      amount: overrides?.amount ?? parseMoney("IDR 50000"),
-      capital: overrides?.capital ?? parseMoney("IDR 30000"),
+      amount: overrides?.amount ?? Money.fromNumber(50000, iso.IDR),
+      capital: overrides?.capital ?? Money.fromNumber(30000, iso.IDR),
       createdAt: overrides?.createdAt,
       customerId: 1,
     });
@@ -73,8 +73,8 @@ describe("Transaction integration", () => {
     const tx = await TransactionService.getInstance().createTransaction({
       userId,
       type: "income",
-      amount: parseMoney("IDR 50000"),
-      capital: parseMoney("IDR 30000"),
+      amount: Money.fromNumber(50000, iso.IDR),
+      capital: Money.fromNumber(30000, iso.IDR),
       createdAt: createdAtDate,
       customerId: 1,
     });
@@ -92,8 +92,8 @@ describe("Transaction integration", () => {
     const tx = await TransactionService.getInstance().createTransaction({
       userId,
       type: "expense",
-      amount: parseMoney("USD 25000"),
-      capital: parseMoney("USD 10000"),
+      amount: Money.fromNumber(25000, iso.USD),
+      capital: Money.fromNumber(10000, iso.USD),
       createdAt: createdAtDate,
       customerId: 1,
     });
@@ -109,8 +109,8 @@ describe("Transaction integration", () => {
     const tx = await TransactionService.getInstance().createTransaction({
       userId,
       type: "income",
-      amount: parseMoney("IDR 100000"),
-      capital: parseMoney("IDR 50000"),
+      amount: Money.fromNumber(100000, iso.IDR),
+      capital: Money.fromNumber(50000, iso.IDR),
       customerId: 1,
     });
 
@@ -132,8 +132,8 @@ describe("Transaction integration", () => {
     userId = await freshUser();
     await seedTransaction({
       type: "income",
-      amount: parseMoney("EUR 75000"),
-      capital: parseMoney("EUR 30000"),
+      amount: Money.fromNumber(75000, iso.EUR),
+      capital: Money.fromNumber(30000, iso.EUR),
     });
 
     const filtered = await TransactionService.getInstance().transactionsByType(

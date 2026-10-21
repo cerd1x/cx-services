@@ -11,14 +11,13 @@ import type {
   TransactionType as EntityTransactionType,
   PaymentMethod as EntityPaymentMethod,
 } from "../../../core/model/transaction.model";
-import { formatMoney, parseMoney } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 const mapTx = (txinp: Transaction): TxType => {
   return {
     id: txinp.id?.toHash ?? "",
-    amount: formatMoney(txinp.amount),
-    capital: formatMoney(txinp.capital),
+    amount: txinp.amount,
+    capital: txinp.capital,
     type: txinp.type as TransactionType,
     status: txinp.status as TransactionStatus,
     paymentStatus: txinp.paymentStatus as TxType["paymentStatus"],
@@ -96,8 +95,8 @@ const resolvers: Resolvers<YogaContext> = {
     ) => {
       const tx = await transaction.createTransaction({
         type: type as EntityTransactionType,
-        amount: parseMoney(amount),
-        capital: parseMoney(capital),
+        amount,
+        capital,
         createdAt,
         description: description ?? undefined,
         category: category ?? undefined,

@@ -7,24 +7,24 @@ import type {
   GatewayStatusResponse,
 } from "../../../core/ports/out/payment-gateway.port";
 import type { AssetService } from "$services/domain/assets";
-import { parseMoney } from "@lib/money";
+import { Money, findCurrency } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 export interface AssetGatewayAsset {
   IdStr: string;
   name: string;
-  balance: string;
+  balance: Money;
 }
 
 export type AssetMutator = {
   assets(userId: ID): Promise<AssetGatewayAsset[]>;
   assetById(userId: ID, assetId: ID): Promise<AssetGatewayAsset | null>;
-  mutateAddAsset(userId: ID, assetId: ID, amount: string): Promise<AssetGatewayAsset>;
-  mutateSubtractAsset(userId: ID, assetId: ID, amount: string): Promise<AssetGatewayAsset>;
+  mutateAddAsset(userId: ID, assetId: ID, amount: Money): Promise<AssetGatewayAsset>;
+  mutateSubtractAsset(userId: ID, assetId: ID, amount: Money): Promise<AssetGatewayAsset>;
 };
 
 // Structural compatile: AssetService (domain `Asset`) memenuhi AssetMutator.
-// `Asset` punya getter `IdStr`, `name`, dan `balance` (string).
+// `Asset` punya getter `IdStr`, `name`, dan `balance` (instance `Money`).
 type AssetServiceIsMutator = AssetService extends AssetMutator ? true : never;
 const _assetServiceIsMutator: AssetServiceIsMutator = true;
 
@@ -86,8 +86,12 @@ export class AssetPaymentGateway implements PaymentGateway {
         return this.#failed("Wallet asset not found");
       }
 
-      const balance = parseMoney(asset.balance);
-      const amount = parseMoney(`${currency} ${request.amount}`);
+      const balance = asset.balance;
+      const currencyDescriptor = findCurrency(currency);
+      if (!currencyDescriptor) {
+        return this.#failed(`Unknown currency: ${currency}`);
+      }
+      const amount = Money.fromNumber(request.amount, currencyDescriptor);
 
       if (balance.currency.code.toUpperCase() !== currency) {
         return this.#failed(
@@ -103,11 +107,7 @@ export class AssetPaymentGateway implements PaymentGateway {
 
       const gatewayRef = this.#makeRef(request.userId, assetId, currency, request.amount);
 
-      await this.#assets.mutateSubtractAsset(
-        ID.new(request.userId),
-        ID.new(assetId),
-        `${currency} ${request.amount}`,
-      );
+      await this.#assets.mutateSubtractAsset(ID.new(request.userId), ID.new(assetId), amount);
 
       const refreshed = await this.#assets.assetById(ID.new(request.userId), ID.new(assetId));
 
@@ -122,7 +122,7 @@ export class AssetPaymentGateway implements PaymentGateway {
           amount: request.amount,
           currency,
           balanceBefore: balance.toNumber(),
-          balanceAfter: refreshed ? parseMoney(refreshed.balance).toNumber() : undefined,
+          balanceAfter: refreshed ? refreshed.balance.toNumber() : undefined,
           description: request.description,
         },
       };
@@ -153,11 +153,20 @@ export class AssetPaymentGateway implements PaymentGateway {
       }
 
       const amount = request.amount ?? ref.amount;
+      const currency = findCurrency(ref.currency.toUpperCase());
+      if (!currency) {
+        return {
+          success: false,
+          refundId: "",
+          status: "failed",
+          error: `Unknown currency: ${ref.currency}`,
+        };
+      }
 
       await this.#assets.mutateAddAsset(
         ID.new(ref.userId),
         ID.new(ref.assetId),
-        `${ref.currency} ${amount}`,
+        Money.fromNumber(amount, currency),
       );
 
       return {
@@ -206,7 +215,7 @@ export class AssetPaymentGateway implements PaymentGateway {
     const list = await this.#assets.assets(ID.new(userId));
 
     const byCurrency = list.find(
-      (asset) => parseMoney(asset.balance).currency.code.toUpperCase() === normalized,
+      (asset) => asset.balance.currency.code.toUpperCase() === normalized,
     );
     if (byCurrency) return ID.new(byCurrency.IdStr).toNumb;
 

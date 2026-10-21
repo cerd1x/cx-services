@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LOCALES, Money, formatMoney, isoCodeList, type Currency } from "@lib/money";
+import { LOCALES, Money, cryptoCurrencies, isoCurrencies, type Currency } from "@lib/money";
 import { ID, isMybe } from "$services/shared/kernel";
 import { myUserID } from "../../../user/core/model/user.model";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
@@ -13,9 +13,16 @@ export const AssetType = {
 } as const;
 
 export type AssetType = (typeof AssetType)[keyof typeof AssetType];
+
+/** Kode mata uang yang dikenal library: fiat ISO 4217 + ticker kripto. */
+const CURRENCY_CODES = [...Object.keys(isoCurrencies), ...Object.keys(cryptoCurrencies)] as [
+  string,
+  ...string[],
+];
+
 /** Metadata mata uang, mengikuti descriptor dari `@lib/money`. */
 export const currencySchema = z.object({
-  code: z.enum(isoCodeList),
+  code: z.enum(CURRENCY_CODES),
   exponent: z.number(),
   locale: z.enum(LOCALES),
   minorUnits: z.number(),
@@ -25,11 +32,12 @@ export const currencySchema = z.object({
   kind: z.enum(["fiat", "crypto"]),
   isCrypto: z.boolean(),
 });
+
 /**
- * Skema saldo. `Money` punya constructor privat, jadi `z.instanceof` tidak
+ * Skema nilai uang. `Money` punya constructor privat, jadi `z.instanceof` tidak
  * bisa dipakai — dicek manual lewat `instanceof`.
  */
-export const zBalanceSchema = z.custom<Money>((value) => value instanceof Money, {
+export const moneySchema = z.custom<Money>((value) => value instanceof Money, {
   error: "nilai ini bukan dari instanceOf Money",
 });
 
@@ -38,7 +46,7 @@ export type CurrencyType = z.infer<typeof currencySchema>;
 export const assetSchema = z.object({
   id: z.number().optional(),
   userId: myUserID,
-  balance: zBalanceSchema,
+  balance: moneySchema,
   name: z.string().min(1, "Name is required").max(100, "Name must be at most 100 characters"),
   type: z.enum(AssetType),
 });
@@ -89,16 +97,8 @@ export class Asset {
   }
 
   /** Saldo asset sebagai objek uang (`@lib/money`). */
-  get money(): Money {
+  get balance(): Money {
     return this.#balance;
-  }
-
-  /**
-   * Returns ISO CODE + VALUE as string
-   * Example: "USD 100"
-   */
-  get balance(): string {
-    return formatMoney(this.#balance);
   }
 
   get metadata() {
@@ -106,7 +106,7 @@ export class Asset {
       id: this.#id?.toHash,
       name: this.#name,
       type: this.#type as AssetType,
-      balance: this.#balance.toNumber().toString(),
+      balance: this.#balance,
     };
   }
 
@@ -132,7 +132,7 @@ export class Asset {
   }
 
   requiredBalance(): Asset {
-    const result = zBalanceSchema.safeParse(this.#balance);
+    const result = moneySchema.safeParse(this.#balance);
     if (!result.success) {
       throw new RequiredErr("balance", { class: this });
     }
@@ -157,7 +157,7 @@ export class Asset {
   static canMutateAsset(asset: Asset, type: "add" | "subtract", amount: Money): void {
     this.validateMutationAmount(amount);
     if (type === "subtract") {
-      Asset.canSubtract(asset.money, amount);
+      Asset.canSubtract(asset.balance, amount);
     }
   }
 
@@ -166,7 +166,7 @@ export class Asset {
       throw new RequiredErr("swap", { class: Asset });
     }
     this.validateMutationAmount(amount);
-    Asset.canSubtract(fromAsset.money, amount);
+    Asset.canSubtract(fromAsset.balance, amount);
   }
 
   /** Saldo harus cukup untuk dikurangi. */

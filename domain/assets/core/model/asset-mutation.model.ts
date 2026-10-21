@@ -1,6 +1,8 @@
 import { z } from "zod";
+import type { Money } from "@lib/money";
 import { ID, isMybe } from "$services/shared/kernel";
 import { RequiredErr } from "$services/shared/kernel/errors/service-error";
+import { moneySchema } from "./asset.model";
 
 export const MutationType = {
   add: "add",
@@ -16,10 +18,9 @@ export const assetMutationSchema = z.object({
   assetId: z.number(),
   userId: z.instanceof(ID),
   type: z.enum(["add", "subtract", "transaction", "swap"]),
-  amount: z.number(),
-  currency: z.string().length(3),
-  balanceBefore: z.string(),
-  balanceAfter: z.string(),
+  amount: moneySchema,
+  balanceBefore: moneySchema,
+  balanceAfter: moneySchema,
   description: z.string().nullable().optional(),
   createdAt: z.string().optional(),
 });
@@ -32,10 +33,9 @@ export class AssetMutation {
   #assetId: ID;
   #userId: ID;
   #type: MutationType;
-  #amount: number;
-  #currency: string;
-  #balanceBefore: string;
-  #balanceAfter: string;
+  #amount: Money;
+  #balanceBefore: Money;
+  #balanceAfter: Money;
   #description: string | null;
   #createdAt?: string;
 
@@ -45,7 +45,6 @@ export class AssetMutation {
     this.#userId = data.userId;
     this.#type = data.type;
     this.#amount = data.amount;
-    this.#currency = data.currency;
     this.#balanceBefore = data.balanceBefore;
     this.#balanceAfter = data.balanceAfter;
     this.#description = data.description ?? null;
@@ -64,19 +63,21 @@ export class AssetMutation {
     return this.#type;
   }
 
-  get amount(): number {
+  /** Nominal mutasi sebagai objek uang (`@lib/money`). */
+  get amount(): Money {
     return this.#amount;
   }
 
+  /** Kode mata uang, diturunkan dari nominal mutasi. */
   get currency(): string {
-    return this.#currency;
+    return this.#amount.currency.code;
   }
 
-  get balanceBefore(): string {
+  get balanceBefore(): Money {
     return this.#balanceBefore;
   }
 
-  get balanceAfter(): string {
+  get balanceAfter(): Money {
     return this.#balanceAfter;
   }
 
@@ -91,7 +92,7 @@ export class AssetMutation {
       userId: this.#userId.toHash,
       type: this.#type,
       amount: this.#amount,
-      currency: this.#currency,
+      currency: this.currency,
       balanceBefore: this.#balanceBefore,
       balanceAfter: this.#balanceAfter,
       description: this.#description,

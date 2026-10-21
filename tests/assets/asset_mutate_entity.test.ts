@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { AssetMutation } from "$services/domain/assets/core/model/asset-mutation.model";
+import { Money, iso } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 describe("AssetMutation", () => {
@@ -8,17 +9,17 @@ describe("AssetMutation", () => {
       userId: ID.new(1),
       assetId: 1,
       type: "add",
-      amount: 100,
-      currency: "USD",
-      balanceBefore: "USD 200",
-      balanceAfter: "USD 300",
+      amount: Money.fromNumber(100, iso.USD),
+      balanceBefore: Money.fromNumber(200, iso.USD),
+      balanceAfter: Money.fromNumber(300, iso.USD),
     });
 
     expect(m.type).toBe("add");
-    expect(m.amount).toBe(100);
+    expect(m.amount).toBeInstanceOf(Money);
+    expect(m.amount.toNumber()).toBe(100);
     expect(m.currency).toBe("USD");
-    expect(m.balanceBefore).toBe("USD 200");
-    expect(m.balanceAfter).toBe("USD 300");
+    expect(m.balanceBefore.toNumber()).toBe(200);
+    expect(m.balanceAfter.toNumber()).toBe(300);
     expect(m.description).toBeNull();
   });
 
@@ -27,10 +28,9 @@ describe("AssetMutation", () => {
       userId: ID.new(1),
       assetId: 1,
       type: "subtract",
-      amount: 50,
-      currency: "IDR",
-      balanceBefore: "IDR 500",
-      balanceAfter: "IDR 450",
+      amount: Money.fromNumber(50, iso.IDR),
+      balanceBefore: Money.fromNumber(500, iso.IDR),
+      balanceAfter: Money.fromNumber(450, iso.IDR),
       description: "purchase",
     });
 
@@ -42,10 +42,9 @@ describe("AssetMutation", () => {
       userId: ID.new(1),
       assetId: 1,
       type: "transaction",
-      amount: 30,
-      currency: "USD",
-      balanceBefore: "USD 100",
-      balanceAfter: "USD 70",
+      amount: Money.fromNumber(30, iso.USD),
+      balanceBefore: Money.fromNumber(100, iso.USD),
+      balanceAfter: Money.fromNumber(70, iso.USD),
     });
 
     expect(m.type).toBe("transaction");
@@ -56,10 +55,9 @@ describe("AssetMutation", () => {
       userId: ID.new(1),
       assetId: 1,
       type: "add",
-      amount: 100,
-      currency: "USD",
-      balanceBefore: "USD 200",
-      balanceAfter: "USD 300",
+      amount: Money.fromNumber(100, iso.USD),
+      balanceBefore: Money.fromNumber(200, iso.USD),
+      balanceAfter: Money.fromNumber(300, iso.USD),
     });
 
     expect(() => m.requiredId()).toThrow("id is required");
@@ -70,10 +68,9 @@ describe("AssetMutation", () => {
       userId: ID.new(1),
       assetId: 1,
       type: "add",
-      amount: 100,
-      currency: "USD",
-      balanceBefore: "USD 200",
-      balanceAfter: "USD 300",
+      amount: Money.fromNumber(100, iso.USD),
+      balanceBefore: Money.fromNumber(200, iso.USD),
+      balanceAfter: Money.fromNumber(300, iso.USD),
     });
 
     expect(() => m.requiredDescription()).toThrow("description is required");
@@ -84,18 +81,17 @@ describe("AssetMutation", () => {
       userId: ID.new(1),
       assetId: 1,
       type: "subtract",
-      amount: 50,
-      currency: "IDR",
-      balanceBefore: "IDR 500",
-      balanceAfter: "IDR 450",
+      amount: Money.fromNumber(50, iso.IDR),
+      balanceBefore: Money.fromNumber(500, iso.IDR),
+      balanceAfter: Money.fromNumber(450, iso.IDR),
     });
 
     const meta = m.metadata;
     expect(meta.type).toBe("subtract");
-    expect(meta.amount).toBe(50);
+    expect(meta.amount.toNumber()).toBe(50);
     expect(meta.currency).toBe("IDR");
-    expect(meta.balanceBefore).toBe("IDR 500");
-    expect(meta.balanceAfter).toBe("IDR 450");
+    expect(meta.balanceBefore.toNumber()).toBe(500);
+    expect(meta.balanceAfter.toNumber()).toBe(450);
     expect(meta.description).toBeNull();
     expect(meta.id).toBeUndefined();
   });

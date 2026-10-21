@@ -1,4 +1,5 @@
 import type { SwapBalanceResult, AssetSwapGateway } from "../ports/out/asset-swap-gateway.port";
+import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 export class AssetSwapGatewayCtx implements AssetSwapGateway {
@@ -6,7 +7,7 @@ export class AssetSwapGatewayCtx implements AssetSwapGateway {
     _userId: ID,
     _fromAssetId: ID,
     _toAssetId: ID,
-    _amount: string,
+    _amount: Money,
   ): Promise<SwapBalanceResult> {
     throw new Error("Method not implemented.");
   }

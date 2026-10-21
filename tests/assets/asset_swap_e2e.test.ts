@@ -1,7 +1,8 @@
 import { beforeAll, beforeEach, describe, expect, it, mock } from "bun:test";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createTransactionService, TransactionService } from "$services/domain/transactions";
-import { Money, iso, parseMoney } from "@lib/money";
+import { Money, findCurrency, iso } from "@lib/money";
+import { fromMinorUnits, toMinorUnits } from "$services/shared/infra/db/money";
 import {
   Asset,
   type AssetData,
@@ -24,6 +25,7 @@ type AssetRow = {
   userId: number;
   name: string;
   type: string;
+  /** Saldo dalam satuan terkecil mata uang (minor unit). */
   balance: number;
   currency: string;
 };
@@ -33,10 +35,11 @@ type MutationRow = {
   assetId: number;
   userId: number;
   type: "add" | "subtract" | "transaction" | "swap";
+  /** Nominal mutasi dalam satuan terkecil mata uang (minor unit). */
   amount: number;
   currency: string;
-  balanceBefore: string;
-  balanceAfter: string;
+  balanceBefore: number;
+  balanceAfter: number;
   description: string | null;
   createdAt: string;
 };
@@ -53,7 +56,7 @@ class InMemoryAssetRepository extends AssetRepository {
       userId: ID.new(row.userId),
       name: row.name,
       type: row.type as AssetType,
-      balance: parseMoney(`${row.currency} ${row.balance}`),
+      balance: fromMinorUnits(row.balance, row.currency),
     });
   }
 
@@ -63,7 +66,7 @@ class InMemoryAssetRepository extends AssetRepository {
       userId: asset.userId.toNumb,
       name: asset.name,
       type: asset.type,
-      balance: asset.balance.toNumber(),
+      balance: Number(toMinorUnits(asset.balance)),
       currency: asset.balance.currency.code,
     };
     this.assets.push(row);
@@ -91,7 +94,7 @@ class InMemoryAssetRepository extends AssetRepository {
     if (data.name !== undefined) row.name = data.name;
     if (data.type !== undefined) row.type = data.type;
     if (data.balance !== undefined) {
-      row.balance = data.balance.toNumber();
+      row.balance = Number(toMinorUnits(data.balance));
       row.currency = data.balance.currency.code;
     }
     return this.#toEntity(row);
@@ -107,22 +110,36 @@ class InMemoryAssetRepository extends AssetRepository {
       assetId: assetId.toNumb,
       userId: data.userId.toNumb,
       type: data.type,
-      amount: data.amount,
-      currency: data.currency,
-      balanceBefore: data.balanceBefore,
-      balanceAfter: data.balanceAfter,
+      amount: Number(toMinorUnits(data.amount)),
+      currency: data.amount.currency.code,
+      balanceBefore: Number(toMinorUnits(data.balanceBefore)),
+      balanceAfter: Number(toMinorUnits(data.balanceAfter)),
       description: data.description ?? null,
       createdAt: new Date().toISOString(),
     };
     this.mutations.push(row);
-    return { ...row, userId: ID.new(row.userId) };
+    return this.#toMutationData(row);
   }
 
   async findMutationsByAssetId(assetId: ID, userId: ID): Promise<AssetMutationData[]> {
     return this.mutations
       .filter((m) => m.assetId === assetId.toNumb && m.userId === userId.toNumb)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .map((m) => ({ ...m, userId: ID.new(m.userId) }));
+      .map((m) => this.#toMutationData(m));
+  }
+
+  #toMutationData(row: MutationRow): AssetMutationData {
+    return {
+      id: row.id,
+      assetId: row.assetId,
+      userId: ID.new(row.userId),
+      type: row.type,
+      amount: fromMinorUnits(row.amount, row.currency),
+      balanceBefore: fromMinorUnits(row.balanceBefore, row.currency),
+      balanceAfter: fromMinorUnits(row.balanceAfter, row.currency),
+      description: row.description,
+      createdAt: row.createdAt,
+    };
   }
 }
 
@@ -204,11 +221,13 @@ describe("swapBalance e2e (in-memory repo)", () => {
     EventBus.on("asset.swapped", async (payload) => {
       const { userId, fromAssetId, toAssetId, amount, currency, fromAssetName, toAssetName } =
         payload;
+      const swapCurrency = findCurrency(String(currency));
+      if (!swapCurrency) throw new Error(`Unknown currency: ${String(currency)}`);
       await txService.createTransaction({
         userId: Number(userId),
         payWithAssetId: Number(fromAssetId),
         payToAssetId: Number(toAssetId),
-        amount: parseMoney(`${currency} ${amount}`),
+        amount: Money.fromNumber(Number(amount), swapCurrency),
         capital: Money.zero(iso.IDR),
         type: "transfer",
         category: "Move Balances",
@@ -234,13 +253,13 @@ describe("swapBalance e2e (in-memory repo)", () => {
       name: "Wallet",
       type: "cash",
       userId,
-      balance: parseMoney("IDR 1000000"),
+      balance: Money.fromNumber(1000000, iso.IDR),
     });
     await AssetService.getInstance().createAsset({
       name: "Bank",
       type: "bank",
       userId,
-      balance: parseMoney("IDR 500000"),
+      balance: Money.fromNumber(500000, iso.IDR),
     });
     return { walletId: ID.new(wallet.metadata.id ? 1 : 1), bankId: ID.new(2) };
   }
@@ -252,31 +271,31 @@ describe("swapBalance e2e (in-memory repo)", () => {
       userId,
       walletId,
       bankId,
-      "IDR 250000",
+      Money.fromNumber(250000, iso.IDR),
     );
 
-    expect(result.from.balance).toBe("IDR 750000");
-    expect(result.to.balance).toBe("IDR 750000");
+    expect(result.from.balance.toNumber()).toBe(750000);
+    expect(result.to.balance.toNumber()).toBe(750000);
 
     const fromAsset = await AssetService.getInstance().assetById(userId, walletId);
     const toAsset = await AssetService.getInstance().assetById(userId, bankId);
-    expect(fromAsset?.balance).toBe("IDR 750000");
-    expect(toAsset?.balance).toBe("IDR 750000");
+    expect(fromAsset?.balance.toNumber()).toBe(750000);
+    expect(toAsset?.balance.toNumber()).toBe(750000);
 
     const fromMutations = await AssetService.getInstance().assetMutations(userId, walletId);
     expect(fromMutations).toHaveLength(1);
     expect(fromMutations[0].type).toBe("swap");
-    expect(fromMutations[0].amount).toBe(250000);
-    expect(fromMutations[0].currency).toBe("IDR");
-    expect(fromMutations[0].balanceBefore).toBe("IDR 1000000");
-    expect(fromMutations[0].balanceAfter).toBe("IDR 750000");
+    expect(fromMutations[0].amount.toNumber()).toBe(250000);
+    expect(fromMutations[0].amount.currency.code).toBe("IDR");
+    expect(fromMutations[0].balanceBefore.toNumber()).toBe(1000000);
+    expect(fromMutations[0].balanceAfter.toNumber()).toBe(750000);
     expect(fromMutations[0].description).toBe("Swap To Bank");
 
     const toMutations = await AssetService.getInstance().assetMutations(userId, bankId);
     expect(toMutations).toHaveLength(1);
     expect(toMutations[0].type).toBe("swap");
-    expect(toMutations[0].balanceBefore).toBe("IDR 500000");
-    expect(toMutations[0].balanceAfter).toBe("IDR 750000");
+    expect(toMutations[0].balanceBefore.toNumber()).toBe(500000);
+    expect(toMutations[0].balanceAfter.toNumber()).toBe(750000);
     expect(toMutations[0].description).toBe("Swap From Wallet");
 
     expect(mockTxRepo.save).toHaveBeenCalledWith(
@@ -304,23 +323,33 @@ describe("swapBalance e2e (in-memory repo)", () => {
     const { bankId } = await seed();
 
     await expect(
-      TransactionService.getInstance().swapBalance(userId, ID.new(99), bankId, "IDR 100000"),
+      TransactionService.getInstance().swapBalance(
+        userId,
+        ID.new(99),
+        bankId,
+        Money.fromNumber(100000, iso.IDR),
+      ),
     ).rejects.toThrow(NotFound);
 
     expect(repo.mutations).toHaveLength(0);
     const bank = await AssetService.getInstance().assetById(userId, bankId);
-    expect(bank?.balance).toBe("IDR 500000");
+    expect(bank?.balance.toNumber()).toBe(500000);
   });
 
   it("rejects when destination asset not found and records nothing", async () => {
     const { walletId } = await seed();
 
     await expect(
-      TransactionService.getInstance().swapBalance(userId, walletId, ID.new(99), "IDR 100000"),
+      TransactionService.getInstance().swapBalance(
+        userId,
+        walletId,
+        ID.new(99),
+        Money.fromNumber(100000, iso.IDR),
+      ),
     ).rejects.toThrow(NotFound);
 
     expect(repo.mutations).toHaveLength(0);
     const wallet = await AssetService.getInstance().assetById(userId, walletId);
-    expect(wallet?.balance).toBe("IDR 1000000");
+    expect(wallet?.balance.toNumber()).toBe(1000000);
   });
 });

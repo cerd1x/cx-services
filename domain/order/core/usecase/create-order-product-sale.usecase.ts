@@ -2,7 +2,6 @@ import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import type { Order as OrderType } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
-import { parseMoney } from "@lib/money";
 import { ProductService } from "$services/domain/products";
 import { TransactionService } from "$services/domain/transactions";
 import { PaymentService } from "$services/domain/payment";
@@ -18,6 +17,7 @@ import {
   assertItemCount,
   assertMoney,
   assertOptionalPositiveInt,
+  resolveMoney,
 } from "./order-input.validator";
 
 export type CreateOrderProductSaleInput = {
@@ -74,8 +74,8 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       );
     }
 
-    const capital = parseMoney(`${currency} ${capitalAmount}`);
-    const amount = parseMoney(`${currency} ${saleAmount}`);
+    const capital = resolveMoney(capitalAmount, currency);
+    const amount = resolveMoney(saleAmount, currency);
     const description = data.description ?? `Sale: ${product.name} x${data.itemCount}`;
     const paymentMethod = data.paymentMethod ?? "cash";
 
@@ -141,7 +141,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         await AssetService.getInstance().mutateAddAsset(
           ID.new(data.userId),
           ID.new(data.payToAssetId),
-          `${currency} ${saleAmount}`,
+          amount,
         );
         assetCredited = true;
       }
@@ -171,7 +171,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
           await AssetService.getInstance().mutateSubtractAsset(
             ID.new(data.userId),
             ID.new(data.payToAssetId),
-            `${currency} ${saleAmount}`,
+            amount,
           );
         } catch {
           /* ignore asset rollback error */

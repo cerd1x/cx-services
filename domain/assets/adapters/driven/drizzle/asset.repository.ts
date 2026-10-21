@@ -1,6 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
 import { D1TxCollector } from "$services/shared/infra/db/d1-tx-collector";
+import { fromMinorUnits, toMinorUnits } from "$services/shared/infra/db/money";
 import { assetTable, assetMutationTable } from "$services/shared/infra/db/drizzle-schema";
 import {
   Asset,
@@ -8,15 +9,25 @@ import {
   type AssetType,
   type AssetUpdate,
 } from "../../../core/model/asset.model";
-import { parseMoney, type Money } from "@lib/money";
+import type { Money } from "@lib/money";
 import { AssetRepository } from "../../../core/ports/out/asset-repository.port";
 import { ID } from "$services/shared/kernel";
+import type { MutationType } from "../../../core/model/asset-mutation.model";
 import type {
   AssetMutationInput,
   AssetMutationData,
 } from "../../../core/model/asset-mutation.model";
 
 type DB = ReturnType<typeof getDB>;
+
+/**
+ * Minor unit disimpan sebagai integer SQLite. D1 tidak menerima binding
+ * `bigint`, jadi nilainya dikonversi ke `number` — masih presisi penuh untuk
+ * nominal sampai 2^53 satuan terkecil.
+ */
+function minorValue(money: Money): number {
+  return Number(toMinorUnits(money));
+}
 
 export class AssetRepositoryImpl implements AssetRepository {
   async save(asset: AssetData & { balance: Money }, tx?: unknown): Promise<Asset | null> {
@@ -27,7 +38,7 @@ export class AssetRepositoryImpl implements AssetRepository {
         userId: asset.userId.toNumb ?? null,
         name: asset.name,
         type: asset.type,
-        balance: asset.balance.toNumber(),
+        balance: minorValue(asset.balance),
         currency: asset.balance.currency.code,
       })
       .returning();
@@ -39,7 +50,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       userId: ID.new(result[0].userId),
       name: result[0].name,
       type: result[0].type as AssetType,
-      balance: parseMoney(`${result[0].currency} ${result[0].balance}`),
+      balance: fromMinorUnits(result[0].balance, result[0].currency),
     });
   }
 
@@ -52,7 +63,7 @@ export class AssetRepositoryImpl implements AssetRepository {
         userId: ID.new(r.userId),
         name: r.name,
         type: r.type as AssetType,
-        balance: parseMoney(`${r.currency} ${r.balance}`),
+        balance: fromMinorUnits(r.balance, r.currency),
       }),
     );
   }
@@ -71,7 +82,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       userId: ID.new(rows[0].userId),
       name: rows[0].name,
       type: rows[0].type as AssetType,
-      balance: parseMoney(`${rows[0].currency} ${rows[0].balance}`),
+      balance: fromMinorUnits(rows[0].balance, rows[0].currency),
     });
   }
 
@@ -89,7 +100,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       userId: ID.new(rows[0].userId),
       name: rows[0].name,
       type: rows[0].type as AssetType,
-      balance: parseMoney(`${rows[0].currency} ${rows[0].balance}`),
+      balance: fromMinorUnits(rows[0].balance, rows[0].currency),
     });
   }
 
@@ -105,7 +116,7 @@ export class AssetRepositoryImpl implements AssetRepository {
         .set({
           name: data.name,
           type: data.type,
-          balance: data.balance?.toNumber(),
+          balance: data.balance ? minorValue(data.balance) : undefined,
           currency: data.balance?.currency.code,
         })
         .where(eq(assetTable.id, id))
@@ -119,7 +130,7 @@ export class AssetRepositoryImpl implements AssetRepository {
         userId: ID.new(current[0].userId),
         name: data.name ?? current[0].name,
         type: (data.type ?? current[0].type) as AssetType,
-        balance: data.balance ?? parseMoney(`${current[0].currency} ${current[0].balance}`),
+        balance: data.balance ?? fromMinorUnits(current[0].balance, current[0].currency),
       });
     }
 
@@ -133,7 +144,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       .set({
         name: data.name ?? undefined,
         type: data.type ?? undefined,
-        balance: data.balance?.toNumber() ?? undefined,
+        balance: data.balance ? minorValue(data.balance) : undefined,
         currency: data.balance?.currency.code ?? undefined,
       })
       .where(eq(assetTable.id, id))
@@ -144,7 +155,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       userId: ID.new(result[0].userId),
       name: result[0].name,
       type: result[0].type as AssetType,
-      balance: parseMoney(`${result[0].currency} ${result[0].balance}`),
+      balance: fromMinorUnits(result[0].balance, result[0].currency),
     });
   }
 
@@ -167,7 +178,18 @@ export class AssetRepositoryImpl implements AssetRepository {
         ),
       )
       .orderBy(desc(assetMutationTable.createdAt));
-    return rows.map((r) => ({ ...r, userId: ID.new(r.userId) })) as AssetMutationData[];
+
+    return rows.map((r) => ({
+      id: r.id,
+      assetId: r.assetId,
+      userId: ID.new(r.userId),
+      type: r.type as MutationType,
+      amount: fromMinorUnits(r.amount, r.currency),
+      balanceBefore: fromMinorUnits(r.balanceBefore, r.currency),
+      balanceAfter: fromMinorUnits(r.balanceAfter, r.currency),
+      description: r.description,
+      createdAt: r.createdAt,
+    }));
   }
 
   async createAssetMutation(
@@ -175,22 +197,20 @@ export class AssetRepositoryImpl implements AssetRepository {
     data: AssetMutationInput,
     tx?: unknown,
   ): Promise<AssetMutationData> {
+    const values = {
+      assetId: assetId.toNumb,
+      userId: data.userId.toNumb,
+      type: data.type,
+      amount: minorValue(data.amount),
+      currency: data.amount.currency.code,
+      balanceBefore: minorValue(data.balanceBefore),
+      balanceAfter: minorValue(data.balanceAfter),
+      description: data.description ?? null,
+    };
+
     if (D1TxCollector.is(tx)) {
       const db = getDB() as DB;
-      const q = db
-        .insert(assetMutationTable)
-        .values({
-          assetId: assetId.toNumb,
-          userId: data.userId.toNumb,
-          type: data.type,
-          amount: data.amount,
-          currency: data.currency,
-          balanceBefore: data.balanceBefore,
-          balanceAfter: data.balanceAfter,
-          description: data.description ?? null,
-        })
-        .returning()
-        .toSQL();
+      const q = db.insert(assetMutationTable).values(values).returning().toSQL();
 
       tx.add(q.sql, q.params as unknown[]);
 
@@ -200,33 +220,26 @@ export class AssetRepositoryImpl implements AssetRepository {
         userId: data.userId,
         type: data.type,
         amount: data.amount,
-        currency: data.currency,
         balanceBefore: data.balanceBefore,
         balanceAfter: data.balanceAfter,
         description: data.description ?? null,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as unknown as AssetMutationData;
+      };
     }
 
     const db = (tx ?? getDB()) as DB;
-    const result = await db
-      .insert(assetMutationTable)
-      .values({
-        assetId: assetId.toNumb,
-        userId: data.userId.toNumb,
-        type: data.type,
-        amount: data.amount,
-        currency: data.currency,
-        balanceBefore: data.balanceBefore,
-        balanceAfter: data.balanceAfter,
-        description: data.description ?? null,
-      })
-      .returning();
+    const result = await db.insert(assetMutationTable).values(values).returning();
 
     return {
-      ...result[0],
+      id: result[0].id,
+      assetId: result[0].assetId,
       userId: ID.new(result[0].userId),
-    } as AssetMutationData;
+      type: result[0].type as MutationType,
+      amount: fromMinorUnits(result[0].amount, result[0].currency),
+      balanceBefore: fromMinorUnits(result[0].balanceBefore, result[0].currency),
+      balanceAfter: fromMinorUnits(result[0].balanceAfter, result[0].currency),
+      description: result[0].description,
+      createdAt: result[0].createdAt,
+    };
   }
 }

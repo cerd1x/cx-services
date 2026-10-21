@@ -2,7 +2,6 @@ import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import type { Order as OrderType } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
-import { parseMoney } from "@lib/money";
 import { TransactionService } from "$services/domain/transactions";
 import { AssetService } from "$services/domain/assets";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
@@ -13,6 +12,7 @@ import {
   assertItemCount,
   assertMoney,
   assertOptionalPositiveInt,
+  resolveMoney,
 } from "./order-input.validator";
 import { logger } from "../value-objects/logger";
 
@@ -40,8 +40,8 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
     assertOptionalPositiveInt(data.payWithAssetId, "payWithAssetId");
 
     const totalAmount = data.price * data.itemCount;
-    const amount = parseMoney(`${data.currency} ${totalAmount}`);
-    const capital = parseMoney(`${data.currency} ${totalAmount}`);
+    const amount = resolveMoney(totalAmount, data.currency);
+    const capital = resolveMoney(totalAmount, data.currency);
 
     let savedTxId: ID | null = null;
     let assetMutated = false;
@@ -68,7 +68,7 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
         await AssetService.getInstance().mutateSubtractAsset(
           ID.new(data.userId),
           ID.new(data.payWithAssetId),
-          `${data.currency} ${totalAmount}`,
+          amount,
         );
         assetMutated = true;
       }
@@ -105,7 +105,7 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
           await AssetService.getInstance().mutateAddAsset(
             ID.new(data.userId),
             ID.new(data.payWithAssetId),
-            `${data.currency} ${totalAmount}`,
+            amount,
           );
         } catch {
           /* ignore rollback error */

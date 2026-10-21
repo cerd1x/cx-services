@@ -1,3 +1,4 @@
+import { Money, findCurrency } from "@lib/money";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
 
 export function assertPositiveInt(value: unknown, field: string): void {
@@ -27,6 +28,19 @@ export function assertCurrencyCode(currency: string): void {
   if (typeof currency !== "string" || !/^[A-Za-z]{3}$/.test(currency)) {
     throw new ValidationError("currency must be a 3-letter code (e.g. IDR)");
   }
+}
+
+/**
+ * Membangun nilai uang dari nominal (major unit) + kode mata uang.
+ *
+ * @throws {ValidationError} Kalau kodenya bukan mata uang yang dikenal.
+ */
+export function resolveMoney(amount: number, currencyCode: string): Money {
+  const currency = findCurrency(currencyCode.toUpperCase());
+  if (!currency) {
+    throw new ValidationError(`Unknown currency: ${currencyCode}`);
+  }
+  return Money.fromNumber(amount, currency);
 }
 
 export function assertNonEmptyString(value: unknown, field: string): void {

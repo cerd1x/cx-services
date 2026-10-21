@@ -1,4 +1,5 @@
 import type { SwapBalanceResult } from "../ports/out/asset-swap-gateway.port";
+import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { AssetSwapGatewayCtx } from "./asset-swap-gateway.ctx";
 import { CoreUsecase } from "$services/shared/base";
@@ -9,7 +10,7 @@ export type SwapBalanceInput = {
   userId: ID;
   fromAssetId: ID;
   toAssetId: ID;
-  amount: string;
+  amount: Money;
 };
 
 export class SwapBalanceUseCase extends CoreUsecase<SwapBalanceResult, SwapBalanceInput> {

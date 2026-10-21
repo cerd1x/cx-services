@@ -1,7 +1,7 @@
 import { NotFound } from "$services/shared/kernel/errors/service-error";
 import { AssetRepository } from "../ports/out/asset-repository.port";
 import { Asset } from "../model/asset.model";
-import { formatMoney, parseMoney, type Money } from "@lib/money";
+import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { UnitOfWork } from "$services/shared/kernel/uow.port";
 import { CoreUsecase } from "$services/shared/base";
@@ -28,7 +28,7 @@ export class ApplyAssetMutationUseCase extends CoreUsecase<Asset, ApplyAssetMuta
       throw new NotFound(`Asset ${assetId.toHash}`);
     }
 
-    const current = parseMoney(asset.balance);
+    const current = asset.balance;
 
     const next = type === "add" ? current.add(amount) : current.subtract(amount);
 
@@ -39,10 +39,9 @@ export class ApplyAssetMutationUseCase extends CoreUsecase<Asset, ApplyAssetMuta
           userId,
           assetId: assetId.toNumb,
           type,
-          amount: amount.toNumber(),
-          currency: amount.currency.code,
-          balanceBefore: asset.balance,
-          balanceAfter: formatMoney(next),
+          amount,
+          balanceBefore: current,
+          balanceAfter: next,
           description,
         },
         tx,

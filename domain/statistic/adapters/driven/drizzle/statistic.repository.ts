@@ -1,14 +1,27 @@
 import { eq } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
+import { deserializeMoney, fromMinorUnits } from "$services/shared/infra/db/money";
 import { transactionTable } from "$services/shared/infra/db/drizzle-schema/transaction.schema";
 import { assetTable } from "$services/shared/infra/db/drizzle-schema/asset.schema";
 import type { StatisticData } from "../../../core/model/statistic.model";
 import { StatisticRepository } from "../../../core/ports/out/statistic-repository.port";
 
+/** Nominal transaksi (JSON instance `Money`) -> angka major unit. */
 function parseAmountValue(amount: string): number {
-  const match = amount.trim().match(/^([A-Z]{3})\s+(-?[\d,]+(?:\.\d+)?)$/);
-  if (!match) return 0;
-  return parseFloat(match[2].replace(/,/g, ""));
+  try {
+    return deserializeMoney(amount).toNumber();
+  } catch {
+    return 0;
+  }
+}
+
+/** Saldo asset (minor unit) -> angka major unit. */
+function parseBalanceValue(balance: number, currency: string): number {
+  try {
+    return fromMinorUnits(balance, currency).toNumber();
+  } catch {
+    return 0;
+  }
 }
 
 export class StatisticRepositoryImpl implements StatisticRepository {
@@ -19,7 +32,11 @@ export class StatisticRepositoryImpl implements StatisticRepository {
       .where(eq(transactionTable.userId, userId));
 
     const assetRows = await getDB()
-      .select({ type: assetTable.type, balance: assetTable.balance })
+      .select({
+        type: assetTable.type,
+        balance: assetTable.balance,
+        currency: assetTable.currency,
+      })
       .from(assetTable)
       .where(eq(assetTable.userId, userId));
 
@@ -47,11 +64,12 @@ export class StatisticRepositoryImpl implements StatisticRepository {
 
     const totalLoan = assetRows
       .filter((a) => a.type === "loan")
-      .reduce((sum, a) => sum + a.balance, 0);
+      .reduce((sum, a) => sum + parseBalanceValue(a.balance, a.currency), 0);
     const totalCash = assetRows
       .filter((a) => a.type === "cash")
-      .reduce((sum, a) => sum + a.balance, 0);
-    const totalAsset = assetRows.reduce((sum, a) => sum + a.balance, 0) + totalProfit;
+      .reduce((sum, a) => sum + parseBalanceValue(a.balance, a.currency), 0);
+    const totalAsset =
+      assetRows.reduce((sum, a) => sum + parseBalanceValue(a.balance, a.currency), 0) + totalProfit;
 
     return { totalIncome, totalExpense, totalProfit, totalLoan, totalCash, totalAsset };
   }

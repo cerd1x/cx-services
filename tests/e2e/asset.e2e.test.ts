@@ -47,7 +47,7 @@ describe("asset e2e (GraphQL over HTTP)", () => {
     expect(byId.data!.assetById.id).toBe(assetId);
 
     const add = await gql<{ addBalance: AssetDto }>(
-      `mutation($assetId: ID!, $amount: String!) {
+      `mutation($assetId: ID!, $amount: Money!) {
         addBalance(assetId: $assetId, amount: $amount) { id balance }
       }`,
       { assetId, amount: "IDR 500000" },
@@ -57,7 +57,7 @@ describe("asset e2e (GraphQL over HTTP)", () => {
     expect(add.data!.addBalance.balance).toBe("IDR 1500000");
 
     const subtract = await gql<{ subtractBalance: AssetDto }>(
-      `mutation($assetId: ID!, $amount: String!) {
+      `mutation($assetId: ID!, $amount: Money!) {
         subtractBalance(assetId: $assetId, amount: $amount) { id balance }
       }`,
       { assetId, amount: "IDR 200000" },

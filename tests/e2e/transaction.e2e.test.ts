@@ -122,7 +122,7 @@ describe("transaction e2e (GraphQL over HTTP)", () => {
         to: { id: string; balance: string };
       };
     }>(
-      `mutation($fromAssetId: ID!, $toAssetId: ID!, $amount: String!) {
+      `mutation($fromAssetId: ID!, $toAssetId: ID!, $amount: Money!) {
         swapBalance(fromAssetId: $fromAssetId, toAssetId: $toAssetId, amount: $amount) {
           from { id balance }
           to { id balance }

@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { DateTimeResolver, TimestampResolver } from "graphql-scalars";
 import { DateTimeOrTimestampResolver } from "./scalars/date-time-or-timestamp";
+import { MoneyResolver } from "./scalars/money";
 import {
   authTypeDefs,
   authResolvers,
@@ -65,7 +66,8 @@ import { Logger, LogLevel, streamLog } from "$services/shared/infra/logger";
 
 const scalarTypeDefs = `scalar DateTime
 scalar Timestamp
-scalar DateTimeOrTimestamp`;
+scalar DateTimeOrTimestamp
+scalar Money`;
 
 /** Relay pagination primitives shared by every keyset paginated connection. */
 const paginationTypeDefs = `type PageInfo {
@@ -116,6 +118,7 @@ let schema = makeExecutableSchema({
       DateTime: DateTimeResolver,
       Timestamp: TimestampResolver,
       DateTimeOrTimestamp: DateTimeOrTimestampResolver,
+      Money: MoneyResolver,
     },
     ...Object.entries(moduleResolvers).map(([name, resolvers]) =>
       withResolverLogging(gqlStream.child(name), resolvers),

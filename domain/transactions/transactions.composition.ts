@@ -5,7 +5,7 @@ import {
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ID } from "$services/shared/kernel";
-import { Money, iso, parseMoney } from "@lib/money";
+import { Money, findCurrency, iso } from "@lib/money";
 import {
   CreateTransactionUseCase,
   type TransactionInput,
@@ -142,7 +142,7 @@ export class TransactionService {
     userId: ID,
     fromAssetId: ID,
     toAssetId: ID,
-    amount: string,
+    amount: Money,
   ): Promise<SwapBalanceResult> {
     return this.#swapBalance.execute({ userId, fromAssetId, toAssetId, amount });
   }
@@ -186,7 +186,7 @@ export type TransactionAdapters = {
  * terjadi supaya composition bisa di-re-init dengan adapter lain (mis. test).
  */
 class LazyAssetSwapGateway implements AssetSwapGateway {
-  mutateSwapAsset(userId: ID, fromAssetId: ID, toAssetId: ID, amount: string) {
+  mutateSwapAsset(userId: ID, fromAssetId: ID, toAssetId: ID, amount: Money) {
     return AssetService.getInstance().mutateSwapAsset(userId, fromAssetId, toAssetId, amount);
   }
 }
@@ -237,13 +237,18 @@ logger.info("TransactionService initialized");
 
 EventBus.on("asset.swapped", async (payload) => {
   const { userId, fromAssetId, toAssetId, amount, currency, fromAssetName, toAssetName } = payload;
+  const swapCurrency = findCurrency(String(currency));
+  if (!swapCurrency) {
+    throw new Error(`Unknown currency: ${String(currency)}`);
+  }
+  const swapAmount = Money.fromNumber(Number(amount), swapCurrency);
   // Resolve late: composition bisa di-re-init dengan adapter lain (mis. test),
   // jadi subscriber harus memakai singleton yang aktif saat event terjadi.
   await TransactionService.getInstance().createTransaction({
     userId: Number(userId),
     payWithAssetId: Number(fromAssetId),
     payToAssetId: Number(toAssetId),
-    amount: parseMoney(`${currency} ${amount}`),
+    amount: swapAmount,
     capital: Money.zero(iso.IDR),
     type: "transfer",
     category: "Move Balances",

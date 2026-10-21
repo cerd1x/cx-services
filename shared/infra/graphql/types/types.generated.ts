@@ -11,6 +11,7 @@ export type Scalars = {
   Float: { input: number; output: number };
   DateTime: { input: Date; output: Date };
   DateTimeOrTimestamp: { input: Date; output: Date };
+  Money: { input: import("@lib/money").Money; output: import("@lib/money").Money };
   Timestamp: { input: number; output: number };
 };
 
@@ -66,14 +67,14 @@ export type AdminUser = {
 
 export type Asset = {
   __typename?: "Asset";
-  balance: Scalars["String"]["output"];
+  balance: Scalars["Money"]["output"];
   id: Scalars["ID"]["output"];
   name: Scalars["String"]["output"];
   type: AssetType;
 };
 
 export type AssetInputUpdate = {
-  balance?: InputMaybe<Scalars["String"]["input"]>;
+  balance?: InputMaybe<Scalars["Money"]["input"]>;
   currency?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   type?: InputMaybe<AssetType>;
@@ -82,8 +83,8 @@ export type AssetInputUpdate = {
 export type AssetMutationType = {
   __typename?: "AssetMutationType";
   amount: Scalars["Float"]["output"];
-  balanceAfter: Scalars["String"]["output"];
-  balanceBefore: Scalars["String"]["output"];
+  balanceAfter: Scalars["Money"]["output"];
+  balanceBefore: Scalars["Money"]["output"];
   createdAt: Scalars["String"]["output"];
   currency: Scalars["String"]["output"];
   description?: Maybe<Scalars["String"]["output"]>;
@@ -126,7 +127,7 @@ export type ContactEdge = {
 };
 
 export type CreateAssetInput = {
-  balance: Scalars["String"]["input"];
+  balance: Scalars["Money"]["input"];
   name: Scalars["String"]["input"];
   type: AssetType;
 };
@@ -202,8 +203,8 @@ export type CreateProductInput = {
 };
 
 export type CreateTransactionInput = {
-  amount: Scalars["String"]["input"];
-  capital: Scalars["String"]["input"];
+  amount: Scalars["Money"]["input"];
+  capital: Scalars["Money"]["input"];
   category?: InputMaybe<Scalars["String"]["input"]>;
   customerId: Scalars["ID"]["input"];
   date: Scalars["DateTimeOrTimestamp"]["input"];
@@ -337,7 +338,7 @@ export type Mutation = {
 };
 
 export type MutationAddBalanceArgs = {
-  amount: Scalars["String"]["input"];
+  amount: Scalars["Money"]["input"];
   assetId: Scalars["ID"]["input"];
 };
 
@@ -460,12 +461,12 @@ export type MutationSignUpArgs = {
 };
 
 export type MutationSubtractBalanceArgs = {
-  amount: Scalars["String"]["input"];
+  amount: Scalars["Money"]["input"];
   assetId: Scalars["ID"]["input"];
 };
 
 export type MutationSwapBalanceArgs = {
-  amount: Scalars["String"]["input"];
+  amount: Scalars["Money"]["input"];
   fromAssetId: Scalars["ID"]["input"];
   toAssetId: Scalars["ID"]["input"];
 };
@@ -891,8 +892,8 @@ export type SwapBalanceResult = {
 
 export type Transaction = {
   __typename?: "Transaction";
-  amount: Scalars["String"]["output"];
-  capital: Scalars["String"]["output"];
+  amount: Scalars["Money"]["output"];
+  capital: Scalars["Money"]["output"];
   category?: Maybe<Scalars["String"]["output"]>;
   createdAt: Scalars["DateTime"]["output"];
   customerId?: Maybe<Scalars["ID"]["output"]>;
@@ -968,8 +969,8 @@ export type UpdateSettingInput = {
 };
 
 export type UpdateTransactionInput = {
-  amount?: InputMaybe<Scalars["String"]["input"]>;
-  capital?: InputMaybe<Scalars["String"]["input"]>;
+  amount?: InputMaybe<Scalars["Money"]["input"]>;
+  capital?: InputMaybe<Scalars["Money"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   customerId: Scalars["ID"]["input"];
   date?: InputMaybe<Scalars["DateTimeOrTimestamp"]["input"]>;
@@ -1129,6 +1130,7 @@ export type ResolversTypes = {
   InvoiceStatusEnum: InvoiceStatusEnum;
   MeUser: ResolverTypeWrapper<MeUser>;
   MergeResult: ResolverTypeWrapper<MergeResult>;
+  Money: ResolverTypeWrapper<Scalars["Money"]["output"]>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Order: ResolverTypeWrapper<Order>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
@@ -1206,6 +1208,7 @@ export type ResolversParentTypes = {
   InvoiceItemInput: InvoiceItemInput;
   MeUser: MeUser;
   MergeResult: MergeResult;
+  Money: Scalars["Money"]["output"];
   Mutation: Record<PropertyKey, never>;
   Order: Order;
   PageInfo: PageInfo;
@@ -1288,7 +1291,7 @@ export type AssetResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["Asset"] = ResolversParentTypes["Asset"],
 > = {
-  balance?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  balance?: Resolver<ResolversTypes["Money"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   type?: Resolver<ResolversTypes["AssetType"], ParentType, ContextType>;
@@ -1300,8 +1303,8 @@ export type AssetMutationTypeResolvers<
     ResolversParentTypes["AssetMutationType"],
 > = {
   amount?: Resolver<ResolversTypes["Float"], ParentType, ContextType>;
-  balanceAfter?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  balanceBefore?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  balanceAfter?: Resolver<ResolversTypes["Money"], ParentType, ContextType>;
+  balanceBefore?: Resolver<ResolversTypes["Money"], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   currency?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
@@ -1423,6 +1426,10 @@ export type MergeResultResolvers<
   merged?: Resolver<ResolversTypes["Int"], ParentType, ContextType>;
   primary?: Resolver<ResolversTypes["Contact"], ParentType, ContextType>;
 };
+
+export interface MoneyScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["Money"], any> {
+  name: "Money";
+}
 
 export type MutationResolvers<
   ContextType = any,
@@ -1957,8 +1964,8 @@ export type TransactionResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["Transaction"] = ResolversParentTypes["Transaction"],
 > = {
-  amount?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  capital?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  amount?: Resolver<ResolversTypes["Money"], ParentType, ContextType>;
+  capital?: Resolver<ResolversTypes["Money"], ParentType, ContextType>;
   category?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
   customerId?: Resolver<Maybe<ResolversTypes["ID"]>, ParentType, ContextType>;
@@ -2016,6 +2023,7 @@ export type Resolvers<ContextType = any> = {
   InvoiceItem?: InvoiceItemResolvers<ContextType>;
   MeUser?: MeUserResolvers<ContextType>;
   MergeResult?: MergeResultResolvers<ContextType>;
+  Money?: GraphQLScalarType;
   Mutation?: MutationResolvers<ContextType>;
   Order?: OrderResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;

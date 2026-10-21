@@ -2,7 +2,7 @@
 
 ### Tujuan Module [L3-8]
 
-Melakukan kontrol terhadap **aset/asset** user dalam sistem. Module ini bertanggung jawab atas manajemen aset (CRUD), mutasi saldo (add/subtract/swap), dan pelacakan riwayat mutasi aset. Setiap asset memiliki saldo berupa `Money` (dari `@lib/money`) dengan format "ISO code + value".
+Melakukan kontrol terhadap **aset/asset** user dalam sistem. Module ini bertanggung jawab atas manajemen aset (CRUD), mutasi saldo (add/subtract/swap), dan pelacakan riwayat mutasi aset. Setiap asset memiliki saldo berupa instance `Money` (dari `@lib/money`); format string "ISO code + value" hanya dipakai di boundary GraphQL.
 
 ---
 
@@ -14,7 +14,6 @@ domain/assets/
 │   ├── model/
 │   │   ├── asset-mutation.model.ts
 │   │   ├── asset.model.ts
-│   │   ├── balance.model.ts
 │   │   └── index.ts
 │   ├── ports/
 │   │   └── out/
@@ -58,7 +57,7 @@ domain/assets/
 
 - **`AssetType`** — Enum: `bank`, `ewallet`, `cash`, `loan`, `crypto`
 - **`currencySchema`** — Zod schema untuk currency metadata: `code` (ISO code), `base`, `exponent`
-- **`zBalanceSchema`** — Zod schema untuk instance `Money` (`@lib/money`)
+- **`moneySchema`** — Zod schema (`z.custom<Money>`) yang memastikan nilai adalah instance `Money` (`@lib/money`)
 - **`assetSchema`** — Schema validasi Zod untuk Asset: `id`, `userId`, `balance`, `name`, `type`
 - **`AssetInput`** — `z.input<typeof assetSchema>`
 - **`AssetData`** — `z.output<typeof assetSchema>`
@@ -67,42 +66,54 @@ domain/assets/
   - **Properties:** `#id`, `#name`, `#type`, `#balance`, `#userId`
   - **`constructor(data)`** — Menerima object `AssetData & { balance: Money }`. Set `id` via `ID.new(data.id)` jika ada
   - **`static new(input)`** — Factory method, validasi Zod + non-negative balance check
-  - **Getters:** `userId`, `name`, `type`, `currency`, `balance` (string format "ISO CODE VALUE"), `metadata`, `IdStr`
+  - **Getters:** `userId`, `name`, `type`, `currency`, `balance` (instance `Money`), `metadata`, `IdStr`
   - **Setter:** `setId(id)` — set id, return `this` (chainable)
   - **Validation methods (chainable, return `this`):**
     1. `requiredUserId()` — cek userId bukan Maybe
     2. `requiredName()` — `assetSchema.shape.name.safeParse(this.name)`
     3. `requiredType()` — `z.enum(AssetType).safeParse(this.type)`
-    4. `requiredBalance()` — `zBalanceSchema.safeParse(this.balance)`
+    4. `requiredBalance()` — `moneySchema.safeParse(this.balance)`
     5. `requiredAll()` — chain semua method di atas
 
 #### 2. `core/model/asset-mutation.model.ts` [L68-81]
 
 [`core/model/asset-mutation.model.ts`](core/model/asset-mutation.model.ts)
 
-- **`MutationType`** — Enum: `add`, `subtract`, `transaction`
-- **`assetMutationSchema`** — Schema validasi Zod untuk AssetMutation: `id`, `assetId`, `userId`, `type`, `amount`, `currency`, `balanceBefore`, `balanceAfter`, `description`, `createdAt`
+- **`MutationType`** — Enum: `add`, `subtract`, `transaction`, `swap`
+- **`assetMutationSchema`** — Schema validasi Zod untuk AssetMutation: `id`, `assetId`, `userId`, `type`, `amount`, `balanceBefore`, `balanceAfter`, `description`, `createdAt`. Tidak ada field `currency` — nilainya diturunkan dari `amount.currency.code`
 - **`AssetMutationInput`** — `z.input<typeof assetMutationSchema>`
 - **`AssetMutationData`** — `z.output<typeof assetMutationSchema>`
 - **`AssetMutation` class** — Entity untuk mencatat riwayat mutasi saldo
-  - **Properties:** `#id`, `#assetId`, `#userId`, `#type`, `#amount`, `#currency`, `#balanceBefore`, `#balanceAfter`, `#description`, `#createdAt`
-  - **Getters:** `assetId`, `userId`, `type`, `amount`, `currency`, `balanceBefore`, `balanceAfter`, `description`, `metadata`
+  - **Properties:** `#id`, `#assetId`, `#userId`, `#type`, `#amount`, `#balanceBefore`, `#balanceAfter`, `#description`, `#createdAt`
+  - **Getters:** `assetId`, `userId`, `type`, `amount` (`Money`), `currency` (`Money.currency.code`), `balanceBefore` (`Money`), `balanceAfter` (`Money`), `description`, `metadata`
   - **Validation methods:** `requiredId()`, `requiredDescription()`
   - **`static new(input)`** — Factory method, validasi Zod
 
-#### 3. Codec uang — `@lib/money`
+#### 3. Uang — `@lib/money` dan boundary GraphQL/DB
 
 Saldo **tidak** memakai value object sendiri; tipe uang adalah `Money` dari package
-`@lib/money` (workspace `lib/money/`). Codec string `"ISO CODE VALUE"` juga ada di
-package yang sama (`lib/money/src/literal.ts`) supaya dipakai lintas domain
-(assets, transactions, order, payment).
+`@lib/money` (workspace `lib/money/`). Package ini **tidak** lagi menyediakan codec
+string (`parseMoney`/`formatMoney` sudah dihapus): di dalam domain uang selalu
+berupa instance `Money`.
 
-[`services/lib/money/src/literal.ts`](../../lib/money/src/literal.ts)
+Konversi hanya terjadi di dua boundary:
 
-- **`isoCodeList`** — List kode ISO 4217 yang bisa dipakai sebagai saldo (kode non-spendable seperti `XXX`/`XDR` dikecualikan)
-- **`findSpendableCurrency(code)`** — Cari descriptor currency; throw `"Currency must be a 3-letter code: <code>"` kalau tidak valid
-- **`parseMoney(value)`** — Parse string `"ISO CODE VALUE"` (misal: `"USD 100"`, `"IDR 1,000,000"`) jadi `Money`; nominal dibulatkan ke satuan terkecil dengan `Round.HalfUp`
-- **`formatMoney(money)`** — Format `Money` jadi string `"ISO CODE VALUE"`
+- **GraphQL** — scalar `Money` di
+  [`shared/infra/graphql/scalars/money.ts`](../../shared/infra/graphql/scalars/money.ts).
+  Wire format tetap string `"KODE NOMINAL"` (mis. `"IDR 1500000"`), di-parse jadi
+  `Money` (hanya ISO 4217 spendable, dibulatkan `Round.HalfUp` ke exponent) dan
+  di-serialize kembali ke string.
+- **Database** — helper
+  [`shared/infra/db/money.ts`](../../shared/infra/db/money.ts):
+  - `toMinorUnits(money)` / `fromMinorUnits(value, code)` untuk tabel yang punya
+    kolom `currency` (`asset.balance`, `asset_mutation.amount`,
+    `asset_mutation.balance_before`, `asset_mutation.balance_after`) — disimpan
+    sebagai integer **minor unit** (satuan terkecil; IDR `1500000` → `150000000`
+    karena exponent IDR = 2).
+  - `serializeMoney(money)` / `deserializeMoney(text)` untuk tabel tanpa kolom
+    `currency` (`transaction.amount`, `transaction.capital`) — disimpan sebagai
+    TEXT JSON instance `Money`, mis.
+    `{"amount":"1500000.00","currency":"IDR"}`.
 
 Operasi aritmetika pakai API `Money` (immutable — `add`/`subtract` mengembalikan instance baru):
 `money.add(other)`, `money.subtract(other)`, `money.lt(other)`, `money.isNegative()`,
@@ -179,10 +190,9 @@ Operasi aritmetika pakai API `Money` (immutable — `add`/`subtract` mengembalik
            - `"subtract"` — saldo berkurang
            - `"transaction"` — mutasi netral (pencatatan transaksi tanpa add/subtract)
            - `"swap"` — mutasi perpindahan dana/value/balance antara asset (pencatatan transaksi tanpa add/subtract/transaction)
-         - `amount: number` — **wajib**, nominal mutasi (nilai murni, tanpa currency)
-         - `currency: string` — **wajib**, ISO code 3 huruf (divalidasi `.length(3)`, misal: `"IDR"`, `"USD"`)
-         - `balanceBefore: string` — **wajib**, saldo sebelum mutasi dalam format `"CODE VALUE"` (misal: `"IDR 1000"`)
-         - `balanceAfter: string` — **wajib**, saldo sesudah mutasi dalam format `"CODE VALUE"`
+         - `amount: Money` — **wajib**, nominal mutasi sebagai instance `Money` (currency ikut di dalamnya)
+         - `balanceBefore: Money` — **wajib**, saldo sebelum mutasi
+         - `balanceAfter: Money` — **wajib**, saldo sesudah mutasi
          - `description?: string | null` — opsional, keterangan mutasi (`null`/tidak diisi → disimpan sebagai `null`)
          - `createdAt?: string` — opsional, timestamp; diisi DB/service jika tidak diberikan
        - `tx?: unknown` — opsional, D1 transaction context
@@ -241,7 +251,7 @@ Operasi aritmetika pakai API `Money` (immutable — `add`/`subtract` mengembalik
 #### 9. `adapters/driving/graphql/asset.gql` [L153-157]
 
 - **Query**: `assets`, `asset(name)`, `assetById(id)`, `assetMutations(assetId)`
-- **Mutation**: `createAsset(input)`, `updateAsset(id, input)`, `addBalance(assetId, amount)`, `subtractBalance(assetId, amount)`, `deleteAsset(name)`, `swapBalance(fromAssetId, toAssetId, amount)`
+- **Mutation**: `createAsset(input)`, `updateAsset(id, input)`, `addBalance(assetId, amount)`, `subtractBalance(assetId, amount)`, `deleteAsset(name)`, `swapBalance(fromAssetId, toAssetId, amount)` — semua argumen/nilai uang bertipe scalar `Money` (wire: string `"KODE NOMINAL"`)
 
 #### 10. `adapters/driving/graphql/asset.resolver.ts` [L158-169]
 
@@ -250,7 +260,7 @@ Operasi aritmetika pakai API `Money` (immutable — `add`/`subtract` mengembalik
 - Resolver yang menghubungkan GraphQL schema ke `AssetService`
 - Transformasi hasil dari entity ke GraphQL response shape
 - Konversi `ID` → `toHash` untuk response
-- `balance` → string format `"ISO CODE VALUE"`
+- `balance` → instance `Money` (di-serialize scalar `Money` jadi string `"KODE NOMINAL"`)
 - `type` → cast ke `AssetType` enum
 - `mutateAddAsset` / `mutateSubtractAsset` — panggil AssetService dan catat transaksi via `TransactionService`
 - `swapBalance` — panggil AssetService swap, catat sebagai `transfer` transaction
@@ -353,15 +363,13 @@ async updateAsset(userId: ID, assetId: ID, input: Partial<AssetInput> & { balanc
 - [mutateAddAsset](services/domain/assets/app/asset.service.ts)(line 149:169) Tambah saldo asset
 
 ```ts
-async mutateAddAsset(userId: ID, assetId: ID, amount: string): Promise<Asset>
+async mutateAddAsset(userId: ID, assetId: ID, amount: Money): Promise<Asset>
 ```
 
-    > `parseMoney(amount)` — parse string ke `Money`
-    >
     > > `#applyMutation(userId, assetId, "add", balanceAmount)`
     > >     > `assetRepo.findById(userId, assetId)` — cek asset ada
     > >     > null → `NotFoundError`
-    > >     > `current = parseMoney(asset.balance)` — saldo saat ini
+    > >     > `current = asset.balance` — saldo saat ini (`Money`)
     > >     > `next = current.add(amount)` — tambah saldo (Money immutable → instance baru)
     > >     > `uow.run(async tx => {`
     > >     >     > `assetRepo.createAssetMutation(assetId, { type: "add", amount, currency, balanceBefore, balanceAfter, description }, tx)`
@@ -377,15 +385,13 @@ async mutateAddAsset(userId: ID, assetId: ID, amount: string): Promise<Asset>
 - [mutateSubtractAsset](services/domain/assets/app/asset.service.ts)(line 172:192) Kurangi saldo asset
 
 ```ts
-async mutateSubtractAsset(userId: ID, assetId: ID, amount: string): Promise<Asset>
+async mutateSubtractAsset(userId: ID, assetId: ID, amount: Money): Promise<Asset>
 ```
 
-    > `parseMoney(amount)` — parse string ke `Money`
-    >
     > > `#applyMutation(userId, assetId, "subtract", balanceAmount)`
     > >     > `assetRepo.findById(userId, assetId)` — cek asset ada
     > >     > null → `NotFoundError`
-    > >     > `current = parseMoney(asset.balance)` — saldo saat ini
+    > >     > `current = asset.balance` — saldo saat ini (`Money`)
     > >     > `next = current.subtract(amount)` — kurangi saldo (Money immutable → instance baru)
     > >     > `uow.run(async tx => {`
     > >     >     > `assetRepo.createAssetMutation(assetId, { type: "subtract", amount, currency, balanceBefore, balanceAfter, description }, tx)`
@@ -401,18 +407,16 @@ async mutateSubtractAsset(userId: ID, assetId: ID, amount: string): Promise<Asse
 - [swapBalance](services/domain/assets/app/asset.service.ts)(line 205:291) Pindah saldo antar asset
 
 ```ts
-async swapBalance(userId: ID, fromAssetId: ID, toAssetId: ID, amount: string): Promise<{ from: Asset; to: Asset }>
+async swapBalance(userId: ID, fromAssetId: ID, toAssetId: ID, amount: Money): Promise<{ from: Asset; to: Asset }>
 ```
 
-    > `parseMoney(amount)` — parse string ke `Money`
-    >
     > > `assetRepo.findById(userId, fromAssetId)` — cek source asset
     > > null → `NotFoundError` ("Source asset ${fromAssetId.toHash}")
     > > `assetRepo.findById(userId, toAssetId)` — cek dest asset
     > > null → `NotFoundError` ("Destination asset ${toAssetId.toHash}")
     > >
-    > > `fromNext = parseMoney(fromAsset.balance).subtract(balanceAmount)`
-    > > `toNext = parseMoney(toAsset.balance).add(balanceAmount)`
+    > > `fromNext = fromAsset.balance.subtract(balanceAmount)`
+    > > `toNext = toAsset.balance.add(balanceAmount)`
     > >
     > > `uow.run(async tx => {`
     > >     > `assetRepo.createAssetMutation(fromAssetId, { type: "subtract", ... }, tx)`
@@ -527,8 +531,8 @@ OrderService.createOrderExpense() / createOrderLoan()
 - Module ini mengikuti **Vertical Slice per Module (Modular Hexagonal)**
 - **Ports & Adapters**: Repository interface di `core/ports/out`, implementasi di `adapters/driven`
 - **Dependency Injection**: Melalui `asset.composition.ts` — singleton diinisialisasi saat app startup
-- **Balance Storage**: `balance` disimpan sebagai number di database, `currency` sebagai string ISO code terpisah
+- **Balance Storage**: `balance` disimpan sebagai integer **minor unit** (satuan terkecil) di database, `currency` sebagai string ISO code terpisah. Konversi via `toMinorUnits()`/`fromMinorUnits()` di `shared/infra/db/money.ts`
 - **Mutation Tracking**: Setiap perubahan saldo dicatat di `assetMutationTable` dengan `balanceBefore` dan `balanceAfter`
 - **Cross-module integration**: Dipanggil oleh `OrderService` untuk mutasi saldo saat order penjualan/pengeluaran
 - **Unit of Work**: Mendukung D1 transaction via `D1TxCollector` untuk operasi atomik (mutation + update)
-- **Money**: Aritmetika uang memakai `Money` dari `@lib/money` (immutable, presisi). String `"ISO CODE VALUE"` di-parse/format via `parseMoney()`/`formatMoney()` di `@lib/money` (`lib/money/src/literal.ts`)
+- **Money**: Aritmetika uang memakai `Money` dari `@lib/money` (immutable, presisi). Di domain uang selalu instance `Money`; string `"KODE NOMINAL"` hanya di-parse/format oleh scalar GraphQL `Money` (`shared/infra/graphql/scalars/money.ts`)

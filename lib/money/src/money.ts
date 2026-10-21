@@ -6,7 +6,7 @@ import {
   divEuclid,
   remEuclid,
 } from "./decimal";
-import { isCurrencyMismatch, type Currency } from "./currency";
+import { isCurrencyMismatch, findCurrency, type Currency } from "./currency";
 import { MoneyError } from "./error";
 import { localFormatFromLocale } from "./locale";
 import { Round, roundingStrategyFor } from "./round";
@@ -152,6 +152,47 @@ export class Money {
    */
   static fromDecimal(amount: Decimal, currency: Currency): Money {
     return new Money(amount, currency);
+  }
+
+  /**
+   * Creates a money object from a number of major units.
+   *
+   * The amount is rounded to the currency's exponent with {@link Round.HalfUp}
+   * (midpoints away from zero), so `10.5` in a currency with exponent `0`
+   * becomes `11`.
+   *
+   * @throws {MoneyError} `Overflow` when the amount does not fit into the
+   * decimal range.
+   */
+  static fromNumber(amount: number, currency: Currency): Money {
+    let decimal: Decimal;
+    try {
+      decimal = Decimal.fromNumber(amount);
+    } catch (error) {
+      throw new MoneyError("Overflow", { cause: error });
+    }
+    return Money.fromDecimal(decimal, currency).round(currency.exponent, Round.HalfUp);
+  }
+
+  /**
+   * Restores a money object from its JSON representation.
+   *
+   * Mirrors the serde implementation: the amount is a decimal string and the
+   * currency is an ISO 4217 alpha code or a crypto ticker.
+   *
+   * @throws {MoneyError} `InvalidCurrency` when the currency is unknown,
+   * `InvalidAmount` when the amount is not a decimal string.
+   */
+  static fromJSON(value: { amount: string; currency: string }): Money {
+    const currency = findCurrency(value.currency);
+    if (!currency) {
+      throw new MoneyError("InvalidCurrency", { actual: value.currency });
+    }
+    const decimal = Decimal.fromString(value.amount);
+    if (!decimal) {
+      throw new MoneyError("InvalidAmount", { cause: value.amount });
+    }
+    return new Money(decimal, currency);
   }
 
   /** Creates a zero amount in the given currency. */

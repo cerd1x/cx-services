@@ -1,19 +1,18 @@
 import { describe, expect, it } from "bun:test";
 import { AssetPaymentGateway } from "$services/domain/payment/adapters/driven/payment-gateway/asset-gateway.adapter";
-import { formatMoney, parseMoney } from "@lib/money";
+import { Money, iso } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
-function createFakeAssets(initial: Record<number, { name: string; balance: string }>) {
-  const store = new Map<number, { name: string; balance: string }>();
+type FakeAsset = { name: string; balance: Money };
+
+function createFakeAssets(initial: Record<number, FakeAsset>) {
+  const store = new Map<number, FakeAsset>();
   Object.entries(initial).forEach(([id, v]) => store.set(Number(id), { ...v }));
 
-  const mutate = (assetId: number, op: "add" | "subtract", amount: string) => {
+  const mutate = (assetId: number, op: "add" | "subtract", amount: Money) => {
     const entry = store.get(assetId);
     if (!entry) throw new Error(`Asset ${assetId} not found`);
-    const balance = parseMoney(entry.balance);
-    const delta = parseMoney(amount);
-    const next = op === "subtract" ? balance.subtract(delta) : balance.add(delta);
-    entry.balance = formatMoney(next);
+    entry.balance = op === "subtract" ? entry.balance.subtract(amount) : entry.balance.add(amount);
   };
 
   const toEntity = (id: number) => {
@@ -34,11 +33,11 @@ function createFakeAssets(initial: Record<number, { name: string; balance: strin
       const id = assetId.toNumb;
       return store.has(id) ? toEntity(id) : null;
     },
-    async mutateSubtractAsset(userId: ID, assetId: ID, amount: string) {
+    async mutateSubtractAsset(userId: ID, assetId: ID, amount: Money) {
       mutate(assetId.toNumb, "subtract", amount);
       return toEntity(assetId.toNumb);
     },
-    async mutateAddAsset(userId: ID, assetId: ID, amount: string) {
+    async mutateAddAsset(userId: ID, assetId: ID, amount: Money) {
       mutate(assetId.toNumb, "add", amount);
       return toEntity(assetId.toNumb);
     },
@@ -47,7 +46,9 @@ function createFakeAssets(initial: Record<number, { name: string; balance: strin
 
 describe("AssetPaymentGateway", () => {
   it("charges by debiting the resolved default asset", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 100000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(100000, iso.IDR) },
+    });
     const gateway = new AssetPaymentGateway(fake);
 
     const result = await gateway.charge({
@@ -60,13 +61,13 @@ describe("AssetPaymentGateway", () => {
     expect(result.success).toBe(true);
     expect(result.gatewayRef).toMatch(/^asset:5\.1\./);
     expect(result.status).toBe("completed");
-    expect(fake.store.get(1)?.balance).toBe("IDR 75000");
+    expect(fake.store.get(1)?.balance.toNumber()).toBe(75000);
   });
 
   it("uses the passed assetId even if another asset is the default", async () => {
     const fake = createFakeAssets({
-      1: { name: "MyCash", balance: "IDR 100000" },
-      2: { name: "USD Wallet", balance: "USD 100" },
+      1: { name: "MyCash", balance: Money.fromNumber(100000, iso.IDR) },
+      2: { name: "USD Wallet", balance: Money.fromNumber(100, iso.USD) },
     });
     const gateway = new AssetPaymentGateway(fake);
 
@@ -80,14 +81,14 @@ describe("AssetPaymentGateway", () => {
 
     expect(result.success).toBe(true);
     expect(result.gatewayRef).toMatch(/^asset:5\.2\./);
-    expect(fake.store.get(1)?.balance).toBe("IDR 100000");
-    expect(fake.store.get(2)?.balance).toBe("USD 90");
+    expect(fake.store.get(1)?.balance.toNumber()).toBe(100000);
+    expect(fake.store.get(2)?.balance.toNumber()).toBe(90);
   });
 
   it("resolves asset by currency match first", async () => {
     const fake = createFakeAssets({
-      1: { name: "MyCash", balance: "IDR 100000" },
-      2: { name: "USD Wallet", balance: "USD 100" },
+      1: { name: "MyCash", balance: Money.fromNumber(100000, iso.IDR) },
+      2: { name: "USD Wallet", balance: Money.fromNumber(100, iso.USD) },
     });
     const gateway = new AssetPaymentGateway(fake);
 
@@ -100,7 +101,7 @@ describe("AssetPaymentGateway", () => {
 
     expect(result.success).toBe(true);
     expect(result.gatewayRef).toMatch(/^asset:5\.2\./);
-    expect(fake.store.get(2)?.balance).toBe("USD 95");
+    expect(fake.store.get(2)?.balance.toNumber()).toBe(95);
   });
 
   it("fails when no payable asset exists", async () => {
@@ -120,7 +121,9 @@ describe("AssetPaymentGateway", () => {
   });
 
   it("fails on currency mismatch without mutating the asset", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 50000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(50000, iso.IDR) },
+    });
     const gateway = new AssetPaymentGateway(fake);
 
     const result = await gateway.charge({
@@ -132,11 +135,13 @@ describe("AssetPaymentGateway", () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/currency mismatch/i);
-    expect(fake.store.get(1)?.balance).toBe("IDR 50000");
+    expect(fake.store.get(1)?.balance.toNumber()).toBe(50000);
   });
 
   it("fails on insufficient balance without mutating the asset", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 1000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(1000, iso.IDR) },
+    });
     const gateway = new AssetPaymentGateway(fake);
 
     const result = await gateway.charge({
@@ -148,11 +153,13 @@ describe("AssetPaymentGateway", () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/insufficient/i);
-    expect(fake.store.get(1)?.balance).toBe("IDR 1000");
+    expect(fake.store.get(1)?.balance.toNumber()).toBe(1000);
   });
 
   it("fails on non-positive amount", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 1000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(1000, iso.IDR) },
+    });
     const gateway = new AssetPaymentGateway(fake);
 
     const result = await gateway.charge({
@@ -167,7 +174,9 @@ describe("AssetPaymentGateway", () => {
   });
 
   it("refunds by crediting the asset back", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 100000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(100000, iso.IDR) },
+    });
     const gateway = new AssetPaymentGateway(fake);
 
     const charged = await gateway.charge({
@@ -176,7 +185,7 @@ describe("AssetPaymentGateway", () => {
       currency: "IDR",
       method: "cash",
     });
-    expect(fake.store.get(1)?.balance).toBe("IDR 70000");
+    expect(fake.store.get(1)?.balance.toNumber()).toBe(70000);
 
     const refund = await gateway.refund({
       gatewayRef: charged.gatewayRef,
@@ -185,11 +194,13 @@ describe("AssetPaymentGateway", () => {
 
     expect(refund.success).toBe(true);
     expect(refund.status).toBe("completed");
-    expect(fake.store.get(1)?.balance).toBe("IDR 100000");
+    expect(fake.store.get(1)?.balance.toNumber()).toBe(100000);
   });
 
   it("refund supports a partial amount", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 100000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(100000, iso.IDR) },
+    });
     const gateway = new AssetPaymentGateway(fake);
 
     const charged = await gateway.charge({
@@ -205,11 +216,13 @@ describe("AssetPaymentGateway", () => {
     });
 
     expect(refund.success).toBe(true);
-    expect(fake.store.get(1)?.balance).toBe("IDR 60000");
+    expect(fake.store.get(1)?.balance.toNumber()).toBe(60000);
   });
 
   it("fails refund for an unknown gateway reference", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 100000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(100000, iso.IDR) },
+    });
     const gateway = new AssetPaymentGateway(fake);
 
     const refund = await gateway.refund({ gatewayRef: "not_asset_ref" });
@@ -219,7 +232,9 @@ describe("AssetPaymentGateway", () => {
   });
 
   it("getStatus resolves the encoded reference", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 100000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(100000, iso.IDR) },
+    });
     const gateway = new AssetPaymentGateway(fake);
 
     const charged = await gateway.charge({
@@ -241,7 +256,9 @@ describe("AssetPaymentGateway", () => {
   });
 
   it("custom resolver is used over the default", async () => {
-    const fake = createFakeAssets({ 1: { name: "MyCash", balance: "IDR 100000" } });
+    const fake = createFakeAssets({
+      1: { name: "MyCash", balance: Money.fromNumber(100000, iso.IDR) },
+    });
     let resolvedCurrency = "";
     const gateway = new AssetPaymentGateway(fake, {
       resolveAsset: (userId, currency) => {

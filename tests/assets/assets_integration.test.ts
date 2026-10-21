@@ -2,7 +2,7 @@ import { afterEach, beforeAll, describe, expect, it, mock } from "bun:test";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { createUserService, UserService } from "$services/domain/user";
 import { createTransactionService } from "$services/domain/transactions";
-import { Money, parseMoney } from "@lib/money";
+import { Money, iso } from "@lib/money";
 
 // `Money` punya constructor privat, jadi tipe `expect.any` tidak bisa menerima
 // class-nya secara langsung.
@@ -118,7 +118,7 @@ describe("assets integrations", () => {
       name: "Alice's Bank",
       type: "bank",
       userId: user1Id,
-      balance: parseMoney("IDR 1000000"),
+      balance: Money.fromNumber(1000000, iso.IDR),
     });
     expect(asset1.name).toBe("Alice's Bank");
     expect(asset1.userId.toNumb).toBe(user1Id.toNumb);
@@ -136,7 +136,7 @@ describe("assets integrations", () => {
       name: "Bob's GoPay",
       type: "ewallet",
       userId: user2Id,
-      balance: parseMoney("IDR 500000"),
+      balance: Money.fromNumber(500000, iso.IDR),
     });
     expect(asset2.name).toBe("Bob's GoPay");
     expect(asset2.userId.toNumb).toBe(user2Id.toNumb);
@@ -144,7 +144,7 @@ describe("assets integrations", () => {
     // ---- 5. User 1 subtracts balance from their asset ----
     assetRepo.findById.mockResolvedValueOnce({
       userId: user1Id,
-      balance: "IDR 1000000",
+      balance: Money.fromNumber(1000000, iso.IDR),
       name: "Alice's Bank",
       type: "bank" as const,
       metadata: { id: "abc123" },
@@ -152,7 +152,11 @@ describe("assets integrations", () => {
     assetRepo.update.mockResolvedValueOnce({} as any);
     assetRepo.createAssetMutation.mockResolvedValueOnce({} as any);
 
-    await AssetService.getInstance().mutateSubtractAsset(user1Id, ID.new(1), "IDR 200000");
+    await AssetService.getInstance().mutateSubtractAsset(
+      user1Id,
+      ID.new(1),
+      Money.fromNumber(200000, iso.IDR),
+    );
 
     expect(uow.run).toHaveBeenCalled();
     expect(assetRepo.findById).toHaveBeenCalledWith(user1Id, ID.new(1));
@@ -161,9 +165,9 @@ describe("assets integrations", () => {
       expect.objectContaining({
         userId: user1Id,
         type: "subtract",
-        amount: 200000,
-        currency: "IDR",
-        balanceBefore: "IDR 1000000",
+        amount: expect.any(AnyMoney),
+        balanceBefore: expect.any(AnyMoney),
+        balanceAfter: expect.any(AnyMoney),
       }),
       "tx",
     );

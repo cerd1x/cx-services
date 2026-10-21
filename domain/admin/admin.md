@@ -182,13 +182,15 @@ Kolom `created_at` disimpan sebagai teks `CURRENT_TIMESTAMP` (UTC), jadi
 dikelompokkan per `type`:
 
 ```ts
-sql`sum(cast(replace(substr(${transactionTable.amount}, 5), ',', '') as real))`;
+const amountToReal = (column: typeof transactionTable.amount) =>
+  sql<number>`cast(json_extract(${column}, '$.amount') as real)`;
 ```
 
-Kolom `amount` disimpan sebagai teks `"<ISO> <angka>"` (lihat `Balance.new`).
-Kode mata uang selalu 3 huruf diikuti satu spasi, jadi angka mulai pada offset
-ke-5. Konversi dilakukan **di SQL**, bukan di JS, supaya agregat atas seluruh
-tabel tidak perlu menarik semua baris ke memory worker — memory Worker terbatas.
+Kolom `amount`/`capital` disimpan sebagai TEXT berisi JSON instance `Money`
+(`{"amount":"1500000","currency":"IDR"}`, lihat `shared/infra/db/money.ts`).
+Nominalnya diambil dengan `json_extract` lalu di-cast ke `real`. Konversi
+dilakukan **di SQL**, bukan di JS, supaya agregat atas seluruh tabel tidak perlu
+menarik semua baris ke memory worker — memory Worker terbatas.
 
 Tidak ada `totalProfit`. `capital` bisa memakai mata uang berbeda dari `amount`,
 sehingga selisihnya tidak selalu berarti apa pun.

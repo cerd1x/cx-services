@@ -1,5 +1,5 @@
 import { Asset } from "../model/asset.model";
-import { parseMoney } from "@lib/money";
+import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";
 import { CoreUsecase } from "$services/shared/base";
@@ -9,7 +9,7 @@ import { logger } from "../value-objects/logger";
 export type MutateTransactionAssetInput = {
   userId: ID;
   assetId: ID;
-  amount: string;
+  amount: Money;
   description?: string;
 };
 
@@ -21,7 +21,7 @@ export class MutateTransactionAssetUseCase extends CoreUsecase<Asset, MutateTran
       userId,
       assetId,
       type: "transaction",
-      amount: parseMoney(amount),
+      amount,
       description,
     });
   }

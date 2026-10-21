@@ -1,5 +1,5 @@
 import { Asset } from "../model/asset.model";
-import { parseMoney, type Money } from "@lib/money";
+import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { TransactionService } from "$services/domain/transactions";
 import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";
@@ -11,7 +11,7 @@ import { logger } from "../value-objects/logger";
 export type MutateSubtractAssetInput = {
   userId: ID;
   assetId: ID;
-  amount: string;
+  amount: Money;
 };
 
 export class MutateSubtractAssetUseCase extends CoreUsecase<Asset, MutateSubtractAssetInput> {
@@ -19,27 +19,20 @@ export class MutateSubtractAssetUseCase extends CoreUsecase<Asset, MutateSubtrac
   async execute(input: MutateSubtractAssetInput): Promise<Asset> {
     const { userId, assetId, amount } = input;
 
-    let balanceAmount: Money;
-    try {
-      balanceAmount = parseMoney(amount);
-    } catch (error) {
-      throw new ValidationError(`Invalid amount: ${amount}`, { cause: error });
-    }
-
-    if (balanceAmount.toNumber() <= 0) {
+    if (amount.toNumber() <= 0) {
       throw new ValidationError("amount must be positive");
     }
     const result = await this.deps
       .get(ApplyAssetMutationUseCase)
-      .execute({ userId, assetId, type: "subtract", amount: balanceAmount });
+      .execute({ userId, assetId, type: "subtract", amount });
     if (!result) return result;
 
-    const capital = parseMoney(result.balance).add(balanceAmount);
+    const capital = result.balance.add(amount);
 
     await TransactionService.getInstance().createTransaction({
       userId: userId.toNumb,
       payToAssetId: assetId.toNumb,
-      amount: balanceAmount,
+      amount,
       capital,
       type: "outcome",
       category: "Subtract Balance",

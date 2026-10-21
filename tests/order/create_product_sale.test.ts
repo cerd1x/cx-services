@@ -19,6 +19,8 @@ import { createProductService } from "$services/domain/products";
 import { createTransactionService } from "$services/domain/transactions";
 import { createAssetService, AssetService } from "$services/domain/assets";
 import { ID } from "$services/shared/kernel/id";
+import { Money, iso } from "@lib/money";
+import { toMinorUnits } from "$services/shared/infra/db/money";
 import { PaymentRepositoryImpl } from "$services/domain/payment/adapters/driven/drizzle/payment.repository";
 import { InvoiceRepositoryImpl } from "$services/domain/payment/adapters/driven/drizzle/invoice.repository";
 import { MockPaymentGateway } from "$services/domain/payment/adapters/driven/payment-gateway/mock-gateway.adapter";
@@ -197,7 +199,8 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
         userId,
         name: "Bank Account",
         type: "bank",
-        balance: 1_000_000,
+        // `asset.balance` disimpan dalam minor unit (IDR: sen).
+        balance: Number(toMinorUnits(Money.fromNumber(1_000_000, iso.IDR))),
         currency: "IDR",
       })
       .returning({ id: assetTable.id });
@@ -224,7 +227,9 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
       .from(assetTable)
       .where(eq(assetTable.id, assetIdNum))
       .all();
-    expect(updatedAsset[0].balance).toBe(1_025_000);
+    expect(updatedAsset[0].balance).toBe(
+      Number(toMinorUnits(Money.fromNumber(1_025_000, iso.IDR))),
+    );
   });
 
   it("throws when product not found", async () => {

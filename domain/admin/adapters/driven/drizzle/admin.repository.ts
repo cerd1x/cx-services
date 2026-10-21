@@ -1,5 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { getDB } from "$services/shared/infra/db";
+import { deserializeMoney } from "$services/shared/infra/db/money";
 import { userTable } from "$services/shared/infra/db/drizzle-schema/user.schema";
 import { transactionTable } from "$services/shared/infra/db/drizzle-schema/transaction.schema";
 import { assetTable } from "$services/shared/infra/db/drizzle-schema/asset.schema";
@@ -12,14 +13,13 @@ import type {
 import { AdminRepository } from "../../../core/ports/out/admin-repository.port";
 
 /**
- * `amount`/`capital` disimpan sebagai teks `"<ISO> <angka>"` (lihat
- * `formatMoney()` di `@lib/money`). Kode mata uang selalu 3 huruf
- * diikuti satu spasi, jadi angka mulai pada offset ke-5. Konversi dilakukan di
+ * `amount`/`capital` disimpan sebagai JSON instance `Money`
+ * (`{"amount":"1500000","currency":"IDR"}`). Konversi ke angka dilakukan di
  * SQL supaya agregat atas seluruh tabel tidak perlu menarik semua baris ke
  * memory worker.
  */
 const amountToReal = (column: typeof transactionTable.amount) =>
-  sql<number>`cast(replace(substr(${column}, 5), ',', '') as real)`;
+  sql<number>`cast(json_extract(${column}, '$.amount') as real)`;
 
 function toRole(value: unknown): UserRole {
   const parsed = userRoleSchema.safeParse(value);
@@ -115,8 +115,11 @@ export class AdminRepositoryImpl implements AdminRepository {
   }
 }
 
-/** Parse `"<ISO> <angka>"` menjadi angka; 0 bila format tak dikenali. */
+/** Parse JSON instance `Money` menjadi nominalnya; "0" bila tak dikenali. */
 function amountToReader(value: string): string {
-  const parts = value.trim().split(" ");
-  return parts.length >= 2 ? parts.slice(1).join(" ") : "0";
+  try {
+    return deserializeMoney(value).toNumber().toString();
+  } catch {
+    return "0";
+  }
 }

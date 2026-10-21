@@ -146,12 +146,12 @@ export class AssetService {
   }
 
   @logMethod(logger)
-  async mutateAddAsset(userId: ID, assetId: ID, amount: string): Promise<Asset> {
+  async mutateAddAsset(userId: ID, assetId: ID, amount: Money): Promise<Asset> {
     return this.#mutateAddAsset.execute({ userId, assetId, amount });
   }
 
   @logMethod(logger)
-  async mutateSubtractAsset(userId: ID, assetId: ID, amount: string): Promise<Asset> {
+  async mutateSubtractAsset(userId: ID, assetId: ID, amount: Money): Promise<Asset> {
     return this.#mutateSubtractAsset.execute({ userId, assetId, amount });
   }
 
@@ -159,7 +159,7 @@ export class AssetService {
   async mutateTransactionAsset(
     userId: ID,
     assetId: ID,
-    amount: string,
+    amount: Money,
     description?: string,
   ): Promise<Asset> {
     return this.#mutateTransactionAsset.execute({
@@ -175,7 +175,7 @@ export class AssetService {
     userId: ID,
     fromAssetId: ID,
     toAssetId: ID,
-    amount: string,
+    amount: Money,
   ): Promise<{ from: Asset; to: Asset }> {
     return this.#mutateSwapAsset.execute({
       userId,

@@ -134,13 +134,15 @@ Full-stack finance management. Backend: **Elysia + GraphQL Yoga** on Cloudflare 
 - **Entity (drizzle/TypeScript)**
 
   ```ts
-  import { sqliteTable, integer, real, text } from "drizzle-orm/sqlite-core";
+  import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
 
   export const orders = sqliteTable("orders", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     userId: integer("user_id").notNull(),
     orderDate: text("order_date").notNull(),
-    totalAmount: real("total_amount").notNull(),
+    // Uang: integer minor unit (satuan terkecil), bukan real/major unit.
+    totalAmount: integer("total_amount").notNull(),
+    currency: text("currency", { length: 4 }).notNull(),
   });
 
   export type OrderEntity = typeof orders.$inferSelect;
@@ -269,7 +271,7 @@ export class Asset {
     return this.#type;
   }
   get metadata() {
-    return { name: this.#name, type: this.#type, balance: this.#balance.toNumber().toString() };
+    return { name: this.#name, type: this.#type, balance: this.#balance };
   }
 
   static new(input: AssetInput & { balance: Money }): Asset {
@@ -327,34 +329,35 @@ Nilai uang TIDAK perlu value object sendiri — pakai `Money` dari package
 `@lib/money` (workspace `lib/money/`). `Money` immutable: `add`/`subtract`
 mengembalikan instance baru, bukan mengubah instance lama.
 
-```ts
-// lib/money/src/literal.ts
-import { Decimal, Money, Round, isoCurrencies, type Currency } from "@lib/money";
+Di dalam domain, uang **selalu** berupa instance `Money`. Jangan parse/format
+string uang di domain — string `"KODE NOMINAL"` hanya hidup di boundary:
 
-/** Format nominal uang: "KODE NOMINAL", mis. "USD 100". */
-const MONEY_PATTERN = /^([A-Z]{3})\s+(-?[\d,]+(?:\.\d+)?)$/;
+| Lapisan                                                            | Bentuk uang                                                                                                                                            |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GraphQL (wire)                                                     | string `"KODE NOMINAL"`, mis. `"IDR 1500000"` — via scalar `Money` di [`shared/infra/graphql/scalars/money.ts`](shared/infra/graphql/scalars/money.ts) |
+| Domain (model, usecase, port)                                      | instance `Money`                                                                                                                                       |
+| Database, tabel dengan kolom `currency`                            | integer **minor unit** (satuan terkecil, mis. `IDR 1500000` → `150000000`)                                                                             |
+| Database, tabel tanpa kolom `currency` (mis. `transaction.amount`) | TEXT berisi JSON `Money`: `{"amount":"1500000.00","currency":"IDR"}`                                                                                   |
 
-/** Parse "USD 100" menjadi `Money`. */
-export function parseMoney(value: string): Money {
-  const match = value.trim().match(MONEY_PATTERN);
-  if (!match) throw new Error(`Invalid balance format: "${value}"`);
+Konversi DB terpusat di [`shared/infra/db/money.ts`](shared/infra/db/money.ts):
+`toMinorUnits(money)`, `fromMinorUnits(value, code)`, `serializeMoney(money)`,
+`deserializeMoney(text)`. Catat bahwa `minor unit` mengikuti _exponent_ mata
+uang — IDR/USD `2`, JPY `0`, KWD `3`, BTC `8`.
 
-  const [, isoCode, rawAmount] = match;
-  const currency = findSpendableCurrency(isoCode);
-  const amount = parseFloat(rawAmount.replace(/,/g, ""));
+Di GraphQL, deklarasikan field/argumen uang sebagai scalar `Money` (bukan
+`String`), sedangkan nilai yang dikirim klien tetap string `"KODE NOMINAL"`:
 
-  const rounded = Money.fromDecimal(Decimal.fromNumber(amount), currency).round(
-    currency.exponent,
-    Round.HalfUp,
-  );
-  return Money.fromMinor(rounded.toMinorUnits(), currency);
-}
-
-/** Format `Money` menjadi "KODE NOMINAL". */
-export function formatMoney(money: Money): string {
-  return `${money.currency.code} ${money.toNumber()}`;
+```graphql
+mutation {
+  addBalance(assetId: "abc", amount: "IDR 250000") {
+    balance
+  }
 }
 ```
+
+Scalar hanya menerima kode ISO 4217 yang bisa dibelanjakan (`BTC` dan kode
+non-spendable seperti `XXX`/`XDR` ditolak) dan membulatkan nominal ke
+`Round.HalfUp` pada skala exponent mata uang.
 
 ### Port Interface (Abstract Class) — `core/ports/out/`
 
@@ -515,14 +518,14 @@ interface MutateAssetInput {
   userId: AssetInput["userId"];
   name: AssetInput["name"];
   type: AssetType;
-  balance: string;
+  balance: Money;
 }
 
 // Concrete use case: extends CoreUsecase + akses dep via this.deps.get(GetCtx)
 class MutateAssetService extends CoreUsecase<string, MutateAssetInput> {
   async execute(input: MutateAssetInput): Promise<string> {
     const assetRepo = this.deps.get(GetCtx);
-    const balance = parseMoney(input.balance);
+    const balance = input.balance;
     const asset = Asset.new({
       userId: input.userId,
       name: input.name,
@@ -595,7 +598,8 @@ type Mutation {
 type Asset {
   name: String!
   type: AssetType!
-  balance: String!
+  ## scalar Money: wire format tetap string "KODE NOMINAL"
+  balance: Money!
 }
 ```
 
@@ -607,7 +611,6 @@ Gunakan `Resolvers<YogaContext>` dari generated types. Akses use-case/service vi
 // domain/assets/adapters/driving/graphql/asset.resolver.ts
 import type { Resolvers, AssetType } from "$gql/types.generated";
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
-import { parseMoney } from "@lib/money";
 import typeDefs from "./asset.gql?raw";
 
 const resolvers: Resolvers<YogaContext> = {
@@ -619,7 +622,8 @@ const resolvers: Resolvers<YogaContext> = {
   },
   Mutation: {
     createAsset: async (_parent, args, { asset }) => {
-      const balance = parseMoney(args.input.balance);
+      // `args.input.balance` sudah berupa instance `Money` (scalar GraphQL `Money`).
+      const balance = args.input.balance;
       const result = await asset.create({
         name: args.input.name,
         type: args.input.type as AssetType,
@@ -857,7 +861,7 @@ Jalankan: `bun run gql:gen` — **WAJIB** dijalankan setiap ada perubahan SDL (`
 10. GraphQL resolver **WAJIB** pakai `Resolvers<YogaContext>` type
 11. SDL **WAJIB** di-import via `import typeDefs from "./module.gql?raw"`
 12. ID ke external **WAJIB** pake `ID.toHash()` (Sqids), internal pake `ID.toNumb()`
-13. Money **WAJIB** pake `Money` dari `@lib/money` (`lib/money/`) — string "KODE NOMINAL" di-parse via `parseMoney()` dari `@lib/money`
+13. Money **WAJIB** pake `Money` dari `@lib/money` (`lib/money/`) di seluruh domain — instance `Money`, bukan string. String "KODE NOMINAL" hanya dipakai di boundary: scalar GraphQL `Money` (`shared/infra/graphql/scalars/money.ts`) dan helper DB (`shared/infra/db/money.ts`: minor unit / JSON). Di DB, tabel ber-kolom `currency` menyimpan **minor unit** (integer); tabel tanpa kolom `currency` menyimpan JSON `Money` di TEXT
 14. Jangan import `$services/` dari client code (`src/routes/`, `src/lib/`) — lihat `client-server-boundary` skill
 15. Cross-module dependency hanya via services: `auth→user`, `order→product|transaction|asset`, `assets→transaction`
 16. Komposisi module hanya di `<module>.composition.ts` — jangan impor repo/entity module lain secara langsung. Referensi service antar module yang membentuk siklus **WAJIB** resolve saat runtime (`Service.getInstance()` / lazy gateway), jangan tangkap `export const service` di top-level

@@ -1,3 +1,4 @@
+import type { Money } from "@lib/money";
 import type { ID } from "$services/shared/kernel";
 
 export type SwapBalanceResult = {
@@ -5,13 +6,13 @@ export type SwapBalanceResult = {
     IdStr: string;
     name: string;
     type: string;
-    balance: string;
+    balance: Money;
   };
   to: {
     IdStr: string;
     name: string;
     type: string;
-    balance: string;
+    balance: Money;
   };
 };
 
@@ -20,6 +21,6 @@ export type AssetSwapGateway = {
     userId: ID,
     fromAssetId: ID,
     toAssetId: ID,
-    amount: string,
+    amount: Money,
   ): Promise<SwapBalanceResult>;
 };

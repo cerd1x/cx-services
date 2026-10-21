@@ -34,7 +34,7 @@ type Mutation {
   createTransaction(input: CreateTransactionInput!): Transaction! @authorized
   updateTransaction(id: ID!, input: UpdateTransactionInput!): Transaction! @authorized
   deleteTransaction(id: ID!): Boolean! @authorized
-  swapBalance(fromAssetId: ID!, toAssetId: ID!, amount: String!): SwapBalanceResult! @authorized
+  swapBalance(fromAssetId: ID!, toAssetId: ID!, amount: Money!): SwapBalanceResult! @authorized
 }
 
 type SwapBalanceResult {
@@ -57,8 +57,8 @@ input PaymentMethodInput {
 
 input CreateTransactionInput {
   type: TransactionType!
-  amount: String!
-  capital: String!
+  amount: Money!
+  capital: Money!
   date: DateTimeOrTimestamp!
   description: String
   category: String
@@ -72,8 +72,8 @@ input CreateTransactionInput {
 
 input UpdateTransactionInput {
   type: TransactionType
-  amount: String
-  capital: String
+  amount: Money
+  capital: Money
   date: DateTimeOrTimestamp
   description: String
   category: String
@@ -103,8 +103,8 @@ type Transaction {
   paymentStatus: TransactionPaymentStatus!
 
   #string of ISOCODE + VALUE
-  amount: String!
-  capital: String!
+  amount: Money!
+  capital: Money!
   description: String
   category: String
   paymentMethod: PaymentMethod!

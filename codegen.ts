@@ -1,7 +1,10 @@
 import type { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
-  schema: ["./domain/**/*.gql", "scalar DateTime\nscalar Timestamp\nscalar DateTimeOrTimestamp"],
+  schema: [
+    "./domain/**/*.gql",
+    "scalar DateTime\nscalar Timestamp\nscalar DateTimeOrTimestamp\nscalar Money",
+  ],
   generates: {
     "./shared/infra/graphql/types/types.generated.ts": {
       plugins: ["typescript", "typescript-resolvers"],
@@ -18,6 +21,7 @@ const config: CodegenConfig = {
       DateTime: "Date",
       Timestamp: "number",
       DateTimeOrTimestamp: "Date",
+      Money: "import('@lib/money').Money",
     },
   },
 };
