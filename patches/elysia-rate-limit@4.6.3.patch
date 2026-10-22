@@ -1,0 +1,22 @@
+diff --git a/dist/index.js b/dist/index.js
+index 74ebcbd682d53d8fcf88a6ca1cbc9a59a18497e6..208faf95fe82c96d87a27b8a32bdf7b5e4f96a45 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -192,7 +192,7 @@ const plugin = function rateLimitPlugin(userOptions) {
+ 			writeRateLimitHeaders(set.headers, maxLimit, remaining, reset);
+ 			logger("plugin", "clientKey %s passed through with %d/%d request used (resetting in %d seconds)", clientKey, maxLimit - remaining, maxLimit, reset);
+ 		};
+-		plugin$1.onBeforeHandle({ as: options.scoping }, async function onBeforeHandleRateLimitHandler({ set, request, cookie }) {
++		plugin$1.onBeforeHandle(options.scoping, async function onBeforeHandleRateLimitHandler({ set, request, cookie }) {
+ 			const context = arguments[0];
+ 			let clientKey;
+ 			const enhancedRequest = attachCookieToRequest(request, cookie);
+@@ -214,7 +214,7 @@ const plugin = function rateLimitPlugin(userOptions) {
+ 				if (limitResult !== void 0) return limitResult;
+ 			}
+ 		});
+-		plugin$1.onError({ as: options.scoping }, async function onErrorRateLimitHandler({ request, cookie, set }) {
++		plugin$1.onError(options.scoping, async function onErrorRateLimitHandler({ request, cookie, set }) {
+ 			const context = arguments[0];
+ 			const error = context.error;
+ 			const code = context.code;

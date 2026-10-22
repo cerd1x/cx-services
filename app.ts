@@ -14,6 +14,13 @@ const l = streamLog(Logger.fromConfig(appConfigs.logger)).child("ApiServer");
  * Cloudflare Workers melarang pembuatan objek I/O (`Response`) di global scope,
  * jadi rate-limit memakai `Error` sebagai `errorResponse` lalu dipetakan ke
  * response 429 lewat `.onError()`. Bentuk body JSON dipertahankan seperti semula.
+ *
+ * Catatan: `elysia-rate-limit` dipin di 4.6.3 + patch lokal
+ * (`patches/elysia-rate-limit@4.6.3.patch`) karena versi ini masih memakai
+ * `{ as: scope }` yang deprecated di Elysia 2 rc. Patch menggantinya dengan
+ * argumen posisi `onBeforeHandle(scope, fn)` / `onError(scope, fn)`. Versi 5.x
+ * belum bisa dipakai: ia memanggil `beforeHandle`/`error` yang belum ada di
+ * Elysia 2.0.0-rc.0.
  */
 class RateLimitExceededError extends Error {
   override name = "RateLimitExceededError";
