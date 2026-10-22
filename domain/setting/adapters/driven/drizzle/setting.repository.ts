@@ -21,6 +21,7 @@ export class SettingRepositoryImpl implements SettingRepository {
       currency: row.currency,
       darkMode: row.darkMode,
       dateFormat: row.dateFormat,
+      defaultAssetCashId: row.defaultAssetCashId ?? undefined,
     };
   }
 
@@ -34,6 +35,7 @@ export class SettingRepositoryImpl implements SettingRepository {
           currency: setting.currency,
           darkMode: setting.darkMode,
           dateFormat: setting.dateFormat,
+          defaultAssetCashId: setting.defaultAssetCashId,
           updatedAt: new Date().toISOString(),
         })
         .where(eq(settingTable.userId, setting.userId))
@@ -46,6 +48,7 @@ export class SettingRepositoryImpl implements SettingRepository {
         currency: row.currency,
         darkMode: row.darkMode,
         dateFormat: row.dateFormat,
+        defaultAssetCashId: row.defaultAssetCashId ?? undefined,
       };
     }
 
@@ -56,6 +59,7 @@ export class SettingRepositoryImpl implements SettingRepository {
         currency: setting.currency,
         darkMode: setting.darkMode,
         dateFormat: setting.dateFormat,
+        defaultAssetCashId: setting.defaultAssetCashId,
       })
       .returning();
 
@@ -66,6 +70,7 @@ export class SettingRepositoryImpl implements SettingRepository {
       currency: row.currency,
       darkMode: row.darkMode,
       dateFormat: row.dateFormat,
+      defaultAssetCashId: row.defaultAssetCashId ?? undefined,
     };
   }
 }

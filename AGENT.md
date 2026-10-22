@@ -863,7 +863,7 @@ Jalankan: `bun run gql:gen` — **WAJIB** dijalankan setiap ada perubahan SDL (`
 12. ID ke external **WAJIB** pake `ID.toHash()` (Sqids), internal pake `ID.toNumb()`
 13. Money **WAJIB** pake `Money` dari `@lib/money` (`lib/money/`) di seluruh domain — instance `Money`, bukan string. String "KODE NOMINAL" hanya dipakai di boundary: scalar GraphQL `Money` (`shared/infra/graphql/scalars/money.ts`) dan helper DB (`shared/infra/db/money.ts`: minor unit / JSON). Di DB, tabel ber-kolom `currency` menyimpan **minor unit** (integer); tabel tanpa kolom `currency` menyimpan JSON `Money` di TEXT
 14. Jangan import `$services/` dari client code (`src/routes/`, `src/lib/`) — lihat `client-server-boundary` skill
-15. Cross-module dependency hanya via services: `auth→user`, `order→product|transaction|asset`, `assets→transaction`
+15. Cross-module dependency hanya via services: `auth→user`, `order→product|transaction|asset|payment`, `assets→transaction`, `payment→asset|setting` (settlement `OrderProductSale`)
 16. Komposisi module hanya di `<module>.composition.ts` — jangan impor repo/entity module lain secara langsung. Referensi service antar module yang membentuk siklus **WAJIB** resolve saat runtime (`Service.getInstance()` / lazy gateway), jangan tangkap `export const service` di top-level
 17. **Barrel export**: /ts` modul — jangan tembus ke subfolder
 18. **Cross-module via service/port**: kalau modul A butuh data modul B, lewat service yang diexport `index.ts`-nya

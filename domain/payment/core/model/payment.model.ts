@@ -23,6 +23,21 @@ const PaymentMethodType = {
 
 type PaymentMethodType = (typeof PaymentMethodType)[keyof typeof PaymentMethodType];
 
+/**
+ * Jenis proses pembayaran.
+ *
+ * - `general` — pembayaran umum; hanya charge (jika `assetId` diberikan), tanpa
+ *   settlement internal.
+ * - `OrderProductSale` — penjualan produk: `assetId` di-charge lalu dana
+ *   disettlekan ke asset default cash user (`setting.defaultAssetCashId`).
+ */
+const ProcessPaymentType = {
+  general: "general",
+  orderProductSale: "OrderProductSale",
+} as const;
+
+type ProcessPaymentType = (typeof ProcessPaymentType)[keyof typeof ProcessPaymentType];
+
 const paymentStatusSchema = z.enum([
   "pending",
   "processing",
@@ -205,4 +220,4 @@ export class Payment {
   }
 }
 
-export { PaymentStatus, PaymentMethodType };
+export { PaymentStatus, PaymentMethodType, ProcessPaymentType };

@@ -1,9 +1,11 @@
-import { Payment } from "../model/payment.model";
+import { Payment, ProcessPaymentType } from "../model/payment.model";
 import type { PaymentData } from "../model/payment.model";
 import { PaymentRepository } from "../ports/out/payment-repository.port";
 import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { PaymentRetryExhaustedError } from "../errors/payment-error";
 import { RetryPolicyToken } from "../value-objects/retry-policy.vo";
+import { AssetChargeGatewayToken } from "../value-objects/asset-charge-gateway.vo";
+import { refundCharge, settleOrderProductSale } from "./payment-settlement.helper";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
@@ -13,7 +15,7 @@ export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: I
   @logMethod(logger)
   async execute(input: { paymentId: ID; userId: ID }): Promise<PaymentData> {
     const paymentRepo = this.deps.get(PaymentRepository);
-    const gateway = this.deps.get(PaymentGateway);
+    const defaultGateway = this.deps.get(PaymentGateway);
     const retryPolicy = this.deps.get(RetryPolicyToken);
 
     const existing = await paymentRepo.findById(input.paymentId.toNumb, input.userId);
@@ -54,9 +56,21 @@ export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: I
       input.userId,
     );
 
+    const type =
+      payment.metadata?.paymentType === ProcessPaymentType.orderProductSale
+        ? ProcessPaymentType.orderProductSale
+        : ProcessPaymentType.general;
+    const assetId =
+      typeof payment.metadata?.assetId === "number" ? payment.metadata.assetId : undefined;
+    const gateway =
+      assetId !== undefined && this.deps.has(AssetChargeGatewayToken)
+        ? this.deps.get(AssetChargeGatewayToken)
+        : defaultGateway;
+
     try {
       const gatewayResponse = await gateway.charge({
         userId: payment.userId,
+        assetId,
         amount: payment.amount,
         currency: payment.currency,
         method: payment.method,
@@ -70,7 +84,16 @@ export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: I
 
       if (gatewayResponse.success) {
         payment.gatewayRef = gatewayResponse.gatewayRef;
-        payment.transitionTo("completed");
+
+        try {
+          if (type === ProcessPaymentType.orderProductSale) {
+            await settleOrderProductSale(this.deps, payment);
+          }
+          payment.transitionTo("completed");
+        } catch (error) {
+          await refundCharge(gateway, gatewayResponse.gatewayRef);
+          throw error;
+        }
       } else {
         payment.transitionTo("failed");
         payment.metadata = {

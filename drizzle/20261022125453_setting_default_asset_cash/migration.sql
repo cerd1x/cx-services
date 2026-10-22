@@ -1,0 +1,1 @@
+ALTER TABLE `setting` ADD `default_asset_cash_id` integer REFERENCES asset(id) ON DELETE SET NULL;

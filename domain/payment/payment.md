@@ -112,6 +112,7 @@ domain/payment/
 
 - **`PaymentStatus`** — enum: `pending`, `processing`, `completed`, `failed`, `refunded`, `cancelled`
 - **`PaymentMethodType`** — enum: `cash`, `bank_transfer`, `ewallet`, `credit_card`, `debit_card`, `credit` (selaras dengan module `transactions`)
+- **`ProcessPaymentType`** — enum jenis proses: `general` (charge saja) dan `OrderProductSale` (charge `assetId` lalu settle ke `setting.defaultAssetCashId`)
 - **`VALID_TRANSITIONS`** — state machine status payment:
   - `pending → [processing, cancelled]`
   - `processing → [completed, failed]`
@@ -217,13 +218,13 @@ domain/payment/
 
 [`services/domain/payment/app/use-cases/process-payment.use-case.ts`](./app/use-cases/process-payment.use-case.ts)
 
-**Singleton pattern.** 1. Validasi input via `Payment.new(...).validateAll()` (amount > 0, currency ISO, method valid). 2. Transisi `pending → processing`. 3. `save` ke repository (status `processing`). 4. Rekonstruksi entity dari data tersimpan. 5. Panggil `gateway.charge(...)`:
+**Singleton pattern.** 1. Validasi input via `Payment.new(...).validateAll()` (amount > 0, currency ISO, method valid). Jika `type: OrderProductSale`, `assetId` wajib diisi. 2. Transisi `pending → processing`. 3. `save` ke repository (status `processing`). 4. Rekonstruksi entity dari data tersimpan. 5. Pilih gateway: `AssetChargeGatewayToken` (`AssetPaymentGateway`) jika request menyertakan `assetId`, selain itu gateway default. 6. Panggil `gateway.charge(...)`:
 
-- Sukses → simpan `gatewayRef`, transisi `processing → completed`.
+- Sukses → simpan `gatewayRef`. Jika `type === OrderProductSale`, dana disettlekan ke `setting.defaultAssetCashId` via `PaymentSettlementPort`. Settlement gagal → `gateway.refund()` sebagai kompensasi lalu payment `failed`.
 - Gagal (response `success: false`) → transisi `processing → failed`, tulis `metadata.lastError`.
 - Gateway throw → transisi `processing → failed`, tulis `lastError` (pesan atau `"Unknown gateway error"`).
 
-6. `update` hasil akhir (status, gatewayRef, metadata, retryCount).
+7. `update` hasil akhir (status, gatewayRef, metadata, retryCount). `metadata` menyimpan `paymentType` dan `assetId` agar retry bisa mengulang charge + settlement.
 
 #### 10. `core/usecase/create-invoice.use-case.ts`
 
@@ -247,8 +248,8 @@ domain/payment/
 2. Rekonstruksi entity `Payment` dari data tersimpan.
 3. Gate: `!payment.canRetry() || !retryPolicy.shouldRetry(retryCount)` → throw `PaymentRetryExhaustedError(paymentId, maxRetries)`.
 4. `incrementRetry()` (retryCount +1, status → `pending`) lalu `transitionTo("processing")`, update status `processing` + `retryCount`.
-5. `gateway.charge(...)` dengan `metadata.isRetry: true` & `retryAttempt`:
-   - Sukses → `gatewayRef` + `completed`.
+5. `gateway.charge(...)` dengan `metadata.isRetry: true` & `retryAttempt`, memakai `assetId`/`paymentType` dari metadata:
+   - Sukses → `gatewayRef` + `completed` (dan settlement ulang jika `OrderProductSale`).
    - Gagal/throw → `failed` + `lastError` + `nextRetryDelayMs: retryPolicy.getNextRetryDelay(retryCount)`.
 6. Update akhir.
 
@@ -263,9 +264,10 @@ Method publik:
 **Group Payment:**
 
 1. **`processPayment(input)`** → `Promise<PaymentData>`
-   - **Parameter:** `{ userId, amount, currency, method, invoiceId?, description? }`
+   - **Parameter:** `{ userId, amount, currency, method, assetId?, invoiceId?, description?, type? }`
    - **Tugas:** Memproses pembayaran baru — membangun `Payment`, transisi `pending → processing`, simpan ke DB (status `processing`), panggil `ProcessPaymentUseCase` → `gateway.charge()`, lalu update hasil akhir (`completed`/`failed` + `gatewayRef`/`lastError`).
-   - **Throw:** error validasi (amount ≤ 0, currency bukan 3 huruf, method tidak valid).
+   - **`type: OrderProductSale`:** `assetId` wajib; asset di-charge lewat `AssetPaymentGateway` lalu dana disettlekan ke `setting.defaultAssetCashId`. Retry mengulang charge + settlement dari metadata.
+   - **Throw:** error validasi (amount ≤ 0, currency bukan 3 huruf, method tidak valid, atau `assetId` kosong untuk `OrderProductSale`).
 
 2. **`getPayment(id: ID, userId: ID)`** → `Promise<PaymentData>`
    - **Tugas:** Ambil satu payment by ID milik user. DB lookup via `paymentRepo.findById`.
@@ -350,13 +352,13 @@ Resolver menghubungkan schema ke `PaymentService`. `mapPayment()` / `mapInvoice(
 
 [`services/domain/payment/payment.composition.ts`](./payment.composition.ts)
 
-**Wiring**: `PaymentRepositoryImpl` + `InvoiceRepositoryImpl` + `MockPaymentGateway` → init ketiga use case → `PaymentService.init(...)`. Export singleton `paymentService`. Container tetap memakai `MockPaymentGateway`; untuk memproses saldo asset, ganti gateway dengan `AssetPaymentGateway(assetService)` (lihat bagian 20).
+**Wiring**: `PaymentRepositoryImpl` + `InvoiceRepositoryImpl` + `MockPaymentGateway` (gateway default) + `AssetPaymentGateway` (`AssetChargeGatewayToken`) + `AssetSettlementAdapter` (`PaymentSettlementPort`) → init use case → `PaymentService.init(...)`. Export singleton `paymentService`. Gateway default tetap `MockPaymentGateway`; `AssetPaymentGateway` dipakai otomatis saat request menyertakan `assetId` (mis. `OrderProductSale`).
 
 #### 19. `index.ts`
 
 [`services/domain/payment/index.ts`](./index.ts)
 
-Public exports: `paymentService`, entity class & types (`Payment`, `PaymentData`, `PaymentUpdateData`, `PaymentStatus`, `PaymentMethodType`, `Invoice`, `InvoiceData`, `InvoiceItem`, `InvoiceUpdateData`, `InvoiceStatus`), `RetryPolicy`/`RetryPolicyConfig`, type `PaymentGateway` beserta request/response types, serta adapter `AssetPaymentGateway` (+ `AssetGatewayConfig`, `AssetResolver`).
+Public exports: `paymentService`, entity class & types (`Payment`, `PaymentData`, `PaymentUpdateData`, `PaymentStatus`, `PaymentMethodType`, `ProcessPaymentType`, `Invoice`, `InvoiceData`, `InvoiceItem`, `InvoiceUpdateData`, `InvoiceStatus`), `RetryPolicy`/`RetryPolicyConfig`, type `PaymentGateway` beserta request/response types, `PaymentSettlementPort`, serta adapter `AssetPaymentGateway` (+ `AssetGatewayConfig`, `AssetResolver`) dan `AssetSettlementAdapter`.
 
 #### 20. `adapters/driven/payment-gateway/asset-gateway.adapter.ts`
 
@@ -373,18 +375,22 @@ Implementasi **`PaymentGateway`** berbasis **saldo asset internal** user — pem
 - `getStatus(gatewayRef)`: parse ref → `completed` (ref valid) / `failed` (bukan ref asset).
 - Kegagalan tidak pernah mutasi saldo (selalu dicek dulu sebelum debit).
 
-Dependency berupa interface struktural minimal `AssetMutator` (`assets`, `assetById`, `mutateAddAsset`, `mutateSubtractAsset`) — `AssetService` sudah memenuhinya. Untuk memakainya:
+Dependency berupa interface struktural minimal `AssetMutator` (`assets`, `assetById`, `mutateAddAsset`, `mutateSubtractAsset`) — `AssetService` sudah memenuhinya. Di komposisi production, `AssetPaymentGateway` di-wire sebagai gateway aset dengan `LazyAssetMutator` (resolve `AssetService.getInstance()` saat dipanggil, menghindari siklus module asset ↔ transaction).
 
-```ts
-import { AssetPaymentGateway, ProcessPaymentUseCase } from "$services/domain/payment";
-import { assetService } from "$services/domain/assets";
+#### 21. `adapters/driven/settlement/asset-settlement.adapter.ts`
 
-const gateway = new AssetPaymentGateway(assetService);
-// ganti MockPaymentGateway saat wiring:
-ProcessPaymentUseCase.init(payRepo, gateway);
-```
+[`adapters/driven/settlement/asset-settlement.adapter.ts`](./adapters/driven/settlement/asset-settlement.adapter.ts)
 
-Container default tetap memakai `MockPaymentGateway` (untuk test/Dev); ganti dengan `AssetPaymentGateway(assetService)` bila payment ingin memotong saldo asset user.
+Implementasi `PaymentSettlementPort`:
+
+- `defaultCashAssetId(userId)` → `SettingService.settingByUserId(userId).defaultAssetCashId` (`null` bila belum diatur).
+- `settle({ userId, assetId, amount, currency })` → kredit asset tujuan via `AssetService.mutateAddAsset`.
+
+Dipakai `ProcessPaymentUseCase`/`RetryPaymentUseCase` saat `type: OrderProductSale`: setelah charge sukses, dana disettlekan ke asset default cash. Jika default cash kosong atau settlement gagal, charge di-refund lewat `gateway.refund()` dan payment ditandai `failed` dengan `metadata.lastError`.
+
+#### 22. `core/usecase/payment-settlement.helper.ts`
+
+Helper bersama `settleOrderProductSale(deps, payment)` dan `refundCharge(gateway, gatewayRef)` yang dipakai process & retry agar logika settlement/kompensasi tidak terduplikasi.
 
 ---
 
@@ -395,10 +401,18 @@ Container default tetap memakai `MockPaymentGateway` (untuk test/Dev); ganti den
 ```text
 Payment.new({...}).validateAll()
     └── validasi amount > 0, currency ISO, method valid
+    └── type OrderProductSale → assetId wajib
 payment.transitionTo("processing")
 paymentRepo.save(payment)                       → simpan status processing
-gateway.charge({amount, currency, method, ...})
-    ├── success true      → gatewayRef + transitionTo("completed")
+pilih gateway: AssetPaymentGateway jika assetId ada, else gateway default
+gateway.charge({amount, currency, method, assetId, ...})
+    ├── success true + type OrderProductSale
+    │     ├── PaymentSettlementPort.defaultCashAssetId(userId)
+    │     │     └── null → refund charge + failed
+    │     ├── PaymentSettlementPort.settle(target = defaultAssetCashId)
+    │     │     └── throw → refund charge + failed
+    │     └── gatewayRef + transitionTo("completed")
+    ├── success true → gatewayRef + transitionTo("completed")
     ├── success false     → transitionTo("failed") + metadata.lastError
     └── throw             → transitionTo("failed") + metadata.lastError
 paymentRepo.update(id, {status, gatewayRef, metadata, retryCount})
@@ -494,7 +508,10 @@ invoiceRepo.update(id, { status })
 
 ```text
 processPayment / retryPayment
-    ├──► PaymentGateway.charge()   ← PORT OUTBOUND (adapter: MockPaymentGateway)
+    ├──► PaymentGateway.charge()   ← PORT OUTBOUND (adapter: MockPaymentGateway / AssetPaymentGateway)
+    ├──► PaymentSettlementPort     ← PORT OUTBOUND (adapter: AssetSettlementAdapter)
+    │       ├── SettingService.settingByUserId() → defaultAssetCashId
+    │       └── AssetService.mutateAddAsset()    → kredit asset tujuan
     └──► PaymentRepositoryImpl      ← MODULE PAYMENT (driven adapter)
 
 createInvoice

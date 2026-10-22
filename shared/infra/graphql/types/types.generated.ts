@@ -839,6 +839,7 @@ export type Setting = {
   currency: Scalars["String"]["output"];
   darkMode: Scalars["Boolean"]["output"];
   dateFormat: Scalars["String"]["output"];
+  defaultAssetCashId?: Maybe<Scalars["ID"]["output"]>;
   id: Scalars["ID"]["output"];
   userId: Scalars["ID"]["output"];
 };
@@ -966,6 +967,7 @@ export type UpdateSettingInput = {
   currency?: InputMaybe<Scalars["String"]["input"]>;
   darkMode?: InputMaybe<Scalars["Boolean"]["input"]>;
   dateFormat?: InputMaybe<Scalars["String"]["input"]>;
+  defaultAssetCashId?: InputMaybe<Scalars["ID"]["input"]>;
 };
 
 export type UpdateTransactionInput = {
@@ -1910,6 +1912,7 @@ export type SettingResolvers<
   currency?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   darkMode?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   dateFormat?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  defaultAssetCashId?: Resolver<Maybe<ResolversTypes["ID"]>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   userId?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
 };

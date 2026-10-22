@@ -8,6 +8,7 @@ import { productTable } from "$services/shared/infra/db/drizzle-schema/product.s
 import { userTable } from "$services/shared/infra/db/drizzle-schema/user.schema";
 import { assetTable } from "$services/shared/infra/db/drizzle-schema/asset.schema";
 import { contactTable } from "$services/shared/infra/db/drizzle-schema/contact.schema";
+import { settingTable } from "$services/shared/infra/db/drizzle-schema/setting.schema";
 import { createOrderService, OrderService } from "$services/domain/order";
 import { OrderRepositoryImpl } from "$services/domain/order/adapters/driven/drizzle/order.repository";
 import { ProductRepositoryImpl } from "$services/domain/products/adapters/driven/drizzle/product.repository";
@@ -24,9 +25,14 @@ import { toMinorUnits } from "$services/shared/infra/db/money";
 import { PaymentRepositoryImpl } from "$services/domain/payment/adapters/driven/drizzle/payment.repository";
 import { InvoiceRepositoryImpl } from "$services/domain/payment/adapters/driven/drizzle/invoice.repository";
 import { MockPaymentGateway } from "$services/domain/payment/adapters/driven/payment-gateway/mock-gateway.adapter";
+import { AssetPaymentGateway } from "$services/domain/payment/adapters/driven/payment-gateway/asset-gateway.adapter";
+import { LazyAssetMutator } from "$services/domain/payment/adapters/driven/payment-gateway/lazy-asset-mutator";
+import { AssetSettlementAdapter } from "$services/domain/payment/adapters/driven/settlement/asset-settlement.adapter";
 import { PaymentRepository } from "$services/domain/payment/core/ports/out/payment-repository.port";
 import { InvoiceRepository } from "$services/domain/payment/core/ports/out/invoice-repository.port";
 import { PaymentGateway } from "$services/domain/payment/core/ports/out/payment-gateway.port";
+import { PaymentSettlementPort } from "$services/domain/payment/core/ports/out/payment-settlement.port";
+import { AssetChargeGatewayToken } from "$services/domain/payment/core/value-objects/asset-charge-gateway.vo";
 import {
   RetryPolicy,
   RetryPolicyToken,
@@ -55,7 +61,9 @@ function initPayment(): PaymentService {
     .set(PaymentRepository, paymentRepo)
     .set(InvoiceRepository, invoiceRepo)
     .set(PaymentGateway, gateway)
-    .set(RetryPolicyToken, retryPolicy);
+    .set(RetryPolicyToken, retryPolicy)
+    .set(AssetChargeGatewayToken, new AssetPaymentGateway(new LazyAssetMutator()))
+    .set(PaymentSettlementPort, new AssetSettlementAdapter());
 
   const processPayment = new ProcessPaymentUseCase().setContext(container);
   const createInvoice = new CreateInvoiceUseCase().setContext(container);
@@ -205,6 +213,21 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
       })
       .returning({ id: assetTable.id });
     const assetIdNum = assetResult[0].id!;
+    const cashAssetResult = await db
+      .insert(assetTable)
+      .values({
+        userId,
+        name: "MyCash",
+        type: "cash",
+        balance: 0,
+        currency: "IDR",
+      })
+      .returning({ id: assetTable.id });
+    const cashAssetIdNum = cashAssetResult[0].id!;
+    await db.insert(settingTable).values({
+      userId,
+      defaultAssetCashId: cashAssetIdNum,
+    });
     const customerId = await seedContact(userId, 3);
 
     const order = await OrderService.getInstance().createOrderProductSale({
@@ -222,14 +245,20 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
     expect(order.status).toBe("success");
     expect(order.paymentMethod).toBe("bank_transfer");
 
+    // Sumber dana di-charge, lalu dana disettlekan ke default cash (setting).
     const updatedAsset = await db
       .select()
       .from(assetTable)
       .where(eq(assetTable.id, assetIdNum))
       .all();
-    expect(updatedAsset[0].balance).toBe(
-      Number(toMinorUnits(Money.fromNumber(1_025_000, iso.IDR))),
-    );
+    expect(updatedAsset[0].balance).toBe(Number(toMinorUnits(Money.fromNumber(975_000, iso.IDR))));
+
+    const updatedCash = await db
+      .select()
+      .from(assetTable)
+      .where(eq(assetTable.id, cashAssetIdNum))
+      .all();
+    expect(updatedCash[0].balance).toBe(Number(toMinorUnits(Money.fromNumber(25_000, iso.IDR))));
   });
 
   it("throws when product not found", async () => {

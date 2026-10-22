@@ -1,12 +1,11 @@
 import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import type { Order as OrderType } from "../model/order.model";
-import { ID } from "$services/shared/kernel";
 import { ProductService } from "$services/domain/products";
 import { TransactionService } from "$services/domain/transactions";
-import { PaymentService } from "$services/domain/payment";
+import { PaymentService, ProcessPaymentType } from "$services/domain/payment";
+import type { ID } from "$services/shared/kernel";
 import { PaymentServiceCtx } from "./payment-service.ctx";
-import { AssetService } from "$services/domain/assets";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
 import { CoreUsecase } from "$services/shared/base";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
@@ -96,7 +95,6 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       throw new Error("Failed to create order: no id returned");
     }
 
-    let assetCredited = false;
     let stockDeducted = false;
 
     try {
@@ -123,6 +121,8 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         assetId: data.payToAssetId,
         invoiceId: invoice.id,
         description,
+        // Tanpa asset tujuan tidak ada dana yang bisa di-charge/settle.
+        type: data.payToAssetId ? ProcessPaymentType.orderProductSale : ProcessPaymentType.general,
       });
 
       if (payment.status !== "completed") {
@@ -137,14 +137,8 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       );
       stockDeducted = true;
 
-      if (data.payToAssetId) {
-        await AssetService.getInstance().mutateAddAsset(
-          ID.new(data.userId),
-          ID.new(data.payToAssetId),
-          amount,
-        );
-        assetCredited = true;
-      }
+      // Settlement ke asset default cash dilakukan oleh ProcessPaymentUseCase
+      // (type: OrderProductSale), jadi tidak ada kredit manual di sini.
 
       await TransactionService.getInstance().createTransaction({
         userId: data.userId,
@@ -166,18 +160,6 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
 
       return order;
     } catch (error) {
-      if (assetCredited && data.payToAssetId) {
-        try {
-          await AssetService.getInstance().mutateSubtractAsset(
-            ID.new(data.userId),
-            ID.new(data.payToAssetId),
-            amount,
-          );
-        } catch {
-          /* ignore asset rollback error */
-        }
-      }
-
       if (stockDeducted) {
         try {
           await ProductService.getInstance().updateProduct(

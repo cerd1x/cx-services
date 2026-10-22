@@ -202,16 +202,21 @@ TransactionService.getInstance().createTransaction()
     └──→ savedTxId = createdTx.id
 ProductService.getInstance().updateProduct()
     └──→ kurangi stok
-AssetService.getInstance().mutateAddAsset()
-    └──→ tambah asset
+PaymentService.processPayment({ type: OrderProductSale, assetId: payToAssetId })
+    ├──→ charge payToAssetId (AssetPaymentGateway)
+    └──→ settlement ke setting.defaultAssetCashId (PaymentSettlementPort)
 Order.new(...).validateAll()
     └──→ orderRepo.save(order)
             ├── order.id undefined → Error
             └──→ order.id defined → return order
 catch → rollback:
     ├── delete transaction
-    ├── subtract asset
     └──→ restore stock
+    (charge/settlement dikompensasi oleh payment: refund bila settlement gagal)
+
+Catatan: order tidak lagi mengkredit `payToAssetId` manual — kredit hanya
+dilakukan oleh settlement payment agar tidak double-credit. Tanpa
+`payToAssetId`, payment memakai `type: general` (tanpa pergerakan saldo).
 
 ```
 
@@ -386,8 +391,9 @@ createOrderProductSale
     ├──► TransactionService.createTransaction() ← Module TRANSACTIONS
     │       └──→ catat income
     │
-    ├──► AssetService.mutateAddAsset() ← Module ASSETS
-    │       └──→ tambah saldo asset
+    ├──► PaymentService.processPayment() ← Module PAYMENT
+    │       ├──→ charge asset (OrderProductSale)
+    │       └──→ settlement ke default asset cash (setting)
     │
     └──→► OrderRepository.save()        ← Module ORDER
             └──→ simpan order

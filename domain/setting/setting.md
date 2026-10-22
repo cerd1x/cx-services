@@ -101,13 +101,14 @@ domain/setting/
 [`services/domain/setting/adapters/driven/drizzle/setting.repository.ts`](./adapters/driven/drizzle/setting.repository.ts)
 
 - Implementasi `SettingRepository` menggunakan **Drizzle ORM** + **SQLite (D1)**
-- `findByUserId` — Cari setting by userId
-- `upsert` — Insert jika belum ada, update jika sudah ada (berdasarkan userId)
+- `findByUserId` — Cari setting by userId (termasuk `defaultAssetCashId`)
+- `upsert` — Insert jika belum ada, update jika sudah ada (berdasarkan userId), termasuk `defaultAssetCashId`
 
 #### 6. `adapters/driving/graphql/setting.gql` [L96-100]
 
 - **Query**: `setting` — ambil setting user yang login
-- **Mutation**: `updateSetting(input)` — update currency dan darkMode
+- **Mutation**: `updateSetting(input)` — update `currency`, `darkMode`, `dateFormat`, dan `defaultAssetCashId`
+- **Field `defaultAssetCashId`** — asset tujuan settlement `OrderProductSale` (nullable)
 
 #### 7. `adapters/driving/graphql/setting.resolver.ts` [L101-110]
 

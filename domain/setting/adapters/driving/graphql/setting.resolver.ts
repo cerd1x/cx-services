@@ -15,6 +15,8 @@ const resolvers: Resolvers<YogaContext> = {
         currency: result.currency,
         darkMode: result.darkMode,
         dateFormat: result.dateFormat,
+        defaultAssetCashId:
+          result.defaultAssetCashId != null ? String(result.defaultAssetCashId) : null,
       };
     },
   },
@@ -22,10 +24,18 @@ const resolvers: Resolvers<YogaContext> = {
     updateSetting: async (_parent, args, { setting, userAuth }) => {
       if (!userAuth) throw new AuthenticationError("Not authenticated");
 
-      const input: { currency?: string; darkMode?: boolean; dateFormat?: string } = {};
+      const input: {
+        currency?: string;
+        darkMode?: boolean;
+        dateFormat?: string;
+        defaultAssetCashId?: number;
+      } = {};
       if (args.input.currency != null) input.currency = args.input.currency;
       if (args.input.darkMode != null) input.darkMode = args.input.darkMode;
       if (args.input.dateFormat != null) input.dateFormat = args.input.dateFormat;
+      if (args.input.defaultAssetCashId != null) {
+        input.defaultAssetCashId = Number(args.input.defaultAssetCashId);
+      }
 
       const result = await setting.updateSetting(userAuth.id.toNumb, input);
 
@@ -35,6 +45,8 @@ const resolvers: Resolvers<YogaContext> = {
         currency: result.currency,
         darkMode: result.darkMode,
         dateFormat: result.dateFormat,
+        defaultAssetCashId:
+          result.defaultAssetCashId != null ? String(result.defaultAssetCashId) : null,
       };
     },
   },

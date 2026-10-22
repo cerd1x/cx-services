@@ -8,7 +8,7 @@ export { Payment } from "./core/model/payment.model";
 export type { PaymentData, PaymentUpdateData } from "./core/model/payment.model";
 export { Invoice } from "./core/model/invoice.model";
 export type { InvoiceData, InvoiceItem, InvoiceUpdateData } from "./core/model/invoice.model";
-export { PaymentStatus, PaymentMethodType } from "./core/model/payment.model";
+export { PaymentStatus, PaymentMethodType, ProcessPaymentType } from "./core/model/payment.model";
 export { InvoiceStatus } from "./core/model/invoice.model";
 export { RetryPolicy } from "./core/value-objects/retry-policy.vo";
 export type { RetryPolicyConfig } from "./core/value-objects/retry-policy.vo";
@@ -25,3 +25,8 @@ export type {
   AssetGatewayConfig,
   AssetResolver,
 } from "./adapters/driven/payment-gateway/asset-gateway.adapter";
+export { AssetSettlementAdapter } from "./adapters/driven/settlement/asset-settlement.adapter";
+export {
+  PaymentSettlementPort,
+  type PaymentSettlementInput,
+} from "./core/ports/out/payment-settlement.port";

@@ -1,6 +1,7 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import { userTable } from "./user.schema";
+import { assetTable } from "./asset.schema";
 
 export const settingTable = sqliteTable("setting", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -11,6 +12,9 @@ export const settingTable = sqliteTable("setting", {
   currency: text("currency", { length: 4 }).notNull().default("IDR"),
   darkMode: integer("dark_mode", { mode: "boolean" }).notNull().default(false),
   dateFormat: text("date_format", { length: 30 }).notNull().default("d MMM yyyy, HH:mm"),
+  defaultAssetCashId: integer("default_asset_cash_id").references(() => assetTable.id, {
+    onDelete: "set null",
+  }),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
