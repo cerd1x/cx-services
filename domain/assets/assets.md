@@ -190,6 +190,7 @@ Operasi aritmetika pakai API `Money` (immutable — `add`/`subtract` mengembalik
            - `"subtract"` — saldo berkurang
            - `"transaction"` — mutasi netral (pencatatan transaksi tanpa add/subtract)
            - `"swap"` — mutasi perpindahan dana/value/balance antara asset (pencatatan transaksi tanpa add/subtract/transaction)
+           - Nilai ini juga ditegakkan di database oleh `CHECK` constraint `asset_mutation_type_check`; `asset.type` oleh `asset_type_check`. Keduanya ditulis eksplisit di `drizzle-schema` karena drizzle-kit tidak menurunkan `CHECK` dari `enum`.
          - `amount: Money` — **wajib**, nominal mutasi sebagai instance `Money` (currency ikut di dalamnya)
          - `balanceBefore: Money` — **wajib**, saldo sebelum mutasi
          - `balanceAfter: Money` — **wajib**, saldo sesudah mutasi

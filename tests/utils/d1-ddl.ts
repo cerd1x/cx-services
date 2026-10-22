@@ -122,6 +122,15 @@ function renderTable(table: SQLiteTable): string {
     columns.push(`CONSTRAINT ${quote(unique.getName())} UNIQUE (${cols})`);
   }
 
+  // CHECK eksplisit dari schema (mis. invariant enum). Untuk kolom ber-`enum`
+  // keduanya bisa muncul (inline + named); SQLite menerima duplikat ekspresi
+  // seperti ini, dan named CHECK-lah yang juga ada di migrasi production.
+  for (const check of config.checks) {
+    const expression = renderSql(check.value);
+    if (!expression) continue;
+    columns.push(`CONSTRAINT ${quote(check.name)} CHECK (${expression})`);
+  }
+
   return `CREATE TABLE IF NOT EXISTS ${quote(config.name)} (\n  ${columns.join(",\n  ")}\n);`;
 }
 
