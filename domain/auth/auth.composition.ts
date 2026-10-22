@@ -7,23 +7,23 @@ import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
 } from "@simplewebauthn/server";
-import { SignUpUseCase } from "./core/usecase/sign-up.usecase";
-import { SignInUseCase } from "./core/usecase/sign-in.usecase";
-import { SignOutUseCase } from "./core/usecase/sign-out.usecase";
+import { SignUpUseCase } from "./core/usecase/sign_up.usecase";
+import { SignInUseCase } from "./core/usecase/sign_in.usecase";
+import { SignOutUseCase } from "./core/usecase/sign_out.usecase";
 import { AuthorizeUseCase } from "./core/usecase/authorize.usecase";
-import { PasskeyRegistrationOptionsUseCase } from "./core/usecase/passkey-registration-options.usecase";
-import { RegisterPasskeyUseCase } from "./core/usecase/register-passkey.usecase";
-import { PasskeyAuthenticationOptionsUseCase } from "./core/usecase/passkey-authentication-options.usecase";
-import { ListPasskeysUseCase } from "./core/usecase/list-passkeys.usecase";
-import { DeletePasskeyUseCase } from "./core/usecase/delete-passkey.usecase";
-import { SignInWithPassKeyUseCase } from "./core/usecase/sign-in-with-passkey.usecase";
+import { PasskeyRegistrationOptionsUseCase } from "./core/usecase/passkey_registration_options.usecase";
+import { RegisterPasskeyUseCase } from "./core/usecase/register_passkey.usecase";
+import { PasskeyAuthenticationOptionsUseCase } from "./core/usecase/passkey_authentication_options.usecase";
+import { ListPasskeysUseCase } from "./core/usecase/list_passkeys.usecase";
+import { DeletePasskeyUseCase } from "./core/usecase/delete_passkey.usecase";
+import { SignInWithPassKeyUseCase } from "./core/usecase/sign_in_with_passkey.usecase";
 import { type PasskeyRecord, PasskeyRepository } from "./core/ports/out/passkey-repository.port";
-import { PasskeyFindByUserIdUseCase } from "./core/usecase/passkey-find-by-user-id.usecase";
-import { PasskeyDeleteUseCase } from "./core/usecase/passkey-delete.usecase";
-import { PasskeyGenerateRegistrationOptionsUseCase } from "./core/usecase/passkey-generate-registration-options.usecase";
-import { PasskeyRegisterUseCase } from "./core/usecase/passkey-register.usecase";
-import { PasskeyGenerateAuthenticationOptionsUseCase } from "./core/usecase/passkey-generate-authentication-options.usecase";
-import { PasskeyVerifyAuthenticationUseCase } from "./core/usecase/passkey-verify-authentication.usecase";
+import { PasskeyFindByUserIdUseCase } from "./core/usecase/passkey_find_by_user_id.usecase";
+import { PasskeyDeleteUseCase } from "./core/usecase/passkey_delete.usecase";
+import { PasskeyGenerateRegistrationOptionsUseCase } from "./core/usecase/passkey_generate_registration_options.usecase";
+import { PasskeyRegisterUseCase } from "./core/usecase/passkey_register.usecase";
+import { PasskeyGenerateAuthenticationOptionsUseCase } from "./core/usecase/passkey_generate_authentication_options.usecase";
+import { PasskeyVerifyAuthenticationUseCase } from "./core/usecase/passkey_verify_authentication.usecase";
 import { ServiceContainer } from "$services/shared/base";
 import { settingService, type SettingService } from "$services/domain/setting";
 import { userService } from "$services/domain/user";
@@ -32,7 +32,7 @@ import { PasskeyRepositoryImpl } from "./adapters/driven/drizzle/passkey.reposit
 import { AuthRepository } from "./core/ports/out/auth-repository.port";
 import { PasskeyServiceCtx, SettingServiceCtx, UserServiceLikeCtx } from "./core/usecase/ctx";
 import { type UserServiceLike } from "./core/types/user-service-like";
-import { IssueSessionUseCase } from "./core/usecase/issue-session.usecase";
+import { IssueSessionUseCase } from "./core/usecase/issue_session.usecase";
 
 export type AuthPasskeyUsecases = {
   passkeyRegistrationOptions: PasskeyRegistrationOptionsUseCase;

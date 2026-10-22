@@ -1,7 +1,7 @@
 import { Asset } from "../model/asset.model";
 import { Money, iso } from "@lib/money";
 import { ID } from "$services/shared/kernel";
-import { CreateAssetUseCase } from "./create-asset.usecase";
+import { CreateAssetUseCase } from "./create_asset.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

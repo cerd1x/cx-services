@@ -22,8 +22,8 @@ import {
   RetryPolicyToken,
 } from "$services/domain/payment/core/value-objects/retry-policy.vo";
 import { ProcessPaymentType } from "$services/domain/payment/core/model/payment.model";
-import { ProcessPaymentUseCase } from "$services/domain/payment/core/usecase/process-payment.use-case";
-import { RetryPaymentUseCase } from "$services/domain/payment/core/usecase/retry-payment.use-case";
+import { ProcessPaymentUseCase } from "$services/domain/payment/core/usecase/process_payment.usecase";
+import { RetryPaymentUseCase } from "$services/domain/payment/core/usecase/retry_payment.usecase";
 import { ServiceContainer } from "$services/shared/base";
 import { ID } from "$services/shared/kernel";
 

@@ -379,7 +379,7 @@ export abstract class AssetRepository {
 Satu file per use-case, bukan 1 service class besar. Gunakan singleton pattern via composition root.
 
 ```ts
-// domain/assets/core/usecase/create-asset.usecase.ts
+// domain/assets/core/usecase/create_asset.usecase.ts
 import { NotFoundError } from "$services/shared/kernel/errors/service-error";
 import type { AssetRepository } from "../ports/out/asset-repository.port";
 import type { Money } from "@lib/money";
@@ -414,7 +414,7 @@ export class CreateAssetUseCase {
 Atau untuk use-case sederhana, bisa export function langsung (tanpa class):
 
 ```ts
-// domain/user/core/usecase/create-user.usecase.ts
+// domain/user/core/usecase/create_user.usecase.ts
 import type { UserRepository } from "../ports/out/user-repository.port";
 
 export function createUserUseCase(repo: UserRepository) {
@@ -428,11 +428,11 @@ export function createUserUseCase(repo: UserRepository) {
 
 | Kategori | Method                       | Keterangan        |
 | -------- | ---------------------------- | ----------------- |
-| Mutasi   | `create-{domain}.usecase.ts` | Create entity     |
-| Mutasi   | `update-{domain}.usecase.ts` | Update entity     |
-| Mutasi   | `delete-{domain}.usecase.ts` | Delete entity     |
-| Query    | `get-{domain}.usecase.ts`    | Get single by ID  |
-| Query    | `list-{domain}s.usecase.ts`  | List all / filter |
+| Mutasi   | `create_{domain}.usecase.ts` | Create entity     |
+| Mutasi   | `update_{domain}.usecase.ts` | Update entity     |
+| Mutasi   | `delete_{domain}.usecase.ts` | Delete entity     |
+| Query    | `get_{domain}.usecase.ts`    | Get single by ID  |
+| Query    | `list_{domain}s.usecase.ts`  | List all / filter |
 
 ### Base Use Case + Container (Auto-Inject) (wajib untuk use case baru)
 
@@ -661,7 +661,7 @@ import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { AssetRepositoryImpl } from "./adapters/driven/drizzle/asset.repository";
 import { UnitOfWorkImpl } from "./adapters/driven/drizzle/uow.repository";
 import { AssetRepository } from "./core/ports/out/asset-repository.port";
-import { CreateAssetUseCase } from "./core/usecase/create-asset.usecase";
+import { CreateAssetUseCase } from "./core/usecase/create_asset.usecase";
 import { logger } from "./core/value-objects/logger";
 
 export class AssetService {

@@ -1,7 +1,7 @@
 import { UserRepository } from "../ports/out/user-repository.port";
 import type { User as UserType } from "../model/user.model";
 import { ID } from "$services/shared/kernel/id";
-import { UserByIdUseCase } from "./user-by-id.usecase";
+import { UserByIdUseCase } from "./user_by_id.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

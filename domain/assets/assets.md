@@ -19,19 +19,19 @@ domain/assets/
 │   │   └── out/
 │   │       └── asset-repository.port.ts
 │   ├── usecase/
-│   │   ├── apply-asset-mutation.usecase.ts
-│   │   ├── asset-by-id.usecase.ts
-│   │   ├── asset-by-name.usecase.ts
-│   │   ├── asset-mutations.usecase.ts
-│   │   ├── create-asset.usecase.ts
-│   │   ├── create-default-asset-cash.usecase.ts
-│   │   ├── delete-asset.usecase.ts
-│   │   ├── list-assets.usecase.ts
-│   │   ├── mutate-add-asset.usecase.ts
-│   │   ├── mutate-subtract-asset.usecase.ts
-│   │   ├── mutate-swap-asset.usecase.ts
-│   │   ├── mutate-transaction-asset.usecase.ts
-│   │   └── update-asset.usecase.ts
+│   │   ├── apply_asset_mutation.usecase.ts
+│   │   ├── asset_by_id.usecase.ts
+│   │   ├── asset_by_name.usecase.ts
+│   │   ├── asset_mutations.usecase.ts
+│   │   ├── create_asset.usecase.ts
+│   │   ├── create_default_asset_cash.usecase.ts
+│   │   ├── delete_asset.usecase.ts
+│   │   ├── list_assets.usecase.ts
+│   │   ├── mutate_add_asset.usecase.ts
+│   │   ├── mutate_subtract_asset.usecase.ts
+│   │   ├── mutate_swap_asset.usecase.ts
+│   │   ├── mutate_transaction_asset.usecase.ts
+│   │   └── update_asset.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

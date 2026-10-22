@@ -2,7 +2,7 @@ import { Asset } from "../model/asset.model";
 import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { TransactionService } from "$services/domain/transactions";
-import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";
+import { ApplyAssetMutationUseCase } from "./apply_asset_mutation.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

@@ -1,7 +1,7 @@
 import { type SettingData, type SettingInput } from "./core/model/setting.model";
-import { CreateDefaultSettingsUseCase } from "./core/usecase/create-default-settings.usecase";
-import { SettingByUserIdUseCase } from "./core/usecase/setting-by-user-id.usecase";
-import { UpdateSettingUseCase } from "./core/usecase/update-setting.usecase";
+import { CreateDefaultSettingsUseCase } from "./core/usecase/create_default_settings.usecase";
+import { SettingByUserIdUseCase } from "./core/usecase/setting_by_user_id.usecase";
+import { UpdateSettingUseCase } from "./core/usecase/update_setting.usecase";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ServiceContainer } from "$services/shared/base";

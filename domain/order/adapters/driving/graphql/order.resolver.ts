@@ -7,7 +7,7 @@ import type {
   PaymentMethodType,
 } from "$services/shared/infra/graphql/types";
 import type { Order as OrderEntity } from "../../../core/model/order.model";
-import { resolveMoney } from "../../../core/usecase/order-input.validator";
+import { resolveMoney } from "../../../core/usecase/order_input.validator";
 
 const isValidPaymentMethodType = (type: string): boolean => {
   return ["cash", "bank_transfer", "ewallet", "credit_card", "debit_card", "credit"].includes(type);

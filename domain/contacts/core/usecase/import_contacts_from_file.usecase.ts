@@ -1,7 +1,7 @@
 import { ContactRepository } from "../ports/out/contact-repository.port";
 import { parseCSV, parseVCF } from "$services/shared/infra/parser";
 import { ID } from "$services/shared/kernel";
-import { CreateContactUseCase } from "./create-contact.usecase";
+import { CreateContactUseCase } from "./create_contact.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

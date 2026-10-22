@@ -22,22 +22,22 @@ domain/auth/
 │   ├── usecase/
 │   │   ├── authorize.usecase.ts
 │   │   ├── ctx.ts
-│   │   ├── delete-passkey.usecase.ts
-│   │   ├── issue-session.usecase.ts
-│   │   ├── list-passkeys.usecase.ts
-│   │   ├── passkey-authentication-options.usecase.ts
-│   │   ├── passkey-delete.usecase.ts
-│   │   ├── passkey-find-by-user-id.usecase.ts
-│   │   ├── passkey-generate-authentication-options.usecase.ts
-│   │   ├── passkey-generate-registration-options.usecase.ts
-│   │   ├── passkey-register.usecase.ts
-│   │   ├── passkey-registration-options.usecase.ts
-│   │   ├── passkey-verify-authentication.usecase.ts
-│   │   ├── register-passkey.usecase.ts
-│   │   ├── sign-in-with-passkey.usecase.ts
-│   │   ├── sign-in.usecase.ts
-│   │   ├── sign-out.usecase.ts
-│   │   └── sign-up.usecase.ts
+│   │   ├── delete_passkey.usecase.ts
+│   │   ├── issue_session.usecase.ts
+│   │   ├── list_passkeys.usecase.ts
+│   │   ├── passkey_authentication_options.usecase.ts
+│   │   ├── passkey_delete.usecase.ts
+│   │   ├── passkey_find_by_user_id.usecase.ts
+│   │   ├── passkey_generate_authentication_options.usecase.ts
+│   │   ├── passkey_generate_registration_options.usecase.ts
+│   │   ├── passkey_register.usecase.ts
+│   │   ├── passkey_registration_options.usecase.ts
+│   │   ├── passkey_verify_authentication.usecase.ts
+│   │   ├── register_passkey.usecase.ts
+│   │   ├── sign_in_with_passkey.usecase.ts
+│   │   ├── sign_in.usecase.ts
+│   │   ├── sign_out.usecase.ts
+│   │   └── sign_up.usecase.ts
 │   └── value-objects/
 │       ├── logger.ts
 │       ├── token.vo.ts

@@ -1,10 +1,10 @@
 import type { ApiKillswitch } from "./core/model/api-killswitch.model";
 import type { DisabledState } from "./core/ports/out/api-killswitch-repository.port";
-import { DisableOperationUseCase } from "./core/usecase/disable-operation.usecase";
-import { EnableOperationUseCase } from "./core/usecase/enable-operation.usecase";
-import type { EnableOperationResult } from "./core/usecase/enable-operation.usecase";
-import { IsOperationDisabledUseCase } from "./core/usecase/is-operation-disabled.usecase";
-import { ListDisabledOperationsUseCase } from "./core/usecase/list-disabled-operations.usecase";
+import { DisableOperationUseCase } from "./core/usecase/disable_operation.usecase";
+import { EnableOperationUseCase } from "./core/usecase/enable_operation.usecase";
+import type { EnableOperationResult } from "./core/usecase/enable_operation.usecase";
+import { IsOperationDisabledUseCase } from "./core/usecase/is_operation_disabled.usecase";
+import { ListDisabledOperationsUseCase } from "./core/usecase/list_disabled_operations.usecase";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
 import { ServiceContainer } from "$services/shared/base";

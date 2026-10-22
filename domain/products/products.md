@@ -18,13 +18,13 @@ domain/products/
 │   │   └── out/
 │   │       └── product-repository.port.ts
 │   ├── usecase/
-│   │   ├── buy-product.usecase.ts
-│   │   ├── create-product.usecase.ts
-│   │   ├── delete-product.usecase.ts
-│   │   ├── import-products-from-file.usecase.ts
-│   │   ├── list-products.usecase.ts
-│   │   ├── product-by-id.usecase.ts
-│   │   └── update-product.usecase.ts
+│   │   ├── buy_product.usecase.ts
+│   │   ├── create_product.usecase.ts
+│   │   ├── delete_product.usecase.ts
+│   │   ├── import_products_from_file.usecase.ts
+│   │   ├── list_products.usecase.ts
+│   │   ├── product_by_id.usecase.ts
+│   │   └── update_product.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

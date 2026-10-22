@@ -18,7 +18,7 @@ domain/statistic/
 │   │   └── out/
 │   │       └── statistic-repository.port.ts
 │   ├── usecase/
-│   │   └── get-statistic.usecase.ts
+│   │   └── get_statistic.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

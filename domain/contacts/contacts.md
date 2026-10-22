@@ -19,14 +19,14 @@ domain/contacts/
 │   │   └── out/
 │   │       └── contact-repository.port.ts
 │   ├── usecase/
-│   │   ├── contact-by-id.usecase.ts
-│   │   ├── create-contact.usecase.ts
-│   │   ├── delete-contact.usecase.ts
-│   │   ├── import-contacts-from-file.usecase.ts
-│   │   ├── list-contacts-page.usecase.ts
-│   │   ├── list-contacts.usecase.ts
-│   │   ├── merge-contacts.usecase.ts
-│   │   └── update-contact.usecase.ts
+│   │   ├── contact_by_id.usecase.ts
+│   │   ├── create_contact.usecase.ts
+│   │   ├── delete_contact.usecase.ts
+│   │   ├── import_contacts_from_file.usecase.ts
+│   │   ├── list_contacts_page.usecase.ts
+│   │   ├── list_contacts.usecase.ts
+│   │   ├── merge_contacts.usecase.ts
+│   │   └── update_contact.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

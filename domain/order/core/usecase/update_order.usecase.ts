@@ -1,7 +1,7 @@
 import { OrderRepository } from "../ports/out/order-repository.port";
 import type { Order as OrderType } from "../model/order.model";
 import { ID } from "$services/shared/kernel";
-import { OrderByIdUseCase } from "./order-by-id.usecase";
+import { OrderByIdUseCase } from "./order_by_id.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

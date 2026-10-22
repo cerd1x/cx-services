@@ -28,10 +28,10 @@ domain/killswitch/
 │   │   └── out/
 │   │       └── api-killswitch-repository.port.ts
 │   ├── usecase/
-│   │   ├── disable-operation.usecase.ts
-│   │   ├── enable-operation.usecase.ts
-│   │   ├── is-operation-disabled.usecase.ts
-│   │   └── list-disabled-operations.usecase.ts
+│   │   ├── disable_operation.usecase.ts
+│   │   ├── enable_operation.usecase.ts
+│   │   ├── is_operation_disabled.usecase.ts
+│   │   └── list_disabled_operations.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

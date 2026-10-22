@@ -34,11 +34,11 @@ domain/admin/
 │   │       └── admin-repository.port.ts    # abstract class: satu-satunya baca lintas-user
 │   ├── usecase/
 │   │   ├── ctx.ts                          # token DI untuk UserService
-│   │   ├── delete-any-user.usecase.ts
-│   │   ├── get-admin-overview.usecase.ts
-│   │   ├── list-admin-user-transactions.usecase.ts
-│   │   ├── list-admin-users.usecase.ts
-│   │   └── set-user-role.usecase.ts
+│   │   ├── delete_any_user.usecase.ts
+│   │   ├── get_admin_overview.usecase.ts
+│   │   ├── list_admin_user_transactions.usecase.ts
+│   │   ├── list_admin_users.usecase.ts
+│   │   └── set_user_role.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

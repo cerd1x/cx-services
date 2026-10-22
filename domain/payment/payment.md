@@ -13,9 +13,9 @@
   - [6. `payment-repository.port.ts`](#6-payment-repositoryportts)
   - [7. `invoice-repository.port.ts`](#7-invoice-repositoryportts)
   - [8. `payment-gateway.port.ts`](#8-payment-gatewayportts)
-  - [9. `process-payment.use-case.ts`](#9-process-paymentuse-casets)
-  - [10. `create-invoice.use-case.ts`](#10-create-invoiceuse-casets)
-  - [11. `retry-payment.use-case.ts`](#11-retry-paymentuse-casets)
+  - [9. `process_payment.usecase.ts`](#9-process-paymentuse-casets)
+  - [10. `create_invoice.usecase.ts`](#10-create-invoiceuse-casets)
+  - [11. `retry_payment.usecase.ts`](#11-retry-paymentuse-casets)
   - [12. `payment.service.ts`](#12-paymentservicets)
   - [13. `payment.repository.ts`](#13-paymentrepositoryts)
   - [14. `invoice.repository.ts`](#14-invoicerepositoryts)
@@ -72,17 +72,17 @@ domain/payment/
 │   │       ├── payment-gateway.port.ts
 │   │       └── payment-repository.port.ts
 │   ├── usecase/
-│   │   ├── cancel-invoice.usecase.ts
-│   │   ├── create-invoice.use-case.ts
-│   │   ├── get-invoice.usecase.ts
-│   │   ├── get-payment.usecase.ts
-│   │   ├── issue-invoice.usecase.ts
-│   │   ├── list-invoices-by-status.usecase.ts
-│   │   ├── list-invoices.usecase.ts
-│   │   ├── list-payments-by-status.usecase.ts
-│   │   ├── list-payments.usecase.ts
-│   │   ├── process-payment.use-case.ts
-│   │   └── retry-payment.use-case.ts
+│   │   ├── cancel_invoice.usecase.ts
+│   │   ├── create_invoice.usecase.ts
+│   │   ├── get_invoice.usecase.ts
+│   │   ├── get_payment.usecase.ts
+│   │   ├── issue_invoice.usecase.ts
+│   │   ├── list_invoices_by_status.usecase.ts
+│   │   ├── list_invoices.usecase.ts
+│   │   ├── list_payments_by_status.usecase.ts
+│   │   ├── list_payments.usecase.ts
+│   │   ├── process_payment.usecase.ts
+│   │   └── retry_payment.usecase.ts
 │   └── value-objects/
 │       ├── logger.ts
 │       └── retry-policy.vo.ts
@@ -214,9 +214,9 @@ domain/payment/
   - Request: `{ gatewayRef, amount?, reason? }`; Response: `{ success, refundId, status, raw?, error? }`
 - `getStatus(gatewayRef): Promise<GatewayStatusResponse>` — `{ gatewayRef, status, raw? }`
 
-#### 9. `core/usecase/process-payment.use-case.ts`
+#### 9. `core/usecase/process_payment.usecase.ts`
 
-[`services/domain/payment/app/use-cases/process-payment.use-case.ts`](./app/use-cases/process-payment.use-case.ts)
+[`services/domain/payment/app/use-cases/process_payment.usecase.ts`](./app/use-cases/process_payment.usecase.ts)
 
 **Singleton pattern.** 1. Validasi input via `Payment.new(...).validateAll()` (amount > 0, currency ISO, method valid). Jika `type: OrderProductSale`, `assetId` wajib diisi. 2. Transisi `pending → processing`. 3. `save` ke repository (status `processing`). 4. Rekonstruksi entity dari data tersimpan. 5. Pilih gateway: `AssetChargeGatewayToken` (`AssetPaymentGateway`) jika request menyertakan `assetId`, selain itu gateway default. 6. Panggil `gateway.charge(...)`:
 
@@ -226,9 +226,9 @@ domain/payment/
 
 7. `update` hasil akhir (status, gatewayRef, metadata, retryCount). `metadata` menyimpan `paymentType` dan `assetId` agar retry bisa mengulang charge + settlement.
 
-#### 10. `core/usecase/create-invoice.use-case.ts`
+#### 10. `core/usecase/create_invoice.usecase.ts`
 
-[`services/domain/payment/app/use-cases/create-invoice.use-case.ts`](./app/use-cases/create-invoice.use-case.ts)
+[`services/domain/payment/app/use-cases/create_invoice.usecase.ts`](./app/use-cases/create_invoice.usecase.ts)
 
 **Singleton pattern.**
 
@@ -238,9 +238,9 @@ domain/payment/
 - `issueInvoice(id, userId)` — muat ulang entity (dengan `status` existing agar business rule enforce), panggil `markAsIssued()` (hanya dari `draft`), update status.
 - `cancelInvoice(id, userId)` — `markAsCancelled()` (menolak invoice `paid`), update status.
 
-#### 11. `core/usecase/retry-payment.use-case.ts`
+#### 11. `core/usecase/retry_payment.usecase.ts`
 
-[`services/domain/payment/app/use-cases/retry-payment.use-case.ts`](./app/use-cases/retry-payment.use-case.ts)
+[`services/domain/payment/app/use-cases/retry_payment.usecase.ts`](./app/use-cases/retry_payment.usecase.ts)
 
 **Singleton pattern.**
 
@@ -388,7 +388,7 @@ Implementasi `PaymentSettlementPort`:
 
 Dipakai `ProcessPaymentUseCase`/`RetryPaymentUseCase` saat `type: OrderProductSale`: setelah charge sukses, dana disettlekan ke asset default cash. Jika default cash kosong atau settlement gagal, charge di-refund lewat `gateway.refund()` dan payment ditandai `failed` dengan `metadata.lastError`.
 
-#### 22. `core/usecase/payment-settlement.helper.ts`
+#### 22. `core/usecase/payment_settlement.helper.ts`
 
 Helper bersama `settleOrderProductSale(deps, payment)` dan `refundCharge(gateway, gatewayRef)` yang dipakai process & retry agar logika settlement/kompensasi tidak terduplikasi.
 

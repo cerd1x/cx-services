@@ -1,10 +1,10 @@
 import { AdminRepositoryImpl } from "./adapters/driven/drizzle/admin.repository";
 import { AdminRepository } from "./core/ports/out/admin-repository.port";
-import { GetAdminOverviewUseCase } from "./core/usecase/get-admin-overview.usecase";
-import { ListAdminUserTransactionsUseCase } from "./core/usecase/list-admin-user-transactions.usecase";
-import { ListAdminUsersUseCase } from "./core/usecase/list-admin-users.usecase";
-import { DeleteAnyUserUseCase } from "./core/usecase/delete-any-user.usecase";
-import { SetUserRoleUseCase } from "./core/usecase/set-user-role.usecase";
+import { GetAdminOverviewUseCase } from "./core/usecase/get_admin_overview.usecase";
+import { ListAdminUserTransactionsUseCase } from "./core/usecase/list_admin_user_transactions.usecase";
+import { ListAdminUsersUseCase } from "./core/usecase/list_admin_users.usecase";
+import { DeleteAnyUserUseCase } from "./core/usecase/delete_any_user.usecase";
+import { SetUserRoleUseCase } from "./core/usecase/set_user_role.usecase";
 import { UserServiceCtx } from "./core/usecase/ctx";
 import type { AdminOverview, AdminTransactionView, AdminUserView } from "./core/model/admin.model";
 import type { UserType } from "$services/domain/user";

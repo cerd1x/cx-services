@@ -18,14 +18,14 @@ domain/user/
 │   │   └── out/
 │   │       └── user-repository.port.ts
 │   ├── usecase/
-│   │   ├── create-user.usecase.ts
-│   │   ├── delete-user.usecase.ts
-│   │   ├── is-user-id-taken.usecase.ts
-│   │   ├── is-username-taken.usecase.ts
-│   │   ├── list-users.usecase.ts
-│   │   ├── update-user-avatar.usecase.ts
-│   │   ├── user-by-id.usecase.ts
-│   │   └── user-by-username.usecase.ts
+│   │   ├── create_user.usecase.ts
+│   │   ├── delete_user.usecase.ts
+│   │   ├── is_user_id_taken.usecase.ts
+│   │   ├── is_username_taken.usecase.ts
+│   │   ├── list_users.usecase.ts
+│   │   ├── update_user_avatar.usecase.ts
+│   │   ├── user_by_id.usecase.ts
+│   │   └── user_by_username.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

@@ -3,7 +3,7 @@ import { UserServiceLikeCtx, PasskeyServiceCtx } from "./ctx";
 import { ID } from "$services/shared/kernel";
 import type { User } from "../../../user/core/model/user.model";
 import type { PasskeyService } from "$services/domain/auth";
-import { IssueSessionUseCase } from "./issue-session.usecase";
+import { IssueSessionUseCase } from "./issue_session.usecase";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";

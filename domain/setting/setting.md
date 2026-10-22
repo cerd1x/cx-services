@@ -18,9 +18,9 @@ domain/setting/
 │   │   └── out/
 │   │       └── setting-repository.port.ts
 │   ├── usecase/
-│   │   ├── create-default-settings.usecase.ts
-│   │   ├── setting-by-user-id.usecase.ts
-│   │   └── update-setting.usecase.ts
+│   │   ├── create_default_settings.usecase.ts
+│   │   ├── setting_by_user_id.usecase.ts
+│   │   └── update_setting.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

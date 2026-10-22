@@ -1,6 +1,6 @@
 import { ProductRepository } from "../ports/out/product-repository.port";
 import { ID } from "$services/shared/kernel";
-import { ProductByIdUseCase } from "./product-by-id.usecase";
+import { ProductByIdUseCase } from "./product_by_id.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

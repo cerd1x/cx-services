@@ -1,7 +1,7 @@
 import { ContactRepository } from "../ports/out/contact-repository.port";
 import { Contact, normalizePhones } from "../model/contact.model";
 import { ID } from "$services/shared/kernel";
-import { ContactByIdUseCase } from "./contact-by-id.usecase";
+import { ContactByIdUseCase } from "./contact_by_id.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

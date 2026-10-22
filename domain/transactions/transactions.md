@@ -20,18 +20,18 @@ domain/transactions/
 │   │       ├── asset-swap-gateway.port.ts
 │   │       └── transaction-repository.port.ts
 │   ├── usecase/
-│   │   ├── asset-swap-gateway.ctx.ts
-│   │   ├── create-transaction.usecase.ts
-│   │   ├── delete-transaction.usecase.ts
-│   │   ├── list-transactions-page.usecase.ts
-│   │   ├── list-transactions.usecase.ts
-│   │   ├── request-form-transaction.usecase.ts
-│   │   ├── swap-balance.usecase.ts
-│   │   ├── transaction-by-id.usecase.ts
-│   │   ├── transactions-by-date-range.usecase.ts
-│   │   ├── transactions-by-type.usecase.ts
-│   │   ├── update-transaction.usecase.ts
-│   │   └── validate-csrf-token.usecase.ts
+│   │   ├── asset_swap_gateway.ctx.ts
+│   │   ├── create_transaction.usecase.ts
+│   │   ├── delete_transaction.usecase.ts
+│   │   ├── list_transactions_page.usecase.ts
+│   │   ├── list_transactions.usecase.ts
+│   │   ├── request_form_transaction.usecase.ts
+│   │   ├── swap_balance.usecase.ts
+│   │   ├── transaction_by_id.usecase.ts
+│   │   ├── transactions_by_date_range.usecase.ts
+│   │   ├── transactions_by_type.usecase.ts
+│   │   ├── update_transaction.usecase.ts
+│   │   └── validate_csrf_token.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

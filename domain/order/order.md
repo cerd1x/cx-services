@@ -18,16 +18,16 @@ domain/order/
 │   │   └── out/
 │   │       └── order-repository.port.ts
 │   ├── usecase/
-│   │   ├── create-order-expense.usecase.ts
-│   │   ├── create-order-loan.usecase.ts
-│   │   ├── create-order-product-sale.usecase.ts
-│   │   ├── create-order.usecase.ts
-│   │   ├── delete-order.usecase.ts
-│   │   ├── list-orders.usecase.ts
-│   │   ├── order-by-id.usecase.ts
-│   │   ├── orders-by-date-range.usecase.ts
-│   │   ├── payment-service.ctx.ts
-│   │   └── update-order.usecase.ts
+│   │   ├── create_order_expense.usecase.ts
+│   │   ├── create_order_loan.usecase.ts
+│   │   ├── create_order_product_sale.usecase.ts
+│   │   ├── create_order.usecase.ts
+│   │   ├── delete_order.usecase.ts
+│   │   ├── list_orders.usecase.ts
+│   │   ├── order_by_id.usecase.ts
+│   │   ├── orders_by_date_range.usecase.ts
+│   │   ├── payment_service.ctx.ts
+│   │   └── update_order.usecase.ts
 │   └── value-objects/
 │       └── logger.ts
 ├── adapters/

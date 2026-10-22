@@ -1,7 +1,7 @@
 import { Asset } from "../model/asset.model";
 import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
-import { ApplyAssetMutationUseCase } from "./apply-asset-mutation.usecase";
+import { ApplyAssetMutationUseCase } from "./apply_asset_mutation.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

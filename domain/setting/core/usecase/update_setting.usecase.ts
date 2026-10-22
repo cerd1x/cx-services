@@ -1,6 +1,6 @@
 import { SettingRepository } from "../ports/out/setting-repository.port";
 import { Setting, type SettingData, type SettingInput } from "../model/setting.model";
-import { SettingByUserIdUseCase } from "./setting-by-user-id.usecase";
+import { SettingByUserIdUseCase } from "./setting_by_user_id.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

@@ -4,7 +4,7 @@ import type {
   TransactionUpdateData,
 } from "../model/transaction.model";
 import { ID } from "$services/shared/kernel";
-import { TransactionByIdUseCase } from "./transaction-by-id.usecase";
+import { TransactionByIdUseCase } from "./transaction_by_id.usecase";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";

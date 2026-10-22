@@ -13,7 +13,7 @@ import {
   assertMoney,
   assertOptionalPositiveInt,
   resolveMoney,
-} from "./order-input.validator";
+} from "./order_input.validator";
 import { logger } from "../value-objects/logger";
 
 export type CreateOrderExpenseInput = {
