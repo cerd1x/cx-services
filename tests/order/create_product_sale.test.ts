@@ -172,8 +172,7 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
       userId,
       productId,
       itemCount: 2,
-      price: 50000,
-      currency: "IDR",
+      price: Money.fromNumber(50000, iso.IDR),
       customerId,
       description: "2 Coffee",
     });
@@ -234,8 +233,7 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
       userId,
       productId,
       itemCount: 1,
-      price: 25000,
-      currency: "IDR",
+      price: Money.fromNumber(25000, iso.IDR),
       paymentMethod: "bank_transfer",
       customerId,
       payToAssetId: assetIdNum,
@@ -267,8 +265,7 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
         userId: 1,
         productId: ID.new(9999),
         itemCount: 1,
-        price: 100,
-        currency: "IDR",
+        price: Money.fromNumber(100, iso.IDR),
       }),
     ).rejects.toThrow("Product with id 9999 not found");
   });
@@ -284,8 +281,7 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
         userId: uid1,
         productId,
         itemCount: 1,
-        price: 25000,
-        currency: "IDR",
+        price: Money.fromNumber(25000, iso.IDR),
       }),
     ).rejects.toThrow(`Product with id ${productDbId} not found`);
   });
@@ -300,8 +296,7 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
         userId,
         productId,
         itemCount: 5,
-        price: 125000,
-        currency: "IDR",
+        price: Money.fromNumber(125000, iso.IDR),
       }),
     ).rejects.toThrow("Insufficient stock");
   });
@@ -318,8 +313,7 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
       userId,
       productId,
       itemCount: 10,
-      price: 5000,
-      currency: "IDR",
+      price: Money.fromNumber(5000, iso.IDR),
     });
 
     expect(order.id).toBeDefined();

@@ -218,6 +218,10 @@ Catatan: order tidak lagi mengkredit `payToAssetId` manual — kredit hanya
 dilakukan oleh settlement payment agar tidak double-credit. Tanpa
 `payToAssetId`, payment memakai `type: general` (tanpa pergerakan saldo).
 
+Input use case memakai value object `Money` untuk `price` (bukan
+`price: number` + `currency: string`); resolver GraphQL mengonversi
+`totalAmount` + `currency` menjadi `Money` sebelum memanggil service.
+
 ```
 
 #### `createOrderExpense(data)` — Buat order pengeluaran [L180-200]

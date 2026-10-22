@@ -7,6 +7,7 @@ import type {
   PaymentMethodType,
 } from "$services/shared/infra/graphql/types";
 import type { Order as OrderEntity } from "../../../core/model/order.model";
+import { resolveMoney } from "../../../core/usecase/order-input.validator";
 
 const isValidPaymentMethodType = (type: string): boolean => {
   return ["cash", "bank_transfer", "ewallet", "credit_card", "debit_card", "credit"].includes(type);
@@ -73,8 +74,7 @@ const resolvers: Resolvers<YogaContext> = {
         userId: userAuth!.id.toNumb,
         productId: ID.new(args.input.productId),
         itemCount: args.input.itemCount,
-        price: args.input.totalAmount,
-        currency: args.input.currency,
+        price: resolveMoney(args.input.totalAmount, args.input.currency),
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
         customerId: args.input.customerId ? ID.new(args.input.customerId).toNumb : undefined,
         description: args.input.description ?? undefined,

@@ -7,6 +7,7 @@ import { ID } from "$services/shared/kernel/id";
 import { createProductService } from "$services/domain/products";
 import { createTransactionService } from "$services/domain/transactions";
 import type { PaymentService } from "$services/domain/payment";
+import { Money, iso } from "@lib/money";
 import { mockAssetSwapGateway } from "../utils/outbox.mock";
 
 describe("OrderService", () => {
@@ -117,8 +118,7 @@ describe("OrderService", () => {
         userId: 1,
         productId: ID.new(1),
         itemCount: 2,
-        price: 50000,
-        currency: "IDR",
+        price: Money.fromNumber(50000, iso.IDR),
         customerId: 5,
         description: "Test sale",
       });
@@ -149,8 +149,7 @@ describe("OrderService", () => {
           userId: 1,
           productId: ID.new(999),
           itemCount: 1,
-          price: 100,
-          currency: "IDR",
+          price: Money.fromNumber(100, iso.IDR),
         }),
       ).rejects.toThrow(NotFound);
     });
@@ -171,8 +170,7 @@ describe("OrderService", () => {
           userId: 1,
           productId: ID.new(1),
           itemCount: 1,
-          price: 25000,
-          currency: "IDR",
+          price: Money.fromNumber(25000, iso.IDR),
         }),
       ).rejects.toThrow("Product does not belong to this user");
     });
@@ -193,8 +191,7 @@ describe("OrderService", () => {
           userId: 1,
           productId: ID.new(1),
           itemCount: 5,
-          price: 125000,
-          currency: "IDR",
+          price: Money.fromNumber(125000, iso.IDR),
         }),
       ).rejects.toThrow("Insufficient stock");
     });
@@ -226,8 +223,7 @@ describe("OrderService", () => {
           userId: 1,
           productId: ID.new(1),
           itemCount: 2,
-          price: 50000,
-          currency: "IDR",
+          price: Money.fromNumber(50000, iso.IDR),
         }),
       ).rejects.toThrow("DB write failed");
 
@@ -259,8 +255,7 @@ describe("OrderService", () => {
           userId: 1,
           productId: ID.new(1),
           itemCount: 2,
-          price: 50000,
-          currency: "IDR",
+          price: Money.fromNumber(50000, iso.IDR),
         }),
       ).rejects.toThrow("Order save failed");
 

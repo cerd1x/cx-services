@@ -12,6 +12,7 @@ import { OrdersByDateRangeUseCase } from "./core/usecase/orders-by-date-range.us
 import { UpdateOrderUseCase } from "./core/usecase/update-order.usecase";
 import { DeleteOrderUseCase } from "./core/usecase/delete-order.usecase";
 import { ServiceContainer } from "$services/shared/base";
+import { Money } from "@lib/money";
 import { paymentService, type PaymentService } from "$services/domain/payment";
 import { OrderRepositoryImpl } from "./adapters/driven/drizzle/order.repository";
 import { OrderRepository } from "./core/ports/out/order-repository.port";
@@ -90,8 +91,7 @@ export class OrderService {
     userId: number;
     productId: ID;
     itemCount: number;
-    price: number;
-    currency: string;
+    price: Money;
     paymentMethod?: string;
     customerId?: number;
     description?: string;

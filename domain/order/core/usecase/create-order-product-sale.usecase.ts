@@ -5,26 +5,20 @@ import { ProductService } from "$services/domain/products";
 import { TransactionService } from "$services/domain/transactions";
 import { PaymentService, ProcessPaymentType } from "$services/domain/payment";
 import type { ID } from "$services/shared/kernel";
+import { Money } from "@lib/money";
 import { PaymentServiceCtx } from "./payment-service.ctx";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
 import { CoreUsecase } from "$services/shared/base";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
-import {
-  assertCurrencyCode,
-  assertItemCount,
-  assertMoney,
-  assertOptionalPositiveInt,
-  resolveMoney,
-} from "./order-input.validator";
+import { assertItemCount, assertOptionalPositiveInt } from "./order-input.validator";
 
 export type CreateOrderProductSaleInput = {
   userId: number;
   productId: ID;
   itemCount: number;
-  price: number;
-  currency: string;
+  price: Money;
   paymentMethod?: string;
   customerId?: number;
   description?: string;
@@ -41,11 +35,12 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
     const orderRepo = this.deps.get(OrderRepository);
     const data = input;
 
-    assertCurrencyCode(data.currency);
     assertItemCount(data.itemCount);
     assertOptionalPositiveInt(data.customerId, "customerId");
     assertOptionalPositiveInt(data.payToAssetId, "payToAssetId");
-    if (data.price !== undefined) assertMoney(data.price, "price");
+    if (!data.price.isPositive()) {
+      throw new ValidationError("price must be a positive finite number");
+    }
 
     const product = await ProductService.getInstance().product(data.productId, data.userId);
 
@@ -59,28 +54,26 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       );
     }
 
-    const appliedPrice = data.price ?? product.price;
+    const appliedPrice = data.price;
+    const saleAmount = appliedPrice.multiply(data.itemCount);
+    const currency = appliedPrice.currency.code.toUpperCase();
+    const capitalPerItem = product.capital ?? 0;
 
-    assertMoney(appliedPrice, "price");
-
-    const saleAmount = appliedPrice * data.itemCount;
-    const currency = data.currency.toUpperCase();
-    const capitalAmount = (product.capital ?? 0) * data.itemCount;
-
-    if (!Number.isFinite(capitalAmount) || capitalAmount < 0) {
+    if (!Number.isFinite(capitalPerItem) || capitalPerItem < 0) {
       throw new ValidationError(
         `Invalid capital for product "${product.name}": ${product.capital}`,
       );
     }
 
-    const capital = resolveMoney(capitalAmount, currency);
-    const amount = resolveMoney(saleAmount, currency);
+    const capital = Money.fromNumber(capitalPerItem, appliedPrice.currency).multiply(
+      data.itemCount,
+    );
     const description = data.description ?? `Sale: ${product.name} x${data.itemCount}`;
     const paymentMethod = data.paymentMethod ?? "cash";
 
     let order = Order.new({
       userId: data.userId,
-      price: appliedPrice,
+      price: appliedPrice.toNumber(),
       currency,
       itemCount: data.itemCount,
       description,
@@ -106,7 +99,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
           {
             description: product.name,
             quantity: data.itemCount,
-            unitPrice: appliedPrice,
+            unitPrice: appliedPrice.toNumber(),
           },
         ],
         currency,
@@ -115,7 +108,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
 
       const payment = await paymentService.processPayment({
         userId: data.userId,
-        amount: saleAmount,
+        amount: saleAmount.toNumber(),
         currency,
         method: paymentMethod,
         assetId: data.payToAssetId,
@@ -133,7 +126,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         data.productId,
         data.itemCount,
         data.userId,
-        appliedPrice,
+        appliedPrice.toNumber(),
       );
       stockDeducted = true;
 
@@ -143,7 +136,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       await TransactionService.getInstance().createTransaction({
         userId: data.userId,
         type: "income",
-        amount,
+        amount: saleAmount,
         capital,
         createdAt: new Date(),
         description,
