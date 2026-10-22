@@ -339,8 +339,8 @@ describe("PaymentService", () => {
       const invoice = await service.createInvoice({
         userId: 1,
         items: [
-          { description: "A", quantity: 2, unitPrice: 1000 },
-          { description: "B", quantity: 1, unitPrice: 5000 },
+          { description: "A", quantity: 2, unitPrice: "1000" },
+          { description: "B", quantity: 1, unitPrice: "5000" },
         ],
         currency: "IDR",
         tax: 2000,
@@ -355,7 +355,7 @@ describe("PaymentService", () => {
     it("issues and cancels invoice", async () => {
       const invoice = await service.createInvoice({
         userId: 1,
-        items: [{ description: "A", quantity: 1, unitPrice: 1000 }],
+        items: [{ description: "A", quantity: 1, unitPrice: "1000" }],
         currency: "IDR",
       });
 
@@ -369,7 +369,7 @@ describe("PaymentService", () => {
     it("cannot re-issue a cancelled invoice", async () => {
       const invoice = await service.createInvoice({
         userId: 1,
-        items: [{ description: "A", quantity: 1, unitPrice: 1000 }],
+        items: [{ description: "A", quantity: 1, unitPrice: "1000" }],
         currency: "IDR",
       });
       await service.issueInvoice(ID.new(invoice.id!), ID.new(1));
@@ -417,7 +417,7 @@ describe("PaymentService", () => {
     it("lists invoices by status", async () => {
       const inv = await service.createInvoice({
         userId: 1,
-        items: [{ description: "A", quantity: 1, unitPrice: 1000 }],
+        items: [{ description: "A", quantity: 1, unitPrice: "1000" }],
         currency: "IDR",
       });
       await service.issueInvoice(ID.new(inv.id!), ID.new(1));

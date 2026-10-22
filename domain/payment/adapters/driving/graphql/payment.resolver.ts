@@ -8,6 +8,7 @@ import type {
   InvoiceStatusEnum,
   PaymentMethodEnum,
 } from "$services/shared/infra/graphql/types";
+import { Money } from "@lib/money";
 import type { PaymentData } from "../../../core/model/payment.model";
 import type { InvoiceData } from "../../../core/model/invoice.model";
 import { ID } from "$services/shared/kernel";
@@ -42,7 +43,8 @@ function mapInvoice(data: InvoiceData): GqlInvoice {
     items: data.items.map((item) => ({
       description: item.description,
       quantity: item.quantity,
-      unitPrice: item.unitPrice,
+      unitPrice:
+        item.unitPrice instanceof Money ? item.unitPrice.toNumber() : Number(item.unitPrice),
     })),
     subtotal: data.subtotal,
     tax: data.tax,
@@ -113,7 +115,7 @@ const resolvers: Resolvers<YogaContext> = {
       const data = await payment.createInvoice({
         userId: userAuth!.id.toNumb,
         customerId: customerId ? ID.new(customerId).toNumb : undefined,
-        items,
+        items: items.map((item) => ({ ...item, unitPrice: String(item.unitPrice) })),
         currency,
         tax: tax ?? undefined,
         dueAt: dueAt ?? undefined,

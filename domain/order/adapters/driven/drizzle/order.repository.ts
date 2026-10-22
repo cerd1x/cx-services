@@ -1,4 +1,5 @@
 import { eq, and, between } from "drizzle-orm";
+import { Money, findCurrency } from "@lib/money";
 import { getDB } from "$services/shared/infra/db";
 import { orderTable } from "$services/shared/infra/db/drizzle-schema";
 import { Order } from "../../../core/model/order.model";
@@ -13,7 +14,7 @@ export class OrderRepositoryImpl implements OrderRepository {
         status: order.status,
         paymentMethod: order.paymentMethod as
           "cash" | "bank_transfer" | "ewallet" | "credit_card" | "debit_card" | "credit",
-        totalAmount: order.totalAmount,
+        totalAmount: order.totalAmount.toNumber(),
         currency: order.currency,
         itemCount: order.itemCount,
         description: order.description ?? null,
@@ -26,8 +27,7 @@ export class OrderRepositoryImpl implements OrderRepository {
       userId: result[0].userId ?? undefined,
       status: result[0].status as "pending" | "success" | "cancelled",
       paymentMethod: result[0].paymentMethod ?? "cash",
-      price: result[0].totalAmount / result[0].itemCount,
-      currency: result[0].currency,
+      price: this.#priceFromRow(result[0]),
       itemCount: result[0].itemCount,
       description: result[0].description ?? undefined,
       customerId: result[0].customerId ?? undefined,
@@ -69,7 +69,7 @@ export class OrderRepositoryImpl implements OrderRepository {
         status: order.status,
         paymentMethod: order.paymentMethod as
           "cash" | "bank_transfer" | "ewallet" | "credit_card" | "debit_card" | "credit",
-        totalAmount: order.totalAmount,
+        totalAmount: order.totalAmount.toNumber(),
         currency: order.currency,
         itemCount: order.itemCount,
         description: order.description ?? null,
@@ -93,12 +93,19 @@ export class OrderRepositoryImpl implements OrderRepository {
       userId: row.userId ?? undefined,
       status: row.status as "pending" | "success" | "cancelled",
       paymentMethod: row.paymentMethod ?? "cash",
-      price: row.totalAmount / row.itemCount,
-      currency: row.currency,
+      price: this.#priceFromRow(row),
       itemCount: row.itemCount,
       description: row.description ?? undefined,
       customerId: row.customerId ?? undefined,
       createdAt: row.createdAt,
     });
+  }
+
+  #priceFromRow(row: typeof orderTable.$inferSelect): Money {
+    const currency = findCurrency(row.currency.toUpperCase());
+    if (!currency) {
+      throw new Error(`Unknown currency: ${row.currency}`);
+    }
+    return Money.fromNumber(row.totalAmount / row.itemCount, currency);
   }
 }

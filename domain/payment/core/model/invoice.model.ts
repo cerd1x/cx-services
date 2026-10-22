@@ -1,16 +1,6 @@
+import { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { z } from "zod";
-
-const InvoiceStatus = {
-  draft: "draft",
-  issued: "issued",
-  paid: "paid",
-  partiallyPaid: "partially_paid",
-  overdue: "overdue",
-  cancelled: "cancelled",
-} as const;
-
-type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus];
 
 const invoiceStatusSchema = z.enum([
   "draft",
@@ -21,11 +11,29 @@ const invoiceStatusSchema = z.enum([
   "cancelled",
 ]);
 
+const InvoiceStatus = invoiceStatusSchema.enum;
+type InvoiceStatus = z.infer<typeof invoiceStatusSchema>;
+
+const unitPriceSchema = z.union([
+  z.string().refine((value) => {
+    const amount = Number(value);
+    return Number.isFinite(amount) && amount > 0;
+  }, "Unit price must be a positive number"),
+  z.custom<Money>(
+    (value) => value instanceof Money && value.isPositive(),
+    "Unit price must be positive",
+  ),
+]);
+
 const INVOICE_ITEM_SCHEMA = z.object({
   description: z.string().min(1, "Item description is required"),
   quantity: z.number().int().positive("Quantity must be positive"),
-  unitPrice: z.number().positive("Unit price must be positive"),
+  unitPrice: unitPriceSchema,
 });
+
+function unitPriceToNumber(unitPrice: string | Money): number {
+  return unitPrice instanceof Money ? unitPrice.toNumber() : Number(unitPrice);
+}
 
 export type InvoiceItem = z.infer<typeof INVOICE_ITEM_SCHEMA>;
 
@@ -126,7 +134,10 @@ export class Invoice {
     dueAt?: Date;
     description?: string;
   }): Invoice {
-    const subtotal = data.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+    const subtotal = data.items.reduce(
+      (sum, item) => sum + item.quantity * unitPriceToNumber(item.unitPrice),
+      0,
+    );
     const tax = data.tax ?? 0;
     const totalAmount = subtotal + tax;
 
@@ -143,7 +154,10 @@ export class Invoice {
     items: InvoiceItem[],
     tax: number = 0,
   ): { subtotal: number; total: number } {
-    const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+    const subtotal = items.reduce(
+      (sum, item) => sum + item.quantity * unitPriceToNumber(item.unitPrice),
+      0,
+    );
     return { subtotal, total: subtotal + tax };
   }
 
@@ -186,7 +200,11 @@ export class Invoice {
       userId: this.userId,
       invoiceNumber: this.invoiceNumber,
       customerId: this.customerId,
-      items: this.items,
+      items: this.items.map((item) => ({
+        ...item,
+        unitPrice:
+          item.unitPrice instanceof Money ? item.unitPrice.amount.toString() : item.unitPrice,
+      })),
       subtotal: this.subtotal,
       tax: this.tax,
       totalAmount: this.totalAmount,

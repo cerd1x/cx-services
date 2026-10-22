@@ -1,3 +1,4 @@
+import { Money } from "@lib/money";
 import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import type { Order as OrderType } from "../model/order.model";
@@ -7,8 +8,7 @@ import { logger } from "../value-objects/logger";
 
 export type CreateOrderInput = {
   userId?: number;
-  price: number;
-  currency: string;
+  price: Money;
   itemCount: number;
   paymentMethod?: string;
   description?: string;

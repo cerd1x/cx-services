@@ -1,4 +1,5 @@
 import { Product as ProductType } from "./core/model/product.model";
+import { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { CreateProductUseCase } from "./core/usecase/create_product.usecase";
 import { ProductByIdUseCase } from "./core/usecase/product_by_id.usecase";
@@ -104,8 +105,8 @@ export class ProductService {
     id: ID,
     count: number,
     userId: number,
-    price?: number,
-  ): Promise<{ product: ProductType; count: number; amount: number }> {
+    price?: Money,
+  ): Promise<{ product: ProductType; count: number; amount: Money }> {
     return this.#buyProduct.execute({ id, count, userId, price });
   }
 

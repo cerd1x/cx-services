@@ -156,8 +156,8 @@ describe("Payment entity", () => {
 
 describe("Invoice entity", () => {
   const sampleItems = [
-    { description: "Item A", quantity: 2, unitPrice: 1000 },
-    { description: "Item B", quantity: 1, unitPrice: 5000 },
+    { description: "Item A", quantity: 2, unitPrice: "1000" },
+    { description: "Item B", quantity: 1, unitPrice: "5000" },
   ];
 
   it("computes subtotal and total amount from items", () => {

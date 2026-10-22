@@ -12,21 +12,15 @@ export function assertOptionalPositiveInt(value: number | undefined, field: stri
   assertPositiveInt(value, field);
 }
 
-export function assertMoney(price: number, field = "price"): void {
-  if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
-    throw new ValidationError(`${field} must be a positive finite number`);
+export function assertMoney(price: Money, field = "price"): void {
+  if (!(price instanceof Money) || !price.isPositive()) {
+    throw new ValidationError(`${field} must be a positive Money amount`);
   }
 }
 
 export function assertItemCount(itemCount: number): void {
   if (typeof itemCount !== "number" || !Number.isInteger(itemCount) || itemCount <= 0) {
     throw new ValidationError("itemCount must be a positive integer");
-  }
-}
-
-export function assertCurrencyCode(currency: string): void {
-  if (typeof currency !== "string" || !/^[A-Za-z]{3}$/.test(currency)) {
-    throw new ValidationError("currency must be a 3-letter code (e.g. IDR)");
   }
 }
 

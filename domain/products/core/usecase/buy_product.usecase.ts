@@ -1,3 +1,4 @@
+import { Money, findCurrency } from "@lib/money";
 import { ProductRepository } from "../ports/out/product-repository.port";
 import type { Product as ProductType } from "../model/product.model";
 import { ID } from "$services/shared/kernel";
@@ -10,17 +11,18 @@ export type BuyProductInput = {
   id: ID;
   count: number;
   userId: number;
-  price?: number;
+  price?: Money;
 };
 
-export class BuyProductUseCase extends CoreUsecase<
-  { product: ProductType; count: number; amount: number },
-  BuyProductInput
-> {
+export type BuyProductResult = {
+  product: ProductType;
+  count: number;
+  amount: Money;
+};
+
+export class BuyProductUseCase extends CoreUsecase<BuyProductResult, BuyProductInput> {
   @logMethod(logger)
-  async execute(
-    input: BuyProductInput,
-  ): Promise<{ product: ProductType; count: number; amount: number }> {
+  async execute(input: BuyProductInput): Promise<BuyProductResult> {
     const productRepo = this.deps.get(ProductRepository);
     const { id, count, userId, price } = input;
 
@@ -34,8 +36,8 @@ export class BuyProductUseCase extends CoreUsecase<
       throw new Error("Product does not belong to this user");
     }
 
-    const appliedPrice = price ?? product.price;
-    const amount = appliedPrice * count;
+    const appliedPrice = price ?? this.#moneyFrom(product.price, product.currency);
+    const amount = appliedPrice.multiply(count);
 
     if (product.trackStock) {
       const availableStock = product.stock ?? 0;
@@ -52,5 +54,13 @@ export class BuyProductUseCase extends CoreUsecase<
     }
 
     return { product, count, amount };
+  }
+
+  #moneyFrom(amount: number, currencyCode: string): Money {
+    const currency = findCurrency(currencyCode.toUpperCase());
+    if (!currency) {
+      throw new Error(`Unknown currency: ${currencyCode}`);
+    }
+    return Money.fromNumber(amount, currency);
   }
 }

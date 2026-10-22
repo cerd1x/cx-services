@@ -12,7 +12,10 @@ import { CoreUsecase } from "$services/shared/base";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
-import { assertItemCount, assertOptionalPositiveInt } from "./order_input.validator";
+import {
+  assertItemCount,
+  assertOptionalPositiveInt,
+} from "./order_input.validator";
 
 export type CreateOrderProductSaleInput = {
   userId: number;
@@ -42,7 +45,10 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       throw new ValidationError("price must be a positive finite number");
     }
 
-    const product = await ProductService.getInstance().product(data.productId, data.userId);
+    const product = await ProductService.getInstance().product(
+      data.productId,
+      data.userId,
+    );
 
     if (product.userId !== data.userId) {
       throw new Error("Product does not belong to this user");
@@ -65,16 +71,17 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       );
     }
 
-    const capital = Money.fromNumber(capitalPerItem, appliedPrice.currency).multiply(
-      data.itemCount,
-    );
-    const description = data.description ?? `Sale: ${product.name} x${data.itemCount}`;
+    const capital = Money.fromNumber(
+      capitalPerItem,
+      appliedPrice.currency,
+    ).multiply(data.itemCount);
+    const description =
+      data.description ?? `Sale: ${product.name} x${data.itemCount}`;
     const paymentMethod = data.paymentMethod ?? "cash";
 
     let order = Order.new({
       userId: data.userId,
-      price: appliedPrice.toNumber(),
-      currency,
+      price: appliedPrice,
       itemCount: data.itemCount,
       description,
       paymentMethod,
@@ -91,7 +98,9 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
     let stockDeducted = false;
 
     try {
-      const paymentService = this.deps.get(PaymentServiceCtx) as unknown as PaymentService;
+      const paymentService = this.deps.get(
+        PaymentServiceCtx,
+      ) as unknown as PaymentService;
       const invoice = await paymentService.createInvoice({
         userId: data.userId,
         customerId: data.customerId,
@@ -99,7 +108,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
           {
             description: product.name,
             quantity: data.itemCount,
-            unitPrice: appliedPrice.toNumber(),
+            unitPrice: appliedPrice,
           },
         ],
         currency,
@@ -115,7 +124,9 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         invoiceId: invoice.id,
         description,
         // Tanpa asset tujuan tidak ada dana yang bisa di-charge/settle.
-        type: data.payToAssetId ? ProcessPaymentType.orderProductSale : ProcessPaymentType.general,
+        type: data.payToAssetId
+          ? ProcessPaymentType.orderProductSale
+          : ProcessPaymentType.general,
       });
 
       if (payment.status !== "completed") {
@@ -126,7 +137,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         data.productId,
         data.itemCount,
         data.userId,
-        appliedPrice.toNumber(),
+        appliedPrice,
       );
       stockDeducted = true;
 

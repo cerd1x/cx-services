@@ -103,8 +103,8 @@ describe("Payment integration", () => {
     const invoice = await service.createInvoice({
       userId,
       items: [
-        { description: "Product A", quantity: 2, unitPrice: 25000 },
-        { description: "Product B", quantity: 1, unitPrice: 10000 },
+        { description: "Product A", quantity: 2, unitPrice: "25000" },
+        { description: "Product B", quantity: 1, unitPrice: "10000" },
       ],
       currency: "IDR",
       tax: 5000,
@@ -123,7 +123,7 @@ describe("Payment integration", () => {
     const userId = await seedUser();
     const invoice = await service.createInvoice({
       userId,
-      items: [{ description: "P", quantity: 1, unitPrice: 100000 }],
+      items: [{ description: "P", quantity: 1, unitPrice: "100000" }],
       currency: "IDR",
     });
 
@@ -215,7 +215,7 @@ describe("Payment integration", () => {
     const userId = await seedUser();
     const invoice = await service.createInvoice({
       userId,
-      items: [{ description: "P", quantity: 1, unitPrice: 5000 }],
+      items: [{ description: "P", quantity: 1, unitPrice: "5000" }],
       currency: "IDR",
     });
 

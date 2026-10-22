@@ -23,7 +23,7 @@ const mapOrder = (order: OrderEntity): GqlOrder => ({
   userId: order.userId?.toString(),
   status: order.status,
   paymentMethod: order.paymentMethod as PaymentMethodType,
-  totalAmount: order.totalAmount,
+  totalAmount: order.totalAmount.toNumber(),
   currency: order.currency,
   itemCount: order.itemCount,
   description: order.description,
@@ -47,8 +47,7 @@ const resolvers: Resolvers<YogaContext> = {
     createOrder: async (_parent, args, { order, userAuth }) => {
       const result = await order.createOrder({
         userId: userAuth!.id.toNumb,
-        price: args.input.totalAmount,
-        currency: args.input.currency,
+        price: resolveMoney(args.input.totalAmount, args.input.currency),
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
         description: args.input.description ?? undefined,
@@ -86,8 +85,7 @@ const resolvers: Resolvers<YogaContext> = {
     createOrderExpense: async (_parent, args, { order, userAuth }) => {
       const result = await order.createOrderExpense({
         userId: userAuth!.id.toNumb,
-        price: args.input.totalAmount,
-        currency: args.input.currency,
+        price: resolveMoney(args.input.totalAmount, args.input.currency),
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
         customerId: args.input.customerId ? ID.new(args.input.customerId).toNumb : undefined,
@@ -101,8 +99,7 @@ const resolvers: Resolvers<YogaContext> = {
     createOrderLoan: async (_parent, args, { order, userAuth }) => {
       const result = await order.createOrderLoan({
         userId: userAuth!.id.toNumb,
-        price: args.input.totalAmount,
-        currency: args.input.currency,
+        price: resolveMoney(args.input.totalAmount, args.input.currency),
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
         customerId: args.input.customerId ? ID.new(args.input.customerId).toNumb : undefined,

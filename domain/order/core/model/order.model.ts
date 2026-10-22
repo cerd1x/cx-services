@@ -1,3 +1,4 @@
+import { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 import { z } from "zod";
 
@@ -9,6 +10,12 @@ const OrderStatus = {
 
 type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 
+const currencySchema = z.string().length(3, "Currency must be a 3-letter code").toUpperCase();
+const priceSchema = z.custom<Money>(
+  (value) => value instanceof Money && value.isPositive(),
+  "Price must be positive",
+);
+
 export const orderSchema = z.object({
   id: z.number().optional(),
   userId: z.number().optional(),
@@ -16,9 +23,7 @@ export const orderSchema = z.object({
   paymentMethod: z
     .enum(["cash", "bank_transfer", "ewallet", "credit_card", "debit_card", "credit"])
     .default("cash"),
-  price: z.number().positive("Price must be positive"),
-  totalAmount: z.number().optional(),
-  currency: z.string().length(3, "Currency must be a 3-letter code").toUpperCase(),
+  price: priceSchema,
   itemCount: z.number().int().positive("Item count must be positive"),
   description: z.string().max(500, "Description must be at most 500 characters").optional(),
   customerId: z.number().optional(),
@@ -30,8 +35,6 @@ export type OrderType = z.infer<typeof orderSchema>;
 
 const statusSchema = orderSchema.shape.status;
 const paymentMethodSchema = orderSchema.shape.paymentMethod;
-const priceSchema = orderSchema.shape.price;
-const currencySchema = orderSchema.shape.currency;
 const itemCountSchema = orderSchema.shape.itemCount;
 const descriptionSchema = orderSchema.shape.description;
 
@@ -40,9 +43,7 @@ export class Order {
   userId?: number;
   status: OrderStatus = "pending";
   paymentMethod: string = "cash";
-  price!: number;
-  totalAmount!: number;
-  currency!: string;
+  price!: Money;
   itemCount!: number;
   description?: string;
   customerId?: number;
@@ -50,8 +51,7 @@ export class Order {
   updatedAt?: Date;
 
   constructor(data: {
-    price: number;
-    currency: string;
+    price: Money;
     itemCount: number;
     userId?: number;
     status?: OrderStatus;
@@ -63,8 +63,6 @@ export class Order {
     updatedAt?: Date;
   }) {
     this.price = data.price;
-    this.totalAmount = data.price * data.itemCount;
-    this.currency = data.currency;
     this.itemCount = data.itemCount;
     this.userId = data.userId;
     if (data.status) this.status = data.status;
@@ -76,9 +74,16 @@ export class Order {
     this.updatedAt = data.updatedAt;
   }
 
+  get totalAmount(): Money {
+    return this.price.multiply(this.itemCount);
+  }
+
+  get currency(): string {
+    return this.price.currency.code.toUpperCase();
+  }
+
   static new(data: {
-    price: number;
-    currency: string;
+    price: Money;
     itemCount: number;
     userId?: number;
     status?: OrderStatus;
@@ -113,8 +118,8 @@ export class Order {
     return this;
   }
 
-  getTotalAmount(): number {
-    return this.price * this.itemCount;
+  getTotalAmount(): Money {
+    return this.totalAmount;
   }
 
   validateCurrency(): Order {

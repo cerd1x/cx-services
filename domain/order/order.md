@@ -56,22 +56,21 @@ domain/order/
     2. `userId`: `z.number().optional()`
     3. `status`: `z.enum(["pending", "success", "cancelled"]).default("pending")` — required
     4. `paymentMethod`: `z.enum(["cash", "bank_transfer", "ewallet", "credit_card", "debit_card", "credit"]).default("cash")` — required
-    5. `price`: `z.number().positive()` — required, harga per item
-    6. `totalAmount`: `z.number().optional()` — total amount (price * itemCount), dihitung otomatis
-    7. `currency`: `z.string().length(3).toUpperCase()` — required, 3-letter ISO code
-    8. `itemCount`: `z.number().int().positive()` — required, jumlah item
-    9. `description`: `z.string().max(500).optional()`
-    10. `customerId`: `z.number().optional()` — ID customer (untuk order expense/loan)
-    11. `createdAt`: `z.date().optional()`
-    12. `updatedAt`: `z.date().optional()`
+    5. `price`: `z.instanceof(Money).refine(...)` — required, harga per item (sekaligus membawa currency)
+    6. `itemCount`: `z.number().int().positive()` — required, jumlah item
+    7. `description`: `z.string().max(500).optional()`
+    8. `customerId`: `z.number().optional()` — ID customer (untuk order expense/loan)
+    9. `createdAt`: `z.date().optional()`
+    10. `updatedAt`: `z.date().optional()`
 - **`OrderType`** — `z.infer<typeof orderSchema>` (type alias)
 - **`OrderStatus`** — Enum: `pending`, `success`, `cancelled`
 - **`PaymentMethod`** — Diambil dari module transactions (`paymentMethodSchema`)
 - **`Order` class** — Entity dengan properti dan method validasi
-  - **Properties:** `id`, `userId`, `status`, `paymentMethod`, `price`, `totalAmount`, `currency`, `itemCount`, `description`, `customerId`, `createdAt`, `updatedAt`
-  - **`constructor(data)`** — Menerima object `{ price, currency, itemCount, userId?, status?, paymentMethod?, description?, customerId?, id?, createdAt?, updatedAt? }`. `totalAmount` dihitung otomatis dari `price * itemCount`
+  - **Properties:** `id`, `userId`, `status`, `paymentMethod`, `price: Money`, `itemCount`, `description`, `customerId`, `createdAt`, `updatedAt`
+  - **Derived getters:** `totalAmount: Money` (`price.multiply(itemCount)`) dan `currency: string` (`price.currency.code`)
+  - **`constructor(data)`** — Menerima object `{ price: Money, itemCount, userId?, status?, paymentMethod?, description?, customerId?, id?, createdAt?, updatedAt? }`. `totalAmount` dan `currency` diturunkan dari `price`
   - **`static new(data)`** — Factory method, shortcut ke `new Order(data)`
-  - **`getTotalAmount()`** — Menghitung `price * itemCount`
+  - **`getTotalAmount()`** — Mengembalikan `totalAmount` (Money)
   - **Validation methods (chainable, return `this`):**
     1. `validateStatus()` — `statusSchema.safeParse(this.status)`
     2. `validatePaymentMethod()` — `paymentMethodSchema.safeParse(this.paymentMethod)`

@@ -104,8 +104,7 @@ export class OrderService {
   @logMethod(logger)
   async createOrderExpense(data: {
     userId: number;
-    price: number;
-    currency: string;
+    price: Money;
     itemCount: number;
     paymentMethod?: string;
     customerId?: number;
@@ -118,8 +117,7 @@ export class OrderService {
   @logMethod(logger)
   async createOrderLoan(data: {
     userId: number;
-    price: number;
-    currency: string;
+    price: Money;
     itemCount: number;
     paymentMethod?: string;
     customerId?: number;
@@ -133,8 +131,7 @@ export class OrderService {
   @logMethod(logger)
   async createOrder(data: {
     userId?: number;
-    price: number;
-    currency: string;
+    price: Money;
     itemCount: number;
     paymentMethod?: string;
     description?: string;

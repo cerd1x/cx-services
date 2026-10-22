@@ -178,7 +178,7 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
     });
 
     expect(order.id).toBeDefined();
-    expect(order.totalAmount).toBe(100000);
+    expect(order.totalAmount.toNumber()).toBe(100000);
     expect(order.itemCount).toBe(2);
     expect(order.status).toBe("success");
 

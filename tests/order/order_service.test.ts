@@ -103,7 +103,7 @@ describe("OrderService", () => {
       });
 
       let savedOrderStatus = "";
-      let savedOrderTotalAmount = 0;
+      let savedOrderTotalAmount: Money | undefined;
 
       orderRepo.save.mockImplementation(async (o: Order) => {
         savedOrderStatus = o.status;
@@ -124,14 +124,14 @@ describe("OrderService", () => {
       });
 
       expect(result.id?.toNumb).toBe(100);
-      expect(result.totalAmount).toBe(100000);
+      expect(result.totalAmount.toNumber()).toBe(100000);
       expect(result.itemCount).toBe(2);
       expect(result.status).toBe("success");
       expect(productRepo.update).toHaveBeenCalledWith(expect.objectContaining({ stock: 48 }), 1);
       expect(savedOrderStatus).toBe("pending");
-      expect(savedOrderTotalAmount).toBe(100000);
+      expect(savedOrderTotalAmount?.toNumber()).toBe(100000);
       expect(orderRepo.update).toHaveBeenCalledWith(
-        expect.objectContaining({ totalAmount: 100000, itemCount: 2, status: "success" }),
+        expect.objectContaining({ itemCount: 2, status: "success" }),
         1,
       );
       expect(fakePaymentService.createInvoice).toHaveBeenCalled();
@@ -276,17 +276,16 @@ describe("OrderService", () => {
 
       const result = await OrderService.getInstance().createOrder({
         userId: 1,
-        price: 50000,
-        currency: "IDR",
+        price: Money.fromNumber(50000, iso.IDR),
         itemCount: 2,
       });
 
       expect(result.id?.toNumb).toBe(1);
-      expect(result.totalAmount).toBe(100000);
+      expect(result.totalAmount.toNumber()).toBe(100000);
       expect(result.currency).toBe("IDR");
       expect(result.itemCount).toBe(2);
       expect(orderRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ totalAmount: 100000, currency: "IDR", itemCount: 2 }),
+        expect.objectContaining({ currency: "IDR", itemCount: 2 }),
       );
     });
 
@@ -298,8 +297,7 @@ describe("OrderService", () => {
 
       const result = await OrderService.getInstance().createOrder({
         userId: 1,
-        price: 75000,
-        currency: "IDR",
+        price: Money.fromNumber(75000, iso.IDR),
         itemCount: 3,
         paymentMethod: "cash",
         description: "Coffee order",
@@ -315,8 +313,7 @@ describe("OrderService", () => {
       await expect(
         OrderService.getInstance().createOrder({
           userId: 1,
-          price: 100,
-          currency: "IDR",
+          price: Money.fromNumber(100, iso.IDR),
           itemCount: 1,
         }),
       ).rejects.toThrow("Failed to create order: no id returned");
@@ -326,8 +323,7 @@ describe("OrderService", () => {
       await expect(
         OrderService.getInstance().createOrder({
           userId: 1,
-          price: -1,
-          currency: "IDR",
+          price: Money.fromNumber(-1, iso.IDR),
           itemCount: 1,
         }),
       ).rejects.toThrow("Price must be positive");
@@ -338,8 +334,7 @@ describe("OrderService", () => {
       await expect(
         OrderService.getInstance().createOrder({
           userId: 1,
-          price: 100,
-          currency: "IDR",
+          price: Money.fromNumber(100, iso.IDR),
           itemCount: 0,
         }),
       ).rejects.toThrow("Item count must be positive");
@@ -349,7 +344,7 @@ describe("OrderService", () => {
 
   describe("order", () => {
     it("returns order when found", async () => {
-      const o = new Order({ price: 50000, currency: "IDR", itemCount: 2 });
+      const o = new Order({ price: Money.fromNumber(50000, iso.IDR), itemCount: 2 });
       o.id = ID.new(1);
       o.userId = 1;
       orderRepo.findById.mockResolvedValue(o);
@@ -357,7 +352,7 @@ describe("OrderService", () => {
       const result = await OrderService.getInstance().order(ID.new(1), userId);
 
       expect(result.id?.toNumb).toBe(1);
-      expect(result.totalAmount).toBe(100000);
+      expect(result.totalAmount.toNumber()).toBe(100000);
     });
 
     it("throws NotFoundError when not found", async () => {
@@ -369,17 +364,17 @@ describe("OrderService", () => {
 
   describe("orders", () => {
     it("returns orders for user", async () => {
-      const o1 = new Order({ price: 50000, currency: "IDR", itemCount: 2, userId: 1 });
+      const o1 = new Order({ price: Money.fromNumber(50000, iso.IDR), itemCount: 2, userId: 1 });
       o1.id = ID.new(1);
-      const o2 = new Order({ price: 30000, currency: "IDR", itemCount: 1, userId: 1 });
+      const o2 = new Order({ price: Money.fromNumber(30000, iso.IDR), itemCount: 1, userId: 1 });
       o2.id = ID.new(2);
       orderRepo.findAll.mockResolvedValue([o1, o2]);
 
       const result = await OrderService.getInstance().orders(userId);
 
       expect(result).toHaveLength(2);
-      expect(result[0].totalAmount).toBe(100000);
-      expect(result[1].totalAmount).toBe(30000);
+      expect(result[0].totalAmount.toNumber()).toBe(100000);
+      expect(result[1].totalAmount.toNumber()).toBe(30000);
     });
   });
 
@@ -387,7 +382,7 @@ describe("OrderService", () => {
     it("returns orders within date range", async () => {
       const start = new Date("2026-01-01");
       const end = new Date("2026-12-31");
-      const o = new Order({ price: 50000, currency: "IDR", itemCount: 2 });
+      const o = new Order({ price: Money.fromNumber(50000, iso.IDR), itemCount: 2 });
       o.id = ID.new(1);
       orderRepo.findAllByDateRange.mockResolvedValue([o]);
 
@@ -401,8 +396,7 @@ describe("OrderService", () => {
   describe("updateOrder", () => {
     it("updates order fields", async () => {
       const existing = new Order({
-        price: 50000,
-        currency: "IDR",
+        price: Money.fromNumber(50000, iso.IDR),
         itemCount: 2,
       });
       existing.id = ID.new(1);
@@ -436,7 +430,7 @@ describe("OrderService", () => {
 
   describe("deleteOrder", () => {
     it("deletes order by id", async () => {
-      const existing = new Order({ price: 1000, currency: "IDR", itemCount: 1 });
+      const existing = new Order({ price: Money.fromNumber(1000, iso.IDR), itemCount: 1 });
       existing.id = ID.new(1);
       existing.userId = 1;
       orderRepo.findById.mockResolvedValue(existing);

@@ -1,3 +1,4 @@
+import { Money } from "@lib/money";
 import { OrderRepository } from "../ports/out/order-repository.port";
 import { Order } from "../model/order.model";
 import type { Order as OrderType } from "../model/order.model";
@@ -7,19 +8,12 @@ import { AssetService } from "$services/domain/assets";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
-import {
-  assertCurrencyCode,
-  assertItemCount,
-  assertMoney,
-  assertOptionalPositiveInt,
-  resolveMoney,
-} from "./order_input.validator";
+import { assertItemCount, assertMoney, assertOptionalPositiveInt } from "./order_input.validator";
 import { logger } from "../value-objects/logger";
 
 export type CreateOrderExpenseInput = {
   userId: number;
-  price: number;
-  currency: string;
+  price: Money;
   itemCount: number;
   paymentMethod?: string;
   customerId?: number;
@@ -33,15 +27,14 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
     const orderRepo = this.deps.get(OrderRepository);
     const data = input;
 
-    assertCurrencyCode(data.currency);
     assertItemCount(data.itemCount);
     assertMoney(data.price, "price");
     assertOptionalPositiveInt(data.customerId, "customerId");
     assertOptionalPositiveInt(data.payWithAssetId, "payWithAssetId");
 
-    const totalAmount = data.price * data.itemCount;
-    const amount = resolveMoney(totalAmount, data.currency);
-    const capital = resolveMoney(totalAmount, data.currency);
+    const totalAmount = data.price.multiply(data.itemCount);
+    const amount = totalAmount;
+    const capital = totalAmount;
 
     let savedTxId: ID | null = null;
     let assetMutated = false;
@@ -53,7 +46,8 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
         amount,
         capital,
         createdAt: new Date(),
-        description: data.description ?? `Expense: ${totalAmount} ${data.currency}`,
+        description:
+          data.description ?? `Expense: ${totalAmount.toNumber()} ${totalAmount.currency.code}`,
         category: "Expense",
         paymentMethod: data.paymentMethod
           ? { type: data.paymentMethod as PaymentMethodType }
@@ -76,7 +70,6 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
       let order = Order.new({
         userId: data.userId,
         price: data.price,
-        currency: data.currency,
         itemCount: data.itemCount,
         paymentMethod: data.paymentMethod,
         description: data.description,
