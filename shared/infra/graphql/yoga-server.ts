@@ -56,10 +56,17 @@ import {
 import { ApolloServer } from "@apollo/server";
 import { apollo } from "@elysiajs/apollo";
 import { GraphQLError } from "graphql";
-import { createContext, withSetCookies, makeCookieSetter } from "./yoga-context";
+import {
+  createContext,
+  withSetCookies,
+  makeCookieSetter,
+} from "./yoga-context";
 import type { YogaContext, CookieJar } from "./yoga-context";
 import { ServiceError } from "$services/shared/kernel/errors/service-error";
-import { depthLimitRule, noIntrospectionInProductionRule } from "./security-rules";
+import {
+  depthLimitRule,
+  noIntrospectionInProductionRule,
+} from "./security-rules";
 import { appConfigs } from "$config";
 import { withResolverLogging } from "./graphql-stream";
 import { Logger, LogLevel, streamLog } from "$services/shared/infra/logger";
@@ -77,9 +84,9 @@ const paginationTypeDefs = `type PageInfo {
   endCursor: String
 }`;
 
-const gqlStream = streamLog(Logger.create(LogLevel.Info, ".logger/graphql-resolver-log.log")).child(
-  "GraphQL",
-);
+const gqlStream = streamLog(
+  Logger.create(LogLevel.Info, ".logger/graphql-resolver-log.log"),
+).child("GraphQL");
 
 const moduleResolvers = {
   Auth: authResolvers,
@@ -126,7 +133,9 @@ let schema = makeExecutableSchema({
   ],
 });
 
-schema = authorizedDirectiveTransformer(schema, { exclude: ["signIn", "signUp"] });
+schema = authorizedDirectiveTransformer(schema, {
+  exclude: ["signIn", "signUp"],
+});
 schema = adminDirectiveTransformer(schema);
 schema = killswitchTransformer(schema);
 
@@ -144,7 +153,9 @@ function formatError(formattedError: any, error: unknown) {
       extensions: {
         ...(formattedError.extensions || {}),
         code: original.code,
-        ...(process.env.NODE_ENV === "development" ? { stack: original.stack } : {}),
+        ...(process.env.NODE_ENV === "development"
+          ? { stack: original.stack }
+          : {}),
       },
     };
   }
@@ -193,7 +204,10 @@ export const yogaFetch = async (request: Request): Promise<Response> => {
     context: async () => context,
   });
   if (!response.body) {
-    return withSetCookies(new Response(null, { status: response.status || 200 }), cookieJar);
+    return withSetCookies(
+      new Response(null, { status: response.status || 200 }),
+      cookieJar,
+    );
   }
   const text = await response.body;
   return withSetCookies(
