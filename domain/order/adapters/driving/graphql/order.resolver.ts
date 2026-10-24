@@ -77,7 +77,9 @@ const resolvers: Resolvers<YogaContext> = {
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
         customerId: args.input.customerId ? ID.new(args.input.customerId).toNumb : undefined,
         description: args.input.description ?? undefined,
-        payToAssetId: args.input.payToAssetId ? ID.new(args.input.payToAssetId).toNumb : undefined,
+        payWithAssetId: args.input.payWithAssetId
+          ? ID.new(args.input.payWithAssetId).toNumb
+          : undefined,
         paymentStatus: args.input.paymentStatus ?? undefined,
       });
       return mapOrder(result);

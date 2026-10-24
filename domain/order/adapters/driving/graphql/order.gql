@@ -20,7 +20,7 @@ input CreateOrderProductSaleInput {
   paymentMethod: PaymentMethodType
   customerId: ID
   description: String
-  payToAssetId: ID
+  payWithAssetId: ID
   paymentStatus: TransactionPaymentStatus
 }
 

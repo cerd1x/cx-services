@@ -95,7 +95,7 @@ export class OrderService {
     paymentMethod?: string;
     customerId?: number;
     description?: string;
-    payToAssetId?: number;
+    payWithAssetId?: number;
     paymentStatus?: "paid" | "unpaid";
   }): Promise<OrderType> {
     return this.#createOrderProductSale.execute(data);

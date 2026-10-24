@@ -12,10 +12,7 @@ import { CoreUsecase } from "$services/shared/base";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
-import {
-  assertItemCount,
-  assertOptionalPositiveInt,
-} from "./order_input.validator";
+import { assertItemCount, assertOptionalPositiveInt } from "./order_input.validator";
 
 export type CreateOrderProductSaleInput = {
   userId: number;
@@ -25,7 +22,7 @@ export type CreateOrderProductSaleInput = {
   paymentMethod?: string;
   customerId?: number;
   description?: string;
-  payToAssetId?: number;
+  payWithAssetId?: number;
   paymentStatus?: "paid" | "unpaid";
 };
 
@@ -40,15 +37,12 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
 
     assertItemCount(data.itemCount);
     assertOptionalPositiveInt(data.customerId, "customerId");
-    assertOptionalPositiveInt(data.payToAssetId, "payToAssetId");
+    assertOptionalPositiveInt(data.payWithAssetId, "payWithAssetId");
     if (!data.price.isPositive()) {
       throw new ValidationError("price must be a positive finite number");
     }
 
-    const product = await ProductService.getInstance().product(
-      data.productId,
-      data.userId,
-    );
+    const product = await ProductService.getInstance().product(data.productId, data.userId);
 
     if (product.userId !== data.userId) {
       throw new Error("Product does not belong to this user");
@@ -71,12 +65,10 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       );
     }
 
-    const capital = Money.fromNumber(
-      capitalPerItem,
-      appliedPrice.currency,
-    ).multiply(data.itemCount);
-    const description =
-      data.description ?? `Sale: ${product.name} x${data.itemCount}`;
+    const capital = Money.fromNumber(capitalPerItem, appliedPrice.currency).multiply(
+      data.itemCount,
+    );
+    const description = data.description ?? `Sale: ${product.name} x${data.itemCount}`;
     const paymentMethod = data.paymentMethod ?? "cash";
 
     let order = Order.new({
@@ -98,9 +90,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
     let stockDeducted = false;
 
     try {
-      const paymentService = this.deps.get(
-        PaymentServiceCtx,
-      ) as unknown as PaymentService;
+      const paymentService = this.deps.get(PaymentServiceCtx) as unknown as PaymentService;
       const invoice = await paymentService.createInvoice({
         userId: data.userId,
         customerId: data.customerId,
@@ -120,11 +110,11 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         amount: saleAmount.toNumber(),
         currency,
         method: paymentMethod,
-        assetId: data.payToAssetId,
+        assetId: data.payWithAssetId,
         invoiceId: invoice.id,
         description,
         // Tanpa asset tujuan tidak ada dana yang bisa di-charge/settle.
-        type: data.payToAssetId
+        type: data.payWithAssetId
           ? ProcessPaymentType.orderProductSale
           : ProcessPaymentType.general,
       });
@@ -156,7 +146,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         customerId: data.customerId,
         status: "success",
         paymentStatus: data.paymentStatus,
-        payToAssetId: data.payToAssetId,
+        payToAssetId: data.payWithAssetId,
       });
 
       order.status = "success";
