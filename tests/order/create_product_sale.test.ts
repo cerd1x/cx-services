@@ -236,7 +236,7 @@ describe("createOrderProductSale — real SQLite via D1 mock", () => {
       price: Money.fromNumber(25000, iso.IDR),
       paymentMethod: "bank_transfer",
       customerId,
-      payToAssetId: assetIdNum,
+      payWithAssetId: assetIdNum,
     });
 
     expect(order.id).toBeDefined();

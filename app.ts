@@ -6,7 +6,7 @@ import { betaReportEmailer, betaReportStore, isBetaReportAdmin } from "./shared/
 import type { BetaReportFile, BetaReportMeta, BetaReportPayload } from "./shared/infra/beta-report";
 import { appConfigs, corsOrigins } from "./app.config";
 import { apiKillswitchService } from "./composition/root.container";
-import { gqlApolloAsPluginElysia } from "./shared/infra/graphql/yoga-server";
+import { gqlYogaAsPluginElysia } from "./shared/infra/graphql/yoga-server";
 import { WebStandardAdapter } from "elysia/adapter/web-standard";
 const l = streamLog(Logger.fromConfig(appConfigs.logger)).child("ApiServer");
 
@@ -256,7 +256,7 @@ function createApp() {
       const result = await apiKillswitchService.enableOperation(params?.operation);
       return { status: "enabled", ...result };
     })
-    .use(gqlApolloAsPluginElysia({}))
+    .use(gqlYogaAsPluginElysia({ logging: true }))
     .compile();
 }
 

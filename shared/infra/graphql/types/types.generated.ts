@@ -186,7 +186,7 @@ export type CreateOrderProductSaleInput = {
   customerId?: InputMaybe<Scalars["ID"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
   itemCount: Scalars["Int"]["input"];
-  payToAssetId?: InputMaybe<Scalars["ID"]["input"]>;
+  payWithAssetId?: InputMaybe<Scalars["ID"]["input"]>;
   paymentMethod?: InputMaybe<PaymentMethodType>;
   paymentStatus?: InputMaybe<TransactionPaymentStatus>;
   productId: Scalars["ID"]["input"];
