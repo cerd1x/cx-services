@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { createMockD1, initTestTables } from "../utils/d1-mock";
 import { setDB, setD1 } from "$services/shared/infra/db";
 import { createUserService, UserService } from "$services/domain/user";
-import { createAssetService } from "$services/domain/assets";
+import { createAssetService, AssetService } from "$services/domain/assets";
 import { AssetRepositoryImpl } from "$services/domain/assets/adapters/driven/drizzle/asset.repository";
 import { UnitOfWorkImpl } from "$services/domain/assets/adapters/driven/drizzle/uow.repository";
 import { OutboxRepositoryImpl } from "$services/shared/infra/db/drizzle/outbox.repository";
@@ -13,6 +13,7 @@ import { AuthRepositoryImpl } from "$services/domain/auth/adapters/driven/drizzl
 import { createSettingService, SettingService } from "$services/domain/setting";
 import { SettingRepositoryImpl } from "$services/domain/setting/adapters/driven/drizzle/setting.repository";
 import { User } from "$services/domain/user/core/model/user.model";
+import { ID } from "$services/shared/kernel";
 
 describe("User queries through services", () => {
   let sqlite: any;
@@ -89,5 +90,11 @@ describe("User queries through services", () => {
     expect(result.session.length).toBeGreaterThan(0);
     expect(result.refreshToken).toBeDefined();
     expect(typeof result.refreshToken).toBe("string");
+
+    const userId = result.user.id!;
+    const setting = await SettingService.getInstance().settingByUserId(userId.toNumb);
+    const cashAsset = await AssetService.getInstance().assetByName("MyCash", userId);
+
+    expect(setting.defaultAssetCashId).toBe(ID.new(cashAsset.IdStr).toNumb);
   });
 });

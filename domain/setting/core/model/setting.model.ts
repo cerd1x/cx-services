@@ -127,12 +127,13 @@ export class Setting {
     return new Setting(result.data);
   }
 
-  static defaults(userId: number): Setting {
+  static defaults(userId: number, defaultAssetCashId?: number): Setting {
     return new Setting({
       userId,
       currency: "IDR",
       darkMode: false,
       dateFormat: DEFAULT_DATE_FORMAT,
+      defaultAssetCashId,
     });
   }
 }

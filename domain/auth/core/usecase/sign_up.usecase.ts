@@ -5,6 +5,7 @@ import type { User } from "../../../user/core/model/user.model";
 import type { SettingService } from "$services/domain/setting";
 import { SettingServiceCtx, UserServiceLikeCtx } from "./ctx";
 import { AssetService } from "$services/domain/assets";
+import { ID } from "$services/shared/kernel";
 import { Money, iso } from "@lib/money";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
@@ -25,14 +26,14 @@ export class SignUpUseCase extends CoreUsecase<
     if (!user.id) throw new AuthenticationError("userId is required");
 
     try {
-      await AssetService.getInstance().createAsset({
+      const cashAsset = await AssetService.getInstance().createAsset({
         userId: user.id!,
         balance: Money.zero(iso.IDR),
         name: "MyCash",
         type: "cash",
       });
 
-      await settingService.createDefaultSettings(user.id.toNumb);
+      await settingService.createDefaultSettings(user.id.toNumb, ID.new(cashAsset.IdStr).toNumb);
     } catch (err) {
       const assetService = AssetService.getInstance();
       try {

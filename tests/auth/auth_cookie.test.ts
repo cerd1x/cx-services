@@ -53,9 +53,9 @@ describe("signUp with mocked UserRepository + AuthRepository", () => {
   };
 
   const mockAssetService = () => ({
-    createAsset: mock().mockResolvedValue({} as Asset),
+    createAsset: mock().mockResolvedValue({ IdStr: ID.new(1).toHash } as Asset),
     deleteAsset: mock().mockResolvedValue(undefined),
-    createDefaultAssetCash: mock().mockResolvedValue({} as Asset),
+    createDefaultAssetCash: mock().mockResolvedValue({ IdStr: ID.new(1).toHash } as Asset),
   });
 
   const assetSpy = spyOn(AssetService, "getInstance");
@@ -114,6 +114,7 @@ describe("signUp with mocked UserRepository + AuthRepository", () => {
     expect(result.session).toBe("mock-session");
     expect(result.refreshToken).toBe("mock-refresh");
     expect(mockUserService.createUser).toHaveBeenCalledWith("Test User", "testuser", "test1234");
+    expect(mockSettingService.createDefaultSettings).toHaveBeenCalledWith(1, 1);
   });
 
   it("throws when saved user has no id", async () => {

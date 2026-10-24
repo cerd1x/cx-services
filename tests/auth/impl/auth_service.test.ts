@@ -63,9 +63,9 @@ describe("AuthService", () => {
   });
 
   const mockAssetService = () => ({
-    createAsset: mock().mockResolvedValue({} as Asset),
+    createAsset: mock().mockResolvedValue({ IdStr: ID.new(1).toHash } as Asset),
     deleteAsset: mock().mockResolvedValue(undefined),
-    createDefaultAssetCash: mock().mockResolvedValue({} as Asset),
+    createDefaultAssetCash: mock().mockResolvedValue({ IdStr: ID.new(1).toHash } as Asset),
   });
 
   const assetSpy = spyOn(AssetService, "getInstance");
@@ -122,6 +122,7 @@ describe("AuthService", () => {
       expect(result.refreshToken).toBe("mock-refresh-token");
 
       expect(userService.createUser).toHaveBeenCalledWith("Test", "testuser", "password123");
+      expect(mockSettingService.createDefaultSettings).toHaveBeenCalledWith(1, 1);
 
       expect(authRepo.saveToken).toHaveBeenCalledWith(
         1,

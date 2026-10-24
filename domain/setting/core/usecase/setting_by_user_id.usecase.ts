@@ -11,7 +11,7 @@ export class SettingByUserIdUseCase extends CoreUsecase<SettingData, number> {
     const settingRepo = this.deps.get(SettingRepository);
     const setting = await settingRepo.findByUserId(userId);
     if (!setting) {
-      return this.deps.get(CreateDefaultSettingsUseCase).execute(userId);
+      return this.deps.get(CreateDefaultSettingsUseCase).execute({ userId });
     }
     return setting;
   }

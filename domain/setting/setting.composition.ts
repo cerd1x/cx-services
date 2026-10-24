@@ -47,8 +47,8 @@ export class SettingService {
   }
 
   @logMethod(logger)
-  async createDefaultSettings(userId: number): Promise<SettingData> {
-    return this.#createDefaultSettings.execute(userId);
+  async createDefaultSettings(userId: number, defaultAssetCashId?: number): Promise<SettingData> {
+    return this.#createDefaultSettings.execute({ userId, defaultAssetCashId });
   }
 
   @logMethod(logger)
