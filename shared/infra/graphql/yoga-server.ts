@@ -53,12 +53,12 @@ import {
   adminTypeDefs,
   adminResolvers,
 } from "$services/domain/admin/adapters/driving/graphql/admin.resolver";
-import { createYoga, createGraphQLError, type YogaServerOptions } from "graphql-yoga";
+import { ApolloServer } from "@apollo/server";
+import { apollo } from "@elysiajs/apollo";
 import { GraphQLError } from "graphql";
-import { createContext, withSetCookies } from "./yoga-context";
+import { createContext, withSetCookies, makeCookieSetter } from "./yoga-context";
 import type { YogaContext, CookieJar } from "./yoga-context";
 import { ServiceError } from "$services/shared/kernel/errors/service-error";
-import type { Context, Elysia } from "elysia";
 import { depthLimitRule, noIntrospectionInProductionRule } from "./security-rules";
 import { appConfigs } from "$config";
 import { withResolverLogging } from "./graphql-stream";
@@ -127,119 +127,81 @@ let schema = makeExecutableSchema({
 });
 
 schema = authorizedDirectiveTransformer(schema, { exclude: ["signIn", "signUp"] });
-
-// Setelah `@authorized` supaya `@admin` jadi wrapper terluar: request anonymous
-// berhenti di sini dengan 401, bukan 403.
 schema = adminDirectiveTransformer(schema);
-
-// Applied setelah `authorizedDirectiveTransformer` supaya kill switch jadi
-// wrapper terluar: operation yang dimatikan berhenti di sini, sebelum resolver
-// dan sebelum pemeriksaan auth.
 schema = killswitchTransformer(schema);
 
-const yoga = createYoga<YogaContext, YogaContext>({
-  schema,
-  context: (ctx) => createContext(ctx),
-  cors: false,
-  logging: false,
-  graphiql: appConfigs.graphql.graphiql,
-  fetchAPI: { Response },
-  plugins: [
-    {
-      onValidate({
-        addValidationRule,
-      }: {
-        addValidationRule: (rule: import("graphql").ValidationRule) => void;
-      }) {
-        if (!appConfigs.graphql.graphiql) {
-          addValidationRule(noIntrospectionInProductionRule());
-        }
-        addValidationRule(depthLimitRule(appConfigs.graphql.maxDepth));
+function formatError(formattedError: any, error: unknown) {
+  const original =
+    error instanceof GraphQLError
+      ? error.originalError
+      : error instanceof ServiceError
+        ? error
+        : undefined;
+  if (original instanceof ServiceError) {
+    return {
+      ...formattedError,
+      message: original.message,
+      extensions: {
+        ...(formattedError.extensions || {}),
+        code: original.code,
+        ...(process.env.NODE_ENV === "development" ? { stack: original.stack } : {}),
       },
-    },
+    };
+  }
+  if (process.env.NODE_ENV !== "development") {
+    return { ...formattedError, message: "Internal server error" };
+  }
+  return formattedError;
+}
+
+export const apolloServer = new ApolloServer<YogaContext>({
+  schema,
+  introspection: appConfigs.graphql.graphiql,
+  formatError,
+  validationRules: [
+    ...(appConfigs.graphql.graphiql ? [] : [noIntrospectionInProductionRule()]),
+    depthLimitRule(appConfigs.graphql.maxDepth),
   ],
-  maskedErrors: {
-    isDev: process.env.NODE_ENV === "development",
-    errorMessage: "Internal server error",
-    maskError(raw, message, isDev) {
-      const original =
-        raw instanceof GraphQLError
-          ? raw.originalError
-          : raw instanceof ServiceError
-            ? raw
-            : undefined;
-      if (original instanceof ServiceError) {
-        return createGraphQLError(original.message, {
-          extensions: { code: original.code, ...(isDev ? { stack: original.stack } : {}) },
-        });
-      }
-      if (isDev && raw instanceof Error) return raw;
-      return new Error(message);
-    },
-  },
 });
 
-const _yogaFetch = yoga.fetch.bind(yoga) as (
-  request: Request,
-  extra?: Record<string, unknown>,
-) => Response | Promise<Response>;
-
-/**
- * Satu-satunya pintu masuk ke `yoga.fetch()`.
- *
- * `CookieJar` dibuat di sini lalu diteruskan sebagai serverContext supaya
- * `createContext` bisa menulis cookie ke sana; setelah response selesai, isinya
- * ditulis sebagai header `Set-Cookie`.
- */
-async function runYoga(request: Request, extra?: Record<string, unknown>): Promise<Response> {
-  const cookieJar: CookieJar = [];
-  const response = await _yogaFetch(request, { ...extra, cookieJar });
-  return withSetCookies(response, cookieJar);
-}
-
-export function yogaFetch(
-  request: Request,
-  extra?: Record<string, unknown>,
-): Promise<Response> | Response {
-  return runYoga(request, extra ?? {});
-}
-
-type GqlYogaPluginOptions = {
-  path?: string;
-  cors?: YogaServerOptions<YogaContext, YogaContext>["cors"];
-  logging?: boolean;
-};
-
-export const gqlYogaAsPluginElysia = (opts: GqlYogaPluginOptions = {}) => {
+export const gqlApolloAsPluginElysia = (opts: { path?: string } = {}) => {
   const path = opts.path ?? "/graphql";
-
-  return (app: Elysia) =>
-    app
-      .get(path, async ({ request }: Context) => {
-        // Teruskan Response yoga apa adanya: Content-Type GraphiQL (text/html)
-        // harus dipertahankan, dan body tidak boleh di-buffer.
-        return runYoga(request);
-      })
-      .post(path, { parse: "none" }, async ({ request, body }: Context) => {
-        // Elysia 2 memanggil hook/schema SEBELUM handler, jadi `parse: "none"`
-        // dievaluasi lebih dulu. Body mentah tetap diambil dari `request.text()`
-        // agar stream tidak terkunci saat diteruskan ke yoga.
-        const payload = request.bodyUsed
-          ? typeof body === "string"
-            ? body
-            : body === undefined
-              ? ""
-              : JSON.stringify(body)
-          : await request.text();
-        const res = await runYoga(
-          new Request(request.url, {
-            method: "POST",
-            headers: request.headers,
-            body: payload,
-          }),
-        );
-        return res;
-      });
+  return apollo({
+    path,
+    server: apolloServer,
+    context: async ({ request }: { request: Request }) => {
+      const cookieJar: CookieJar = [];
+      const cookie = makeCookieSetter(cookieJar);
+      return createContext({ request, cookieJar, cookie });
+    },
+  });
 };
 
-export { yoga };
+// Keep backward compatibility exports
+export const gqlYogaAsPluginElysia = gqlApolloAsPluginElysia;
+export const yogaFetch = async (request: Request): Promise<Response> => {
+  const cookieJar: CookieJar = [];
+  const cookie = makeCookieSetter(cookieJar);
+  const context = await createContext({ request, cookieJar, cookie });
+  const response = await apolloServer.executeHTTPGraphQLRequest({
+    httpGraphQLRequest: {
+      method: request.method,
+      headers: Object.fromEntries(request.headers.entries()),
+      body: request.method === "POST" ? await request.text() : undefined,
+      search: new URL(request.url).search,
+    },
+    context: async () => context,
+  });
+  if (!response.body) {
+    return withSetCookies(new Response(null, { status: response.status || 200 }), cookieJar);
+  }
+  const text = await response.body;
+  return withSetCookies(
+    new Response(text, {
+      status: response.status || 200,
+      headers: response.headers,
+    }),
+    cookieJar,
+  );
+};
+export { apolloServer as yoga };
