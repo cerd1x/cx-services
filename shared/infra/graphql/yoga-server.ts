@@ -53,6 +53,7 @@ import {
   adminTypeDefs,
   adminResolvers,
 } from "$services/domain/admin/adapters/driving/graphql/admin.resolver";
+import isoCurrencyTypeDefs from "./iso-currency.gql?raw";
 import { createYoga, createGraphQLError, type YogaServerOptions } from "graphql-yoga";
 import { GraphQLError } from "graphql";
 import { createContext, withSetCookies } from "./yoga-context";
@@ -70,12 +71,7 @@ scalar DateTimeOrTimestamp
 scalar Money`;
 
 /** Relay pagination primitives shared by every keyset paginated connection. */
-const paginationTypeDefs = `type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-  endCursor: String
-}`;
+const paginationTypeDefs = `type PageInfo {\n  hasNextPage: Boolean!\n  hasPreviousPage: Boolean!\n  startCursor: String\n  endCursor: String\n}`;
 
 const gqlStream = streamLog(Logger.create(LogLevel.Info, ".logger/graphql-resolver-log.log")).child(
   "GraphQL",
@@ -101,6 +97,7 @@ let schema = makeExecutableSchema({
     adminDirectiveTypeDefs,
     scalarTypeDefs,
     paginationTypeDefs,
+    isoCurrencyTypeDefs,
     authTypeDefs,
     assetTypeDefs,
     userTypeDefs,
@@ -126,7 +123,9 @@ let schema = makeExecutableSchema({
   ],
 });
 
-schema = authorizedDirectiveTransformer(schema, { exclude: ["signIn", "signUp"] });
+schema = authorizedDirectiveTransformer(schema, {
+  exclude: ["signIn", "signUp"],
+});
 
 // Setelah `@authorized` supaya `@admin` jadi wrapper terluar: request anonymous
 // berhenti di sini dengan 401, bukan 403.
@@ -170,7 +169,10 @@ const yoga = createYoga<YogaContext, YogaContext>({
             : undefined;
       if (original instanceof ServiceError) {
         return createGraphQLError(original.message, {
-          extensions: { code: original.code, ...(isDev ? { stack: original.stack } : {}) },
+          extensions: {
+            code: original.code,
+            ...(isDev ? { stack: original.stack } : {}),
+          },
         });
       }
       if (isDev && raw instanceof Error) return raw;
