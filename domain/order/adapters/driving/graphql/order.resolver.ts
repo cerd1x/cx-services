@@ -7,13 +7,21 @@ import type {
   PaymentMethodType,
 } from "$services/shared/infra/graphql/types";
 import type { Order as OrderEntity } from "../../../core/model/order.model";
-import { resolveMoney } from "../../../core/usecase/order_input.validator";
 
 const isValidPaymentMethodType = (type: string): boolean => {
-  return ["cash", "bank_transfer", "ewallet", "credit_card", "debit_card", "credit"].includes(type);
+  return [
+    "cash",
+    "bank_transfer",
+    "ewallet",
+    "credit_card",
+    "debit_card",
+    "credit",
+  ].includes(type);
 };
 
-const mapPaymentMethod = (input: PaymentMethodType | null | undefined): string | undefined => {
+const mapPaymentMethod = (
+  input: PaymentMethodType | null | undefined,
+): string | undefined => {
   if (!input) return undefined;
   return isValidPaymentMethodType(input) ? input : undefined;
 };
@@ -23,8 +31,7 @@ const mapOrder = (order: OrderEntity): GqlOrder => ({
   userId: order.userId?.toString(),
   status: order.status,
   paymentMethod: order.paymentMethod as PaymentMethodType,
-  totalAmount: order.totalAmount.toNumber(),
-  currency: order.currency,
+  price: order.totalAmount,
   itemCount: order.itemCount,
   description: order.description,
   customerId: order.customerId?.toString(),
@@ -47,11 +54,13 @@ const resolvers: Resolvers<YogaContext> = {
     createOrder: async (_parent, args, { order, userAuth }) => {
       const result = await order.createOrder({
         userId: userAuth!.id.toNumb,
-        price: resolveMoney(args.input.totalAmount, args.input.currency),
+        price: args.input.price,
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
         description: args.input.description ?? undefined,
-        customerId: args.input.customerId ? parseInt(args.input.customerId) : undefined,
+        customerId: args.input.customerId
+          ? parseInt(args.input.customerId)
+          : undefined,
       });
       return mapOrder(result);
     },
@@ -59,10 +68,14 @@ const resolvers: Resolvers<YogaContext> = {
       const result = await order.updateOrder(
         ID.new(args.id),
         {
-          status: (args.input.status as "pending" | "success" | "cancelled") ?? undefined,
+          status:
+            (args.input.status as "pending" | "success" | "cancelled") ??
+            undefined,
           paymentMethod: mapPaymentMethod(args.input.paymentMethod),
           description: args.input.description ?? undefined,
-          customerId: args.input.customerId ? parseInt(args.input.customerId) : undefined,
+          customerId: args.input.customerId
+            ? parseInt(args.input.customerId)
+            : undefined,
         },
         userAuth!.id,
       );
@@ -73,9 +86,11 @@ const resolvers: Resolvers<YogaContext> = {
         userId: userAuth!.id.toNumb,
         productId: ID.new(args.input.productId),
         itemCount: args.input.itemCount,
-        price: resolveMoney(args.input.totalAmount, args.input.currency),
+        price: args.input.price,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
-        customerId: args.input.customerId ? ID.new(args.input.customerId).toNumb : undefined,
+        customerId: args.input.customerId
+          ? ID.new(args.input.customerId).toNumb
+          : undefined,
         description: args.input.description ?? undefined,
         payWithAssetId: args.input.payWithAssetId
           ? ID.new(args.input.payWithAssetId).toNumb
@@ -87,10 +102,12 @@ const resolvers: Resolvers<YogaContext> = {
     createOrderExpense: async (_parent, args, { order, userAuth }) => {
       const result = await order.createOrderExpense({
         userId: userAuth!.id.toNumb,
-        price: resolveMoney(args.input.totalAmount, args.input.currency),
+        price: args.input.price,
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
-        customerId: args.input.customerId ? ID.new(args.input.customerId).toNumb : undefined,
+        customerId: args.input.customerId
+          ? ID.new(args.input.customerId).toNumb
+          : undefined,
         description: args.input.description ?? undefined,
         payWithAssetId: args.input.payWithAssetId
           ? ID.new(args.input.payWithAssetId).toNumb
@@ -101,10 +118,12 @@ const resolvers: Resolvers<YogaContext> = {
     createOrderLoan: async (_parent, args, { order, userAuth }) => {
       const result = await order.createOrderLoan({
         userId: userAuth!.id.toNumb,
-        price: resolveMoney(args.input.totalAmount, args.input.currency),
+        price: args.input.price,
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
-        customerId: args.input.customerId ? ID.new(args.input.customerId).toNumb : undefined,
+        customerId: args.input.customerId
+          ? ID.new(args.input.customerId).toNumb
+          : undefined,
         description: args.input.description ?? undefined,
         payWithAssetId: args.input.payWithAssetId
           ? ID.new(args.input.payWithAssetId).toNumb

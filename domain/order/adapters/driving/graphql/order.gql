@@ -1,76 +1,72 @@
 type Query {
-  order(id: String!): Order @authorized
-  orders: [Order!]! @authorized
+    order(id: String!): Order @authorized
+    orders: [Order!]! @authorized
 }
 
 type Mutation {
-  createOrder(input: CreateOrderInput!): Order! @authorized
-  updateOrder(id: String!, input: UpdateOrderInput!): Order! @authorized
-  deleteOrder(id: String!): Boolean! @authorized
-  createOrderProductSale(input: CreateOrderProductSaleInput!): Order! @authorized
-  createOrderExpense(input: CreateOrderExpenseInput!): Order! @authorized
-  createOrderLoan(input: CreateOrderLoanInput!): Order! @authorized
+    createOrder(input: CreateOrderInput!): Order! @authorized
+    updateOrder(id: String!, input: UpdateOrderInput!): Order! @authorized
+    deleteOrder(id: String!): Boolean! @authorized
+    createOrderProductSale(input: CreateOrderProductSaleInput!): Order!
+        @authorized
+    createOrderExpense(input: CreateOrderExpenseInput!): Order! @authorized
+    createOrderLoan(input: CreateOrderLoanInput!): Order! @authorized
 }
 
 input CreateOrderProductSaleInput {
-  productId: ID!
-  itemCount: Int!
-  totalAmount: Float!
-  currency: String!
-  paymentMethod: PaymentMethodType
-  customerId: ID
-  description: String
-  payWithAssetId: ID
-  paymentStatus: TransactionPaymentStatus
+    productId: ID!
+    itemCount: Int!
+    price: Money!
+    paymentMethod: PaymentMethodType
+    customerId: ID
+    description: String
+    payWithAssetId: ID
+    paymentStatus: TransactionPaymentStatus
 }
 
 input CreateOrderExpenseInput {
-  totalAmount: Float!
-  currency: String!
-  itemCount: Int!
-  description: String
-  customerId: String
-  paymentMethod: PaymentMethodType
-  payWithAssetId: ID
+    price: Money!
+    itemCount: Int!
+    description: String
+    customerId: String
+    paymentMethod: PaymentMethodType
+    payWithAssetId: ID
 }
 
 input CreateOrderInput {
-  totalAmount: Float!
-  currency: String!
-  itemCount: Int!
-  paymentMethod: PaymentMethodType
-  description: String
-  customerId: String
+    price: Money!
+    itemCount: Int!
+    paymentMethod: PaymentMethodType
+    description: String
+    customerId: String
 }
 
 input CreateOrderLoanInput {
-  totalAmount: Float!
-  currency: String!
-  itemCount: Int!
-  paymentMethod: PaymentMethodType
-  customerId: ID
-  description: String
-  payWithAssetId: ID
-  paymentStatus: TransactionPaymentStatus
+    price: Money!
+    itemCount: Int!
+    paymentMethod: PaymentMethodType
+    customerId: ID
+    description: String
+    payWithAssetId: ID
+    paymentStatus: TransactionPaymentStatus
 }
 
 input UpdateOrderInput {
-  status: String
-  paymentMethod: PaymentMethodType
-  description: String
-  customerId: String
+    status: String
+    paymentMethod: PaymentMethodType
+    description: String
+    customerId: String
 }
 
 type Order {
-  id: ID
-  userId: ID
-  status: String!
-  paymentMethod: PaymentMethodType!
-  totalAmount: Float!
-  currency: String!
-  itemCount: Int!
-  description: String
-  customerId: ID
-  createdAt: DateTime
-  updatedAt: DateTime
+    id: ID
+    userId: ID
+    status: String!
+    paymentMethod: PaymentMethodType!
+    price: Money!
+    itemCount: Int!
+    description: String
+    customerId: ID
+    createdAt: DateTime
+    updatedAt: DateTime
 }
