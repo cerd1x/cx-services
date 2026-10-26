@@ -5,8 +5,7 @@ type OrderDto = {
   id: string;
   status: string;
   paymentMethod: string;
-  totalAmount: number;
-  currency: string;
+  price: string;
   itemCount: number;
 };
 
@@ -18,22 +17,22 @@ describe("order e2e (GraphQL over HTTP)", () => {
 
     const create = await gql<{ createOrder: OrderDto }>(
       `mutation($input: CreateOrderInput!) {
-        createOrder(input: $input) { id status paymentMethod totalAmount currency itemCount }
+        createOrder(input: $input) { id status paymentMethod price itemCount }
       }`,
       {
-        input: { totalAmount: 62500, currency: "IDR", itemCount: 2, paymentMethod: "cash" },
+        input: { price: "IDR 62500", itemCount: 2, paymentMethod: "cash" },
       },
       authHeaders(session),
     );
     expect(create.errors).toBeUndefined();
-    expect(create.data!.createOrder.totalAmount).toBe(125000);
+    expect(create.data!.createOrder.price).toBe("IDR 125000");
     expect(create.data!.createOrder.paymentMethod).toBe("cash");
     expect(create.data!.createOrder.status).toBe("pending");
     const orderId = create.data!.createOrder.id;
     expect(orderId).toBeTruthy();
 
     const list = await gql<{ orders: OrderDto[] }>(
-      `{ orders { id status totalAmount itemCount } }`,
+      `{ orders { id status price itemCount } }`,
       undefined,
       authHeaders(session),
     );
@@ -88,7 +87,7 @@ describe("order e2e (GraphQL over HTTP)", () => {
         createOrder(input: $input) { id }
       }`,
       {
-        input: { totalAmount: 1000, currency: "IDR", itemCount: 1, paymentMethod: "bitcoin" },
+        input: { price: "IDR 1000", itemCount: 1, paymentMethod: "bitcoin" },
       },
       authHeaders(session),
     );
@@ -111,21 +110,20 @@ describe("order e2e (GraphQL over HTTP)", () => {
 
     const sale = await gql<{ createOrderProductSale: OrderDto }>(
       `mutation($input: CreateOrderProductSaleInput!) {
-        createOrderProductSale(input: $input) { id status totalAmount currency itemCount }
+        createOrderProductSale(input: $input) { id status price itemCount }
       }`,
       {
         input: {
           productId,
           itemCount: 1,
-          totalAmount: 50000,
-          currency: "IDR",
+          price: "IDR 50000",
           paymentMethod: "cash",
         },
       },
       authHeaders(session),
     );
     expect(sale.errors).toBeUndefined();
-    expect(sale.data!.createOrderProductSale.totalAmount).toBe(50000);
+    expect(sale.data!.createOrderProductSale.price).toBe("IDR 50000");
 
     const after = await gql<{ product: { id: string; stock: number } }>(
       `query($id: String!) { product(id: $id) { id stock } }`,
