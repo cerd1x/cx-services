@@ -13,13 +13,17 @@ import type {
 import { AdminRepository } from "../../../core/ports/out/admin-repository.port";
 
 /**
- * `amount`/`capital` disimpan sebagai JSON instance `Money`
- * (`{"amount":"1500000","currency":"IDR"}`). Konversi ke angka dilakukan di
- * SQL supaya agregat atas seluruh tabel tidak perlu menarik semua baris ke
- * memory worker.
+ * `amount`/`capital` disimpan sebagai string instance `Money`
+ * (`"IDR 1500000"`, ISO code + decimal — bukan JSON). Konversi ke angka via
+ * helper `deserializeMoney` (format string `"KODE NOMINAL"`).
  */
-const amountToReal = (column: typeof transactionTable.amount) =>
-  sql<number>`cast(json_extract(${column}, '$.amount') as real)`;
+function amountToReal(value: string): number {
+  try {
+    return deserializeMoney(value).toNumber();
+  } catch {
+    return 0;
+  }
+}
 
 function toRole(value: unknown): UserRole {
   const parsed = userRoleSchema.safeParse(value);
@@ -44,7 +48,7 @@ export class AdminRepositoryImpl implements AdminRepository {
       avatarUrl: row.avatar,
       // `created_at` disimpan sebagai teks `CURRENT_TIMESTAMP` (UTC), jadi
       // `Z` dipakai agar tidak terbaca sebagai waktu lokal.
-      createdAt: new Date(`${row.createdAt}Z`),
+      createdAt: row.createdAt,
     }));
   }
 
@@ -71,23 +75,27 @@ export class AdminRepositoryImpl implements AdminRepository {
      * tidak ada `totalProfit` karena `capital` bisa memakai mata uang berbeda
      * dari `amount`, sehingga selisihnya tidak selalu berarti.
      */
-    const sums = await getDB()
+    const rows = await getDB()
       .select({
         type: transactionTable.type,
-        total: sql<number>`sum(${amountToReal(transactionTable.amount)})`,
+        amount: transactionTable.amount,
       })
-      .from(transactionTable)
-      .groupBy(transactionTable.type);
+      .from(transactionTable);
 
-    const byType = new Map(sums.map((r) => [r.type, numeric(r.total)]));
+    const totalIncome = rows
+      .filter((r) => r.type === "income")
+      .reduce((sum, r) => sum + amountToReal(r.amount), 0);
+    const totalExpense = rows
+      .filter((r) => r.type === "expense")
+      .reduce((sum, r) => sum + amountToReal(r.amount), 0);
 
     return {
       totalUsers: numeric(userCount?.total),
       totalAdmins: numeric(adminCount?.total),
       totalTransactions: numeric(txCount?.total),
       totalAssets: numeric(assetCount?.total),
-      totalIncome: byType.get("income") ?? 0,
-      totalExpense: byType.get("expense") ?? 0,
+      totalIncome,
+      totalExpense,
     };
   }
 
@@ -115,7 +123,7 @@ export class AdminRepositoryImpl implements AdminRepository {
   }
 }
 
-/** Parse JSON instance `Money` menjadi nominalnya; "0" bila tak dikenali. */
+/** Parse string instance `Money` ("IDR 1500000") menjadi nominalnya; "0" bila tak dikenali. */
 function amountToReader(value: string): string {
   try {
     return deserializeMoney(value).toNumber().toString();

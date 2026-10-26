@@ -14,12 +14,12 @@ export const contactTable = sqliteTable(
     phone: text("phone"),
     group: text("group"),
     avatar: text("avatar"),
-    createdAt: text("created_at")
+    createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
-      .default(sql`(current_timestamp)`),
-    updatedAt: text("updated_at")
-      .default(sql`(CURRENT_TIMESTAMP)`)
-      .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .default(sql`(unixepoch())`)
+      .$onUpdate(() => sql`(unixepoch())`),
   },
   (t) => [
     // Supports the keyset predicate used by ContactRepositoryImpl.findPage:

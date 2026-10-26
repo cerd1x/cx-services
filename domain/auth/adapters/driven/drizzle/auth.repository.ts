@@ -24,8 +24,8 @@ export class AuthRepositoryImpl implements AuthRepository {
           userId,
           data.sessionToken,
           data.refreshToken,
-          data.expiredAtSession.toISOString(),
-          data.expiredAtRefresh.toISOString(),
+          data.expiredAtSession,
+          data.expiredAtRefresh,
         )
         .run();
     } catch {
@@ -33,8 +33,8 @@ export class AuthRepositoryImpl implements AuthRepository {
         userId,
         sessionToken: data.sessionToken,
         refreshToken: data.refreshToken,
-        expiredAtSession: data.expiredAtSession.toISOString(),
-        expiredAtRefresh: data.expiredAtRefresh.toISOString(),
+        expiredAtSession: data.expiredAtSession,
+        expiredAtRefresh: data.expiredAtRefresh,
       });
     }
 
@@ -64,8 +64,8 @@ export class AuthRepositoryImpl implements AuthRepository {
 
     return {
       userId: rows[0].userId,
-      expiredAtSession: new Date(rows[0].expiredAtSession),
-      expiredAtRefresh: new Date(rows[0].expiredAtRefresh),
+      expiredAtSession: rows[0].expiredAtSession,
+      expiredAtRefresh: rows[0].expiredAtRefresh,
       session: rows[0].sessionToken ?? null,
       refreshToken: rows[0].refreshToken ?? null,
     };
@@ -83,8 +83,8 @@ export class AuthRepositoryImpl implements AuthRepository {
     const row = rows[0];
     return {
       userId: row.userId,
-      expiredAtSession: new Date(row.expiredAtSession),
-      expiredAtRefresh: new Date(row.expiredAtRefresh),
+      expiredAtSession: row.expiredAtSession,
+      expiredAtRefresh: row.expiredAtRefresh,
       session: row.sessionToken ?? null,
       refreshToken: row.refreshToken ?? null,
     };
@@ -94,9 +94,9 @@ export class AuthRepositoryImpl implements AuthRepository {
     userId: number,
     data: Partial<TokenRecord & { session?: string; refresh?: string }>,
   ): Promise<TokenRecord> {
-    const setData: Record<string, string | undefined> = {};
-    if (data.expiredAtSession) setData.expiredAtSession = data.expiredAtSession.toISOString();
-    if (data.expiredAtRefresh) setData.expiredAtRefresh = data.expiredAtRefresh.toISOString();
+    const setData: Record<string, unknown> = {};
+    if (data.expiredAtSession) setData.expiredAtSession = data.expiredAtSession;
+    if (data.expiredAtRefresh) setData.expiredAtRefresh = data.expiredAtRefresh;
     if (data.session) setData.sessionToken = data.session;
     if (data.refresh) setData.refreshToken = data.refresh;
 
@@ -108,8 +108,8 @@ export class AuthRepositoryImpl implements AuthRepository {
 
     return {
       userId: result[0].userId,
-      expiredAtSession: new Date(result[0].expiredAtSession),
-      expiredAtRefresh: new Date(result[0].expiredAtRefresh),
+      expiredAtSession: result[0].expiredAtSession,
+      expiredAtRefresh: result[0].expiredAtRefresh,
     };
   }
 
@@ -120,7 +120,7 @@ export class AuthRepositoryImpl implements AuthRepository {
   }
 
   async deleteExpiredTokens(): Promise<number> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const result = await getDB()
       .delete(tokenTable)
       .where(lt(tokenTable.expiredAtRefresh, now))

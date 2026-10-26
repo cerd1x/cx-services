@@ -170,7 +170,7 @@ domain/transactions/
 
 - Implementasi `TransactionRepository` menggunakan **Drizzle ORM** + **SQLite (D1)**
 - Query dasar dengan filter `userId`, `id`, `type`, dan rentang tanggal
-- Mapping kolom database (`amount` dan `capital` disimpan sebagai TEXT berisi JSON instance `Money`, mis. `{"amount":"1500000.00","currency":"IDR"}`; `paymentMethod` sebagai JSON)
+- Mapping kolom database (`amount` dan `capital` disimpan sebagai TEXT berisi string instance `Money`, mis. `"IDR 1500000"`; `paymentMethod` sebagai JSON)
 - **`#toTransaction()`** — Helper untuk mapping row ke entity, `deserializeMoney()` untuk `amount`/`capital` → instance `Money`
 
 #### 6. `adapters/driving/graphql/transaction.gql` [L120-124]
@@ -396,7 +396,7 @@ async requestFormCSRFToken(userId: ID): Promise<string>
 ┌─────────────────────────────────────────────────────────────────┐
 │ 5. TransactionRepositoryImpl (driven adapter) eksekusi DB query │
 │    - Drizzle ORM → SQLite D1                                    │
-│    - amount/capital disimpan sebagai TEXT JSON Money             │
+│    - amount/capital disimpan sebagai TEXT string Money             │
 │    - paymentMethod disimpan sebagai JSON                         │
 │    - Mapping row → Transaction entity                            │
 └──→──────────────────────────┬────────────────────────────────────┘
@@ -437,7 +437,7 @@ StatisticRepositoryImpl.getStatistic()
 - Module ini mengikuti **Vertical Slice per Module (Modular Hexagonal)**
 - **Ports & Adapters**: Repository interface di `core/ports/out`, implementasi di `adapters/driven`
 - **Dependency Injection**: Melalui `transaction.composition.ts` — singleton diinisialisasi saat app startup
-- **Balance Storage**: `amount` dan `capital` disimpan sebagai TEXT berisi JSON instance `Money` (misal: `{"amount":"1500000.00","currency":"IDR"}`) di database; wire GraphQL tetap string "KODE NOMINAL"
+- **Balance Storage**: `amount` dan `capital` disimpan sebagai TEXT string instance `Money` (misal: `"IDR 1500000"`) di database; wire GraphQL tetap string "KODE NOMINAL"
 - **PaymentMethod Storage**: Disimpan sebagai JSON string di database
 - **CSRF Protection**: Method `requestFormTransaction`, `validateCSRFToken`, dan `requestFormCSRFToken` untuk proteksi form transaksi
 - **Cross-module integration**: Dipanggil oleh module lain (AssetService, OrderService) untuk pencatatan transaksi

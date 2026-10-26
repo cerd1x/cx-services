@@ -30,8 +30,8 @@ function toContact(row: {
   phone: string | null;
   group: string | null;
   avatar: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }): Contact {
   return new Contact({
     id: row.id,
@@ -41,8 +41,8 @@ function toContact(row: {
     phones: deserializePhones(row.phone),
     group: row.group ?? undefined,
     avatar: row.avatar ?? undefined,
-    createdAt: row.createdAt ? new Date(row.createdAt) : undefined,
-    updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,
+    createdAt: row.createdAt ?? undefined,
+    updatedAt: row.updatedAt ?? undefined,
   });
 }
 

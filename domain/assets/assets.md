@@ -112,8 +112,8 @@ Konversi hanya terjadi di dua boundary:
     karena exponent IDR = 2).
   - `serializeMoney(money)` / `deserializeMoney(text)` untuk tabel tanpa kolom
     `currency` (`transaction.amount`, `transaction.capital`) — disimpan sebagai
-    TEXT JSON instance `Money`, mis.
-    `{"amount":"1500000.00","currency":"IDR"}`.
+    TEXT string instance `Money`, mis.
+    `"IDR 1500000"`.
 
 Operasi aritmetika pakai API `Money` (immutable — `add`/`subtract` mengembalikan instance baru):
 `money.add(other)`, `money.subtract(other)`, `money.lt(other)`, `money.isNegative()`,

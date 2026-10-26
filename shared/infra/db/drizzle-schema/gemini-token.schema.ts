@@ -1,4 +1,5 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 import { userTable } from "./user.schema";
 
 /**
@@ -29,6 +30,11 @@ export const geminiTokenTable = sqliteTable("gemini_oauth_token", {
   // Timestamp kedaluwarsa access token (epoch ms) — diisi dari `expires_in`.
   expiresAt: integer("expires_at").notNull(),
   projectId: text("project_id"),
-  createdAt: text("created_at").notNull(),
-  updatedAt: text("updated_at").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`)
+    .$onUpdate(() => sql`(unixepoch())`),
 });

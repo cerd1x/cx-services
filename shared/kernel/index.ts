@@ -3,5 +3,8 @@ import { ID } from "./id";
 import { parseCookies, getCookie, serializeCookie, deleteCookie } from "./cookies";
 import type { CookieOptions } from "./cookies";
 import { CsrfToken } from "./csrf";
+import * as dateUtils from "./date";
 export type { CookieOptions };
 export { isMybe, ID, parseCookies, getCookie, serializeCookie, deleteCookie, CsrfToken };
+export { dateUtils };
+export * from "./date";

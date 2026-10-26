@@ -337,7 +337,7 @@ string uang di domain — string `"KODE NOMINAL"` hanya hidup di boundary:
 | GraphQL (wire)                                                     | string `"KODE NOMINAL"`, mis. `"IDR 1500000"` — via scalar `Money` di [`shared/infra/graphql/scalars/money.ts`](shared/infra/graphql/scalars/money.ts) |
 | Domain (model, usecase, port)                                      | instance `Money`                                                                                                                                       |
 | Database, tabel dengan kolom `currency`                            | integer **minor unit** (satuan terkecil, mis. `IDR 1500000` → `150000000`)                                                                             |
-| Database, tabel tanpa kolom `currency` (mis. `transaction.amount`) | TEXT berisi JSON `Money`: `{"amount":"1500000.00","currency":"IDR"}`                                                                                   |
+| Database, tabel tanpa kolom `currency` (mis. `transaction.amount`) | TEXT berisi string instance `Money`: `"IDR 1500000"` (ISO code + decimal)                                                                                                   |
 
 Konversi DB terpusat di [`shared/infra/db/money.ts`](shared/infra/db/money.ts):
 `toMinorUnits(money)`, `fromMinorUnits(value, code)`, `serializeMoney(money)`,
@@ -861,7 +861,7 @@ Jalankan: `bun run gql:gen` — **WAJIB** dijalankan setiap ada perubahan SDL (`
 10. GraphQL resolver **WAJIB** pakai `Resolvers<YogaContext>` type
 11. SDL **WAJIB** di-import via `import typeDefs from "./module.gql?raw"`
 12. ID ke external **WAJIB** pake `ID.toHash()` (Sqids), internal pake `ID.toNumb()`
-13. Money **WAJIB** pake `Money` dari `@lib/money` (`lib/money/`) di seluruh domain — instance `Money`, bukan string. String "KODE NOMINAL" hanya dipakai di boundary: scalar GraphQL `Money` (`shared/infra/graphql/scalars/money.ts`) dan helper DB (`shared/infra/db/money.ts`: minor unit / JSON). Di DB, tabel ber-kolom `currency` menyimpan **minor unit** (integer); tabel tanpa kolom `currency` menyimpan JSON `Money` di TEXT
+13. Money **WAJIB** pake `Money` dari `@lib/money` (`lib/money/`) di seluruh domain — instance `Money`, bukan string. String "KODE NOMINAL" hanya dipakai di boundary: scalar GraphQL `Money` (`shared/infra/graphql/scalars/money.ts`) dan helper DB (`shared/infra/db/money.ts`: minor unit / string). Di DB, tabel ber-kolom `currency` menyimpan **minor unit** (integer); tabel tanpa kolom `currency` menyimpan string instance `Money` di TEXT (`"IDR 1500000"`)
 14. Jangan import `$services/` dari client code (`src/routes/`, `src/lib/`) — lihat `client-server-boundary` skill
 15. Cross-module dependency hanya via services: `auth→user`, `order→product|transaction|asset|payment`, `assets→transaction`, `payment→asset|setting` (settlement `OrderProductSale`)
 16. Komposisi module hanya di `<module>.composition.ts` — jangan impor repo/entity module lain secara langsung. Referensi service antar module yang membentuk siklus **WAJIB** resolve saat runtime (`Service.getInstance()` / lazy gateway), jangan tangkap `export const service` di top-level

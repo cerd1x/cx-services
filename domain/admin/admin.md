@@ -178,19 +178,23 @@ secara tidak sengaja.
 Kolom `created_at` disimpan sebagai teks `CURRENT_TIMESTAMP` (UTC), jadi
 `new Date(\`${row.createdAt}Z\`)` dipakai agar tidak terbaca sebagai waktu lokal.
 
-**`getOverview`** — empat `COUNT(*)` terpisah plus satu agregat `SUM` yang
-dikelompokkan per `type`:
+**`getOverview`** — empat `COUNT(*)` terpisah plus penjumlahan income/expense:
 
 ```ts
-const amountToReal = (column: typeof transactionTable.amount) =>
-  sql<number>`cast(json_extract(${column}, '$.amount') as real)`;
+const amountToReal = (value: string): number => {
+  try {
+    return deserializeMoney(value).toNumber();
+  } catch {
+    return 0;
+  }
+};
 ```
 
-Kolom `amount`/`capital` disimpan sebagai TEXT berisi JSON instance `Money`
-(`{"amount":"1500000","currency":"IDR"}`, lihat `shared/infra/db/money.ts`).
-Nominalnya diambil dengan `json_extract` lalu di-cast ke `real`. Konversi
-dilakukan **di SQL**, bukan di JS, supaya agregat atas seluruh tabel tidak perlu
-menarik semua baris ke memory worker — memory Worker terbatas.
+Kolom `amount`/`capital` disimpan sebagai TEXT string instance `Money`
+(`"IDR 1500000"`, ISO code + decimal — bukan JSON, lihat `shared/infra/db/money.ts`).
+Nominalnya dikonversi lewat helper `deserializeMoney` di memori worker. Penjumlahan
+dilakukan di JS daripada SQL karena format string tidak bisa diekstrak di SQL —
+SQLite memang bisa `json_extract`, tapi dengan format string sekarang tidak ada lagi.
 
 Tidak ada `totalProfit`. `capital` bisa memakai mata uang berbeda dari `amount`,
 sehingga selisihnya tidak selalu berarti apa pun.

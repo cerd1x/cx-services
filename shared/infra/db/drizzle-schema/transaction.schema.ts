@@ -18,9 +18,9 @@ export const transactionTable = sqliteTable(
       .default("unpaid"),
     paymentMethod: text("payment_method").notNull().default('{"type":"cash"}'),
     customerId: integer("customer_id"),
-    /** Instance `Money` sebagai JSON: `{"amount":"1500000","currency":"IDR"}`. */
+    /** Instance `Money` sebagai string: `"IDR 1500000"` (ISO code + decimal). */
     amount: text("amount").notNull(),
-    /** Instance `Money` sebagai JSON: `{"amount":"1500000","currency":"IDR"}`. */
+    /** Instance `Money` sebagai string: `"IDR 1500000"` (ISO code + decimal). */
     capital: text("capital").notNull(),
     description: text("description"),
     category: text("category"),

@@ -25,9 +25,9 @@ export const assetMutationTable = sqliteTable(
     /** Saldo sesudah mutasi, dalam satuan terkecil mata uang (minor unit). */
     balanceAfter: integer("balance_after").notNull(),
     description: text("description"),
-    createdAt: text("created_at")
+    createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+      .default(sql`(unixepoch())`),
   },
   // Sama seperti `asset`: CHECK eksplisit supaya ikut ke migrasi.
   (table) => [

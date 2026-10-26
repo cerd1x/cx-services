@@ -7,7 +7,7 @@ export const outboxTable = sqliteTable("outbox", {
   eventType: text("event_type").notNull(),
   payload: text("payload").notNull(),
   processed: integer("processed", { mode: "boolean" }).default(false),
-  createdAt: text("created_at")
+  createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`),
+    .default(sql`(unixepoch())`),
 });

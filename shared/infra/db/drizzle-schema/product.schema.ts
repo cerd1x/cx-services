@@ -14,8 +14,10 @@ export const productTable = sqliteTable("product", {
   currency: text("currency", { length: 3 }).notNull(),
   stock: integer("stock").notNull().default(0),
   trackStock: integer("track_stock").notNull().default(1),
-  createdAt: text("created_at")
+  createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`),
-  updatedAt: text("updated_at"),
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .default(sql`(unixepoch())`)
+    .$onUpdate(() => sql`(unixepoch())`),
 });

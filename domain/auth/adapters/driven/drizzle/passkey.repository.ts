@@ -59,7 +59,7 @@ export class PasskeyRepositoryImpl implements PasskeyRepository {
       counter: row.counter,
       transports: row.transports,
       deviceName: row.deviceName,
-      createdAt: row.createdAt,
+      createdAt: row.createdAt ? row.createdAt.toISOString() : row.createdAt,
     };
   }
 }

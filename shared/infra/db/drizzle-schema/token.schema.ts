@@ -9,6 +9,6 @@ export const tokenTable = sqliteTable("token", {
     .references(() => userTable.id, { onDelete: "cascade" }),
   sessionToken: text("session_token"),
   refreshToken: text("refresh_token"),
-  expiredAtSession: text("expired_at_session").notNull(),
-  expiredAtRefresh: text("expired_at_refresh").notNull(),
+  expiredAtSession: integer("expired_at_session", { mode: "timestamp" }).notNull(),
+  expiredAtRefresh: integer("expired_at_refresh", { mode: "timestamp" }).notNull(),
 });

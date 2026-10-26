@@ -20,7 +20,7 @@ export const userTable = sqliteTable("user", {
   password: text("password").notNull(),
   avatar: text("avatar"),
   role: text("role", { enum: userRoleValues }).notNull().default("user"),
-  createdAt: text("created_at")
+  createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
-    .default(sql`(CURRENT_TIMESTAMP)`),
+    .default(sql`(unixepoch())`),
 });

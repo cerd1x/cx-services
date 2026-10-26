@@ -1,4 +1,4 @@
-import { Money, Round, findCurrency } from "@lib/money";
+import { Money, Round, findCurrency, Decimal } from "@lib/money";
 
 /**
  * Representasi nilai uang di database (SQLite/D1).
@@ -10,8 +10,8 @@ import { Money, Round, findCurrency } from "@lib/money";
  *   di kolom `INTEGER`, jadi presisi penuh tanpa floating point. Kode mata
  *   uangnya tetap dibaca dari kolom `currency`.
  * - **Tabel tanpa kolom `currency`** (mis. `transaction`): instance `Money`
- *   diserialisasi penuh sebagai JSON `{"amount":"1500000","currency":"IDR"}`
- *   di kolom `TEXT` (hasil `JSON.stringify(money)`).
+ *   diserialisasi penuh sebagai string `"KODE NOMINAL"` di kolom `TEXT`
+ *   (hasil `serializeMoney`, mis. `"IDR 1500000"`).
  *
  * Dengan begitu nilai yang tersimpan selalu bisa dipulihkan jadi instance
  * `Money` tanpa perlu menebak format teksnya.
@@ -36,16 +36,38 @@ export function fromMinorUnits(minor: bigint | number, currencyCode: string): Mo
   return Money.fromMinor(value, currency);
 }
 
-/** Instance `Money` -> JSON untuk kolom TEXT. */
+/** Instance `Money` -> string `"KODE NOMINAL"` untuk kolom TEXT, mis. `"IDR 1500000"`. */
 export function serializeMoney(money: Money): string {
-  return JSON.stringify(money);
+  return `${money.currency.code} ${money.toNumber()}`;
 }
 
 /**
- * JSON di kolom TEXT -> instance `Money`.
+ * String `"KODE NOMINAL"` di kolom TEXT -> instance `Money`.
  *
- * @throws {Error} Kalau isi kolomnya bukan JSON instance `Money`.
+ * Format sama dengan wire format scalar GraphQL `Money`: `"KODE ISO NOMINAL"`,
+ * mis. `"IDR 1500000"` atau `"USD 100.5"`.
+ *
+ * @throws {Error} Kalau formatnya salah atau kodenya bukan mata uang yang dikenal.
  */
 export function deserializeMoney(raw: string): Money {
-  return Money.fromJSON(JSON.parse(raw) as { amount: string; currency: string });
+  const match = raw.trim().match(/^([A-Z]{3})\s+(-?[\d,]+(?:\.\d+)?)$/);
+  if (!match) {
+    throw new Error(`Invalid money format: "${raw}". Expected "ISO_CODE VALUE" (e.g. "IDR 1500000")`);
+  }
+
+  const [, code, rawAmount] = match;
+  const currency = findCurrency(code);
+  if (!currency) {
+    throw new Error(`Unknown currency: ${code}`);
+  }
+
+  const decimal = Decimal.fromString(rawAmount.replace(/,/g, ""));
+  if (!decimal) {
+    throw new Error(`Invalid money amount: "${rawAmount}"`);
+  }
+
+  // Kanonikkan ke skala mata uangnya, supaya instance `Money` dari DB selalu
+  // punya bentuk yang sama dengan yang dikirim lewat wire / domain.
+  const rounded = Money.fromDecimal(decimal, currency).round(currency.exponent, Round.HalfUp);
+  return Money.fromMinor(rounded.toMinorUnits(), currency);
 }

@@ -6,7 +6,7 @@ import { assetTable } from "$services/shared/infra/db/drizzle-schema/asset.schem
 import type { StatisticData } from "../../../core/model/statistic.model";
 import { StatisticRepository } from "../../../core/ports/out/statistic-repository.port";
 
-/** Nominal transaksi (JSON instance `Money`) -> angka major unit. */
+/** Nominal transaksi (string instance `Money` "IDR 1500000") -> angka major unit. */
 function parseAmountValue(amount: string): number {
   try {
     return deserializeMoney(amount).toNumber();

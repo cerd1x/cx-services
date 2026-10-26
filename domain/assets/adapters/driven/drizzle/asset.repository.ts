@@ -188,7 +188,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       balanceBefore: fromMinorUnits(r.balanceBefore, r.currency),
       balanceAfter: fromMinorUnits(r.balanceAfter, r.currency),
       description: r.description,
-      createdAt: r.createdAt,
+      createdAt: r.createdAt ? r.createdAt.toISOString() : undefined,
     }));
   }
 
@@ -239,7 +239,9 @@ export class AssetRepositoryImpl implements AssetRepository {
       balanceBefore: fromMinorUnits(result[0].balanceBefore, result[0].currency),
       balanceAfter: fromMinorUnits(result[0].balanceAfter, result[0].currency),
       description: result[0].description,
-      createdAt: result[0].createdAt,
+      createdAt: result[0].createdAt
+        ? result[0].createdAt.toISOString()
+        : new Date().toISOString(),
     };
   }
 }

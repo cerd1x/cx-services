@@ -70,20 +70,23 @@ describe("money di database", () => {
     });
   });
 
-  describe("helper JSON", () => {
-    it("menyimpan instance Money sebagai JSON", () => {
-      expect(JSON.parse(serializeMoney(Money.fromNumber(100.5, iso.USD)))).toEqual({
-        amount: "100.5",
-        currency: "USD",
-      });
+  describe("helper string Money", () => {
+    it("menyimpan instance Money sebagai string \"KODE NOMINAL\"", () => {
+      expect(serializeMoney(Money.fromNumber(100.5, iso.USD))).toBe("USD 100.5");
+      expect(serializeMoney(Money.fromNumber(1500000, iso.IDR))).toBe("IDR 1500000");
     });
 
-    it("membaca kembali JSON menjadi instance Money", () => {
-      const money = deserializeMoney('{"amount":"1500000.00","currency":"IDR"}');
+    it("membaca kembali string Money menjadi instance Money", () => {
+      const money = deserializeMoney("IDR 1500000");
 
       expect(money).toBeInstanceOf(Money);
       expect(money.currency.code).toBe("IDR");
       expect(money.toNumber()).toBe(1500000);
+    });
+
+    it("membaca nominal desimal dengan presisi penuh", () => {
+      expect(deserializeMoney("USD 100.5").toNumber()).toBe(100.5);
+      expect(deserializeMoney("USD 100").toNumber()).toBe(100);
     });
 
     it("round-trip mempertahankan nilai", () => {
@@ -93,8 +96,8 @@ describe("money di database", () => {
       expect(restored.toMinorUnits()).toBe(original.toMinorUnits());
     });
 
-    it("menolak isi kolom yang bukan JSON Money", () => {
-      expect(() => deserializeMoney("USD 100")).toThrow();
+    it("menolak isi kolom yang bukan string Money", () => {
+      expect(() => deserializeMoney("IDR1500000")).toThrow();
     });
   });
 
@@ -166,7 +169,7 @@ describe("money di database", () => {
   });
 
   describe("TransactionRepositoryImpl", () => {
-    it("menyimpan amount/capital sebagai JSON Money", async () => {
+    it("menyimpan amount/capital sebagai string Money", async () => {
       const repo = new TransactionRepositoryImpl();
 
       const saved = await repo.save(
@@ -187,8 +190,8 @@ describe("money di database", () => {
         .where(eq(transactionTable.id, saved.id!.toNumb))
         .limit(1);
 
-      expect(JSON.parse(row[0].amount)).toEqual({ amount: "1500000", currency: "IDR" });
-      expect(JSON.parse(row[0].capital)).toEqual({ amount: "500000", currency: "IDR" });
+      expect(row[0].amount).toBe("IDR 1500000");
+      expect(row[0].capital).toBe("IDR 500000");
 
       const found = await repo.findById(saved.id!.toNumb, ID.new(userId));
       expect(found?.amount.toNumber()).toBe(1500000);

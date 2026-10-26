@@ -129,8 +129,8 @@ consuming service:
     `currency` column; values are stored as integer **minor units** (satuan
     terkecil), so `IDR 1500000` is stored as `150000000` (IDR exponent is 2).
   - `serializeMoney(money)` / `deserializeMoney(text)` for tables without a
-    `currency` column; values are stored as JSON:
-    `{"amount":"1500000.00","currency":"IDR"}`.
+    `currency` column; values are stored as TEXT containing the string instance
+    `Money`, e.g. `"IDR 1500000"`.
 
 ```ts
 import { Money, iso } from "@lib/money";
