@@ -34,6 +34,7 @@ export class Setting {
   #userId: number;
   #currency: string;
   #darkMode: boolean;
+  /** Format tampilan untuk timestamp epoch (mis. "dd/MM/yyyy"). */
   #dateFormat: SettingData["dateFormat"];
   #defaultAssetCashId?: ID;
 

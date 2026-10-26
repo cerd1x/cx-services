@@ -96,5 +96,14 @@ describe("User queries through services", () => {
     const cashAsset = await AssetService.getInstance().assetByName("MyCash", userId);
 
     expect(setting.defaultAssetCashId).toBe(ID.new(cashAsset.IdStr).toNumb);
+
+    const stored = sqlite
+      .prepare(
+        "SELECT typeof(created_at) AS createdAtType, typeof(updated_at) AS updatedAtType FROM setting WHERE user_id = ?",
+      )
+      .get(userId.toNumb) as { createdAtType: string; updatedAtType: string };
+
+    expect(stored.createdAtType).toBe("integer");
+    expect(stored.updatedAtType).toBe("integer");
   });
 });

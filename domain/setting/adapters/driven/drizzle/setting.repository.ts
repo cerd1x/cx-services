@@ -36,7 +36,6 @@ export class SettingRepositoryImpl implements SettingRepository {
           darkMode: setting.darkMode,
           dateFormat: setting.dateFormat,
           defaultAssetCashId: setting.defaultAssetCashId,
-          updatedAt: new Date().toISOString(),
         })
         .where(eq(settingTable.userId, setting.userId))
         .returning();
