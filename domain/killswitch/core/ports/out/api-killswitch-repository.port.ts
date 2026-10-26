@@ -18,6 +18,6 @@ export abstract class ApiKillswitchRepository {
   abstract disable(operation: string, reason?: string): Promise<ApiKillswitch>;
   /** Nyalakan kembali satu operation. `false` bila memang tidak ada yang dinyalakan. */
   abstract enable(operation: string): Promise<boolean>;
-  /** Buang cache lokal; pembaca berikutnya akan query D1. */
-  abstract invalidateCache(): void;
+  /** Buang cache lintas-isolate; pembaca berikutnya akan query D1 lagi. */
+  abstract invalidateCache(): Promise<void>;
 }

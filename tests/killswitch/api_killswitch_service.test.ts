@@ -25,7 +25,7 @@ describe("ApiKillswitchService dengan mock repository", () => {
       return entry;
     }),
     enable: mock(async (operation: string) => entries.delete(operation)),
-    invalidateCache: mock(),
+    invalidateCache: mock(async () => {}),
   } satisfies ApiKillswitchRepository;
 
   let service: ApiKillswitchService;

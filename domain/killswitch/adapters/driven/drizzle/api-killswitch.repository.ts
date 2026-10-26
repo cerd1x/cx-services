@@ -6,24 +6,28 @@ import type {
   ApiKillswitch,
   DisabledState,
 } from "../../../core/ports/out/api-killswitch-repository.port";
-import { Cache } from "$services/shared/infra/cache";
+import { createCacheStore, getOrSet } from "$services/shared/infra/cache";
 
 /**
  * TTL cache untuk daftar operation yang dimatikan.
  *
  * Kill switch dibaca pada setiap request GraphQL, jadi query D1 per request
- * terlalu mahal untuk sesuatu yang berubah jarang. TTL pendek adalah
- * kompromi: isolate lain melihat switch paling lama `ttlMs` setelah ditulis
- * (D1 tidak punya pub/sub), tapi biaya per request tetap O(1).
+ * terlalu mahal untuk sesuatu yang berubah jarang.
+ *
+ * Cache-nya lintas-runtime: di Workers (`workerd`) backend Web Cache API
+ * sehingga cache dibagi antar isolate di satu edge site; di Bun (dev/test)
+ * fallbacknya `Map` per process. Isolate berbeda bisa melihat daftar basi
+ * paling lama `DEFAULT_TTL_MS` setelah ditulis (D1 tidak punya pub/sub), tapi
+ * biaya per request tetap O(1).
  *
  * Daftar yang di-cache sengaja kecil (jumlah switch aktif), jadi menyimpan
  * seluruh baris — bukan cuma himpunan key — tetap satu query dan sederhana.
- *
- * Cache ini per-isolate. `disable()`/`enable()` menginvalidasi cache lokal
- * sehingga isolate yang melayani request kontrol langsung melihat efeknya.
+ * `disable()`/`enable()` menginvalidasi cache yang dilihat isolate yang
+ * menulis; isolate lain akan melihat efeknya setelah TTL habis.
  */
 const DEFAULT_TTL_MS = 5_000;
 const CACHE_KEY = "disabled-operations";
+const CACHE_NAMESPACE = "killswitch";
 
 function toEntry(row: typeof apiKillswitchTable.$inferSelect): ApiKillswitch {
   return {
@@ -34,7 +38,7 @@ function toEntry(row: typeof apiKillswitchTable.$inferSelect): ApiKillswitch {
 }
 
 export class ApiKillswitchRepositoryImpl implements ApiKillswitchRepository {
-  readonly #cache = new Cache<ApiKillswitch[]>(DEFAULT_TTL_MS);
+  readonly #cache = createCacheStore(CACHE_NAMESPACE);
 
   async listDisabled(): Promise<ApiKillswitch[]> {
     return this.#entries();
@@ -56,7 +60,7 @@ export class ApiKillswitchRepositoryImpl implements ApiKillswitchRepository {
         set: { reason: reason ?? null, disabledAt: now },
       });
 
-    this.invalidateCache();
+    await this.invalidateCache();
     return { operation, reason, disabledAt: now };
   }
 
@@ -66,25 +70,21 @@ export class ApiKillswitchRepositoryImpl implements ApiKillswitchRepository {
       .where(eq(apiKillswitchTable.operation, operation))
       .returning({ operation: apiKillswitchTable.operation });
 
-    this.invalidateCache();
+    await this.invalidateCache();
     return deleted.length > 0;
   }
 
-  invalidateCache(): void {
-    this.#cache.delete(CACHE_KEY);
+  async invalidateCache(): Promise<void> {
+    await this.#cache.delete(CACHE_KEY);
   }
 
   async #entries(): Promise<ApiKillswitch[]> {
-    const cached = this.#cache.get(CACHE_KEY);
-    if (cached) return cached;
-
-    const rows = await getDB()
-      .select()
-      .from(apiKillswitchTable)
-      .orderBy(desc(apiKillswitchTable.disabledAt));
-
-    const entries = rows.map(toEntry);
-    this.#cache.set(CACHE_KEY, entries);
-    return entries;
+    return getOrSet(this.#cache, CACHE_KEY, DEFAULT_TTL_MS, async () => {
+      const rows = await getDB()
+        .select()
+        .from(apiKillswitchTable)
+        .orderBy(desc(apiKillswitchTable.disabledAt));
+      return rows.map((row) => toEntry(row));
+    });
   }
 }
