@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "bun run build && wrangler dev",
     "build": "bun run scripts/build.ts",
-    "deploy": "NODE_ENV=production bun run build && wrangler deploy",
+    "deploy": "ORIGIN= NODE_ENV=production bun run build && wrangler deploy",
     "gql:gen": "graphql-codegen --config codegen.ts",
     "gql:watch": "graphql-codegen --config codegen.ts --watch",
     "check": "bun check --no-script -p tsconfig.json",
