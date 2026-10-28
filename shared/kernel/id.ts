@@ -29,8 +29,51 @@ export class ID {
     }
   }
 
-  static new(id: number | string): ID {
+  static new(id: number | string, scope?: string): ID {
+    if (typeof id === "number" && scope && scope.length > 0) {
+      return ID.withScope(scope, id);
+    }
     return new ID(id);
+  }
+
+  static user(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("USR", id);
+    return ID.new(id);
+  }
+
+  static contact(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("CT", id);
+    return ID.new(id);
+  }
+
+  static product(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("PRD", id);
+    return ID.new(id);
+  }
+
+  static order(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("ORD", id);
+    return ID.new(id);
+  }
+
+  static transaction(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("TRX", id);
+    return ID.new(id);
+  }
+
+  static asset(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("AST", id);
+    return ID.new(id);
+  }
+
+  static invoice(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("INV", id);
+    return ID.new(id);
+  }
+
+  static payment(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("PAY", id);
+    return ID.new(id);
   }
 
   /** Hash Sqids dari nomor asli. */
@@ -56,7 +99,12 @@ export class ID {
           ? value.slice(value.indexOf(ID.#SEPARATOR) + 1)
           : value;
         const decoded = ID.#sqids.decode(hash);
-        if (Array.isArray(decoded) && decoded.length > 0 && typeof decoded[0] === "number" && !Number.isNaN(decoded[0])) {
+        if (
+          Array.isArray(decoded) &&
+          decoded.length > 0 &&
+          typeof decoded[0] === "number" &&
+          !Number.isNaN(decoded[0])
+        ) {
           return true;
         }
       } catch {
