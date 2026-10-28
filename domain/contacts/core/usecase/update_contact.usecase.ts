@@ -35,6 +35,6 @@ export class UpdateContactUseCase extends CoreUsecase<Contact, UpdateContactInpu
     if (data.group !== undefined) existing.group = data.group;
 
     existing.validateAll();
-    return contactRepo.update(userId.toNumb, existing);
+    return contactRepo.update(userId.decode, existing);
   }
 }

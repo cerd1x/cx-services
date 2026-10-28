@@ -10,9 +10,9 @@ export class GetInvoiceUseCase extends CoreUsecase<InvoiceData, { id: ID; userId
   @logMethod(logger)
   async execute(input: { id: ID; userId: ID }): Promise<InvoiceData> {
     const invoiceRepo = this.deps.get(InvoiceRepository);
-    const invoice = await invoiceRepo.findById(input.id.toNumb, input.userId);
+    const invoice = await invoiceRepo.findById(input.id.decode, input.userId);
     if (!invoice) {
-      throw new InvoiceValidationError(`Invoice with id ${input.id.toNumb} not found`);
+      throw new InvoiceValidationError(`Invoice with id ${input.id.decode} not found`);
     }
     return invoice;
   }

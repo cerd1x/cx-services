@@ -39,7 +39,7 @@ export class PasskeyGenerateRegistrationOptionsUseCase extends CoreUsecase<
 
     if (!input.user.id) throw new AuthenticationError("userId is required");
 
-    const existing = await repo.findByUserId(input.user.id.toNumb);
+    const existing = await repo.findByUserId(input.user.id.decode);
 
     const options = await generateRegistrationOptions({
       rpName: input.rpName,
@@ -60,7 +60,7 @@ export class PasskeyGenerateRegistrationOptionsUseCase extends CoreUsecase<
 
     const challenge = await WebAuthnChallenge.issue({
       kind: "register",
-      userId: input.user.id.toNumb,
+      userId: input.user.id.decode,
       challenge: options.challenge,
     });
 

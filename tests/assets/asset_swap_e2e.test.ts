@@ -34,7 +34,7 @@ type MutationRow = {
   id: number;
   assetId: number;
   userId: number;
-  type: "add" | "subtract" | "transaction" | "swap";
+  type: "CR" | "DB" | "TF" | "EB" | "ADM";
   /** Nominal mutasi dalam satuan terkecil mata uang (minor unit). */
   amount: number;
   currency: string;
@@ -63,7 +63,7 @@ class InMemoryAssetRepository extends AssetRepository {
   async save(asset: AssetData & { balance: Money }): Promise<Asset | null> {
     const row: AssetRow = {
       id: this.#assetSeq++,
-      userId: asset.userId.toNumb,
+      userId: asset.userId.decode,
       name: asset.name,
       type: asset.type,
       balance: Number(toMinorUnits(asset.balance)),
@@ -74,21 +74,21 @@ class InMemoryAssetRepository extends AssetRepository {
   }
 
   async findAll(userId: ID): Promise<Asset[]> {
-    return this.assets.filter((r) => r.userId === userId.toNumb).map((r) => this.#toEntity(r));
+    return this.assets.filter((r) => r.userId === userId.decode).map((r) => this.#toEntity(r));
   }
 
   async findByName(name: string, userId: ID): Promise<Asset | null> {
-    const row = this.assets.find((r) => r.name === name && r.userId === userId.toNumb);
+    const row = this.assets.find((r) => r.name === name && r.userId === userId.decode);
     return row ? this.#toEntity(row) : null;
   }
 
   async findById(userId: ID, assetId: ID): Promise<Asset | null> {
-    const row = this.assets.find((r) => r.id === assetId.toNumb && r.userId === userId.toNumb);
+    const row = this.assets.find((r) => r.id === assetId.decode && r.userId === userId.decode);
     return row ? this.#toEntity(row) : null;
   }
 
   async update(userId: ID, id: number, data: AssetUpdate): Promise<Asset> {
-    const row = this.assets.find((r) => r.id === id && r.userId === userId.toNumb);
+    const row = this.assets.find((r) => r.id === id && r.userId === userId.decode);
     if (!row) throw new Error("Asset not found");
 
     if (data.name !== undefined) row.name = data.name;
@@ -101,14 +101,14 @@ class InMemoryAssetRepository extends AssetRepository {
   }
 
   async delete(name: string, userId: ID): Promise<void> {
-    this.assets = this.assets.filter((r) => !(r.name === name && r.userId === userId.toNumb));
+    this.assets = this.assets.filter((r) => !(r.name === name && r.userId === userId.decode));
   }
 
   async createAssetMutation(assetId: ID, data: AssetMutationInput): Promise<AssetMutationData> {
     const row: MutationRow = {
       id: this.#mutationSeq++,
-      assetId: assetId.toNumb,
-      userId: data.userId.toNumb,
+      assetId: assetId.decode,
+      userId: data.userId.decode,
       type: data.type,
       amount: Number(toMinorUnits(data.amount)),
       currency: data.amount.currency.code,
@@ -123,7 +123,7 @@ class InMemoryAssetRepository extends AssetRepository {
 
   async findMutationsByAssetId(assetId: ID, userId: ID): Promise<AssetMutationData[]> {
     return this.mutations
-      .filter((m) => m.assetId === assetId.toNumb && m.userId === userId.toNumb)
+      .filter((m) => m.assetId === assetId.decode && m.userId === userId.decode)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .map((m) => this.#toMutationData(m));
   }
@@ -218,7 +218,7 @@ describe("swapBalance e2e (in-memory repo)", () => {
       assetGateway: AssetService.getInstance(),
     });
 
-    EventBus.on("asset.swapped", async (payload) => {
+    EventBus.on("asset.transferred", async (payload) => {
       const { userId, fromAssetId, toAssetId, amount, currency, fromAssetName, toAssetName } =
         payload;
       const swapCurrency = findCurrency(String(currency));
@@ -284,19 +284,19 @@ describe("swapBalance e2e (in-memory repo)", () => {
 
     const fromMutations = await AssetService.getInstance().assetMutations(userId, walletId);
     expect(fromMutations).toHaveLength(1);
-    expect(fromMutations[0].type).toBe("swap");
+    expect(fromMutations[0].type).toBe("TF");
     expect(fromMutations[0].amount.toNumber()).toBe(250000);
     expect(fromMutations[0].amount.currency.code).toBe("IDR");
     expect(fromMutations[0].balanceBefore.toNumber()).toBe(1000000);
     expect(fromMutations[0].balanceAfter.toNumber()).toBe(750000);
-    expect(fromMutations[0].description).toBe("Swap To Bank");
+    expect(fromMutations[0].description).toBe("Transfer To Bank");
 
     const toMutations = await AssetService.getInstance().assetMutations(userId, bankId);
     expect(toMutations).toHaveLength(1);
-    expect(toMutations[0].type).toBe("swap");
+    expect(toMutations[0].type).toBe("TF");
     expect(toMutations[0].balanceBefore.toNumber()).toBe(500000);
     expect(toMutations[0].balanceAfter.toNumber()).toBe(750000);
-    expect(toMutations[0].description).toBe("Swap From Wallet");
+    expect(toMutations[0].description).toBe("Transfer From Wallet");
 
     expect(mockTxRepo.save).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -306,8 +306,8 @@ describe("swapBalance e2e (in-memory repo)", () => {
     );
 
     expect(outboxRepo.rows).toHaveLength(1);
-    expect(outboxRepo.rows[0].eventType).toBe("asset.swapped");
-    expect(outboxRepo.rows[0].correlationId).toMatch(/^swap-1-/);
+    expect(outboxRepo.rows[0].eventType).toBe("asset.transferred");
+    expect(outboxRepo.rows[0].correlationId).toMatch(/^transfer-1-/);
     expect(outboxRepo.rows[0].processed).toBe(true);
     const outboxPayload = JSON.parse(outboxRepo.rows[0].payload);
     expect(outboxPayload).toMatchObject({

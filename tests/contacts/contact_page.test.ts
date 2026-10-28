@@ -137,7 +137,7 @@ describe("toContactPage", () => {
   it("keeps the requested order for a forward page", () => {
     const page = toContactPage(windowOf([9, 8, 7], false, true), "forward");
 
-    expect(page.items.map((c) => c.id?.toNumb)).toEqual([9, 8, 7]);
+    expect(page.items.map((c) => c.id?.decode)).toEqual([9, 8, 7]);
     expect(page.cursors).toEqual([Cursor.encode(9), Cursor.encode(8), Cursor.encode(7)]);
     expect(page.hasNextPage).toBe(false);
     expect(page.hasPreviousPage).toBe(true);
@@ -146,7 +146,7 @@ describe("toContactPage", () => {
   it("flips a backward page back into descending order", () => {
     const page = toContactPage(windowOf([3, 4, 5], true, false), "backward");
 
-    expect(page.items.map((c) => c.id?.toNumb)).toEqual([5, 4, 3]);
+    expect(page.items.map((c) => c.id?.decode)).toEqual([5, 4, 3]);
     expect(page.cursors).toEqual([Cursor.encode(5), Cursor.encode(4), Cursor.encode(3)]);
   });
 
@@ -167,6 +167,6 @@ describe("toContactPage", () => {
   it("does not mutate the window it is given", () => {
     const window = windowOf([3, 4, 5]);
     toContactPage(window, "backward");
-    expect(window.items.map((c) => c.id?.toNumb)).toEqual([3, 4, 5]);
+    expect(window.items.map((c) => c.id?.decode)).toEqual([3, 4, 5]);
   });
 });

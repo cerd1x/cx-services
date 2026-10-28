@@ -39,7 +39,7 @@ describe("ContactService", () => {
         "friends",
       );
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect(result.name).toBe("John Doe");
       expect(contactRepo.save).toHaveBeenCalledWith(
         1,
@@ -91,7 +91,7 @@ describe("ContactService", () => {
 
       const result = await ContactService.getInstance().contact(ID.new(1), ID.new(1));
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect(result.name).toBe("John Doe");
     });
 
@@ -143,7 +143,7 @@ describe("ContactService", () => {
         cursor: null,
         direction: "forward",
       });
-      expect(result.items.map((c) => c.id?.toNumb)).toEqual([3, 2]);
+      expect(result.items.map((c) => c.id?.decode)).toEqual([3, 2]);
       expect(result.cursors).toEqual([Cursor.encode(3), Cursor.encode(2)]);
       expect(result.hasNextPage).toBe(true);
       expect(result.hasPreviousPage).toBe(false);

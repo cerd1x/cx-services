@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { AssetPaymentGateway } from "$services/domain/payment/adapters/driven/payment-gateway/asset-gateway.adapter";
+import type { MutateAssetInput, MutateAssetResult } from "$services/domain/assets";
 import { Money, iso } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
@@ -18,7 +19,7 @@ function createFakeAssets(initial: Record<number, FakeAsset>) {
   const toEntity = (id: number) => {
     const entry = store.get(id)!;
     return {
-      IdStr: ID.new(id).toHash,
+      IdStr: ID.new(id).str,
       name: entry.name,
       balance: entry.balance,
     };
@@ -30,16 +31,16 @@ function createFakeAssets(initial: Record<number, FakeAsset>) {
       return [...store.keys()].map(toEntity);
     },
     async assetById(_userId: ID, assetId: ID) {
-      const id = assetId.toNumb;
+      const id = assetId.decode;
       return store.has(id) ? toEntity(id) : null;
     },
-    async mutateSubtractAsset(userId: ID, assetId: ID, amount: Money) {
-      mutate(assetId.toNumb, "subtract", amount);
-      return toEntity(assetId.toNumb);
-    },
-    async mutateAddAsset(userId: ID, assetId: ID, amount: Money) {
-      mutate(assetId.toNumb, "add", amount);
-      return toEntity(assetId.toNumb);
+    async mutateAsset(input: MutateAssetInput): Promise<MutateAssetResult> {
+      const id = input.assetId!.decode;
+      mutate(id, input.code === "CR" ? "add" : "subtract", input.amount);
+      return {
+        code: input.code === "CR" ? "CR" : "DB",
+        asset: toEntity(id),
+      } as unknown as MutateAssetResult;
     },
   };
 }

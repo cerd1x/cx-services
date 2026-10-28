@@ -63,9 +63,9 @@ describe("AuthService", () => {
   });
 
   const mockAssetService = () => ({
-    createAsset: mock().mockResolvedValue({ IdStr: ID.new(1).toHash } as Asset),
+    createAsset: mock().mockResolvedValue({ IdStr: ID.new(1).str } as Asset),
     deleteAsset: mock().mockResolvedValue(undefined),
-    createDefaultAssetCash: mock().mockResolvedValue({ IdStr: ID.new(1).toHash } as Asset),
+    createDefaultAssetCash: mock().mockResolvedValue({ IdStr: ID.new(1).str } as Asset),
   });
 
   const assetSpy = spyOn(AssetService, "getInstance");
@@ -117,7 +117,7 @@ describe("AuthService", () => {
       });
       const result = await AuthService.getInstance().signUp(user);
 
-      expect(result.user.id?.toNumb).toBe(1);
+      expect(result.user.id?.decode).toBe(1);
       expect(result.session).toBe("mock-session-token");
       expect(result.refreshToken).toBe("mock-refresh-token");
 
@@ -199,7 +199,7 @@ describe("AuthService", () => {
 
       const result = await AuthService.getInstance().signIn("testuser", "password123");
 
-      expect(result.user.id?.toNumb).toBe(1);
+      expect(result.user.id?.decode).toBe(1);
       expect(result.session).toBe("mock-token");
       expect(result.refreshToken).toBe("mock-token");
       expect(userService.userByUsername).toHaveBeenCalledWith("testuser");
@@ -264,7 +264,7 @@ describe("AuthService", () => {
         rpID: "example.com",
       });
 
-      expect(result.user.id?.toNumb).toBe(1);
+      expect(result.user.id?.decode).toBe(1);
       expect(result.session).toBe("mock-token");
       expect(result.refreshToken).toBe("mock-token");
       expect(mockPasskeyService.verifyAuthentication).toHaveBeenCalledWith({
@@ -368,7 +368,7 @@ describe("AuthService", () => {
 
       const result = await AuthService.getInstance().authorize("valid-session-token");
 
-      expect(result.user.id?.toNumb).toBe(1);
+      expect(result.user.id?.decode).toBe(1);
       expect(result.token).toBeNull();
       expect(authRepo.findToken).toHaveBeenCalledWith("valid-session-token");
     });
@@ -423,7 +423,7 @@ describe("AuthService", () => {
 
       const result = await AuthService.getInstance().authorize("expired-session-token");
 
-      expect(result.user.id?.toNumb).toBe(1);
+      expect(result.user.id?.decode).toBe(1);
       expect(result.token?.session).toBe("new-session-token");
       expect(result.token?.refresh).toBeNull();
       expect(authRepo.updateToken).toHaveBeenCalledWith(

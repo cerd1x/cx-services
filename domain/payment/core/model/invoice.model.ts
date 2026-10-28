@@ -196,7 +196,7 @@ export class Invoice {
 
   toData(): InvoiceData {
     return {
-      id: this.id?.toNumb,
+      id: this.id?.decode,
       userId: this.userId,
       invoiceNumber: this.invoiceNumber,
       customerId: this.customerId,

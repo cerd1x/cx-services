@@ -38,7 +38,7 @@ describe("ProductService", () => {
         100,
       );
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect(result.name).toBe("Coffee");
       expect(result.price).toBe(25000);
       expect(productRepo.save).toHaveBeenCalledWith(
@@ -103,7 +103,7 @@ describe("ProductService", () => {
 
       const result = await ProductService.getInstance().product(ID.new(1), 1);
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect(result.name).toBe("Coffee");
       expect(productRepo.findById).toHaveBeenCalledWith(1, 1);
     });

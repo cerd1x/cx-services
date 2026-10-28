@@ -15,10 +15,10 @@ export class TransactionByIdUseCase extends CoreUsecase<TransactionType, Transac
   @logMethod(logger)
   async execute(input: TransactionByIdInput): Promise<TransactionType> {
     const txRepo = this.deps.get(TransactionRepository);
-    const tx = await txRepo.findById(input.id.toNumb, input.userId);
+    const tx = await txRepo.findById(input.id.decode, input.userId);
 
     if (!tx) {
-      throw new NotFound(`Transaction with id ${input.id.toNumb}`);
+      throw new NotFound(`Transaction with id ${input.id.decode}`);
     }
     return tx;
   }

@@ -52,7 +52,9 @@ export function serializeMoney(money: Money): string {
 export function deserializeMoney(raw: string): Money {
   const match = raw.trim().match(/^([A-Z]{3})\s+(-?[\d,]+(?:\.\d+)?)$/);
   if (!match) {
-    throw new Error(`Invalid money format: "${raw}". Expected "ISO_CODE VALUE" (e.g. "IDR 1500000")`);
+    throw new Error(
+      `Invalid money format: "${raw}". Expected "ISO_CODE VALUE" (e.g. "IDR 1500000")`,
+    );
   }
 
   const [, code, rawAmount] = match;

@@ -9,6 +9,6 @@ export class ListContactsUseCase extends CoreUsecase<Contact[], ID> {
   @logMethod(logger)
   async execute(userId: ID): Promise<Contact[]> {
     const contactRepo = this.deps.get(ContactRepository);
-    return contactRepo.findAll(userId.toNumb);
+    return contactRepo.findAll(userId.decode);
   }
 }

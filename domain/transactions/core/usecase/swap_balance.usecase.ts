@@ -18,7 +18,7 @@ export class SwapBalanceUseCase extends CoreUsecase<SwapBalanceResult, SwapBalan
   async execute(input: SwapBalanceInput): Promise<SwapBalanceResult> {
     const asset = this.deps.get(AssetSwapGatewayCtx);
     const { userId, fromAssetId, toAssetId, amount } = input;
-    const result = await asset.mutateSwapAsset(userId, fromAssetId, toAssetId, amount);
+    const result = await asset.transferAsset(userId, fromAssetId, toAssetId, amount);
     return result;
   }
 }

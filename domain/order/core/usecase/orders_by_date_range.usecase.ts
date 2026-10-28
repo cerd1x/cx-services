@@ -15,6 +15,6 @@ export class OrdersByDateRangeUseCase extends CoreUsecase<OrderType[], OrdersByD
   @logMethod(logger)
   async execute(input: OrdersByDateRangeInput): Promise<OrderType[]> {
     const orderRepo = this.deps.get(OrderRepository);
-    return orderRepo.findAllByDateRange(input.start, input.end, input.userId.toNumb);
+    return orderRepo.findAllByDateRange(input.start, input.end, input.userId.decode);
   }
 }

@@ -9,7 +9,7 @@ const resolvers: Resolvers<YogaContext> = {
       if (args.username) {
         const result = await user.userByUsername(args.username);
         return {
-          id: result.id?.toHash ?? "",
+          id: result.id?.str ?? "",
           name: result.name,
           username: result.username,
           avatarUrl: result.avatarUrl,
@@ -18,7 +18,7 @@ const resolvers: Resolvers<YogaContext> = {
       if (userAuth) {
         const result = await user.user(userAuth.id);
         return {
-          id: result.id?.toHash ?? "",
+          id: result.id?.str ?? "",
           name: result.name,
           username: result.username,
           avatarUrl: result.avatarUrl,
@@ -29,7 +29,7 @@ const resolvers: Resolvers<YogaContext> = {
     users: async (_parent, _args, { user }) => {
       const result = await user.users();
       return result.map((u) => ({
-        id: u.id?.toHash ?? "",
+        id: u.id?.str ?? "",
         name: u.name,
         username: u.username,
         avatarUrl: u.avatarUrl,
@@ -45,7 +45,7 @@ const resolvers: Resolvers<YogaContext> = {
         undefined,
       );
       return {
-        id: result.id?.toHash ?? "",
+        id: result.id?.str ?? "",
         name: result.name,
         username: result.username,
         avatarUrl: result.avatarUrl,
@@ -54,7 +54,7 @@ const resolvers: Resolvers<YogaContext> = {
     updateUserAvatar: async (_parent, args, { user }) => {
       const result = await user.updateUserAvatar(ID.new(args.input.userId), args.input.avatarUrl);
       return {
-        id: result.id?.toHash ?? "",
+        id: result.id?.str ?? "",
         name: result.name,
         username: result.username,
         avatarUrl: result.avatarUrl,

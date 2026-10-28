@@ -81,7 +81,7 @@ export class Asset {
 
   get IdStr() {
     if (isMybe(this.#id)) throw new Error("required id");
-    return this.#id?.toHash as string;
+    return this.#id?.str as string;
   }
 
   get name(): string {
@@ -103,7 +103,7 @@ export class Asset {
 
   get metadata() {
     return {
-      id: this.#id?.toHash,
+      id: this.#id?.str,
       name: this.#name,
       type: this.#type as AssetType,
       balance: this.#balance,

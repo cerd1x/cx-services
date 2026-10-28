@@ -11,7 +11,7 @@ import { ID } from "$services/shared/kernel";
 import { logger } from "../../../core/value-objects/logger";
 
 function positionOf(tx: Transaction): { createdAt: number; id: number } {
-  return { createdAt: tx.createdAt!.getTime(), id: tx.id!.toNumb };
+  return { createdAt: tx.createdAt!.getTime(), id: tx.id!.decode };
 }
 
 /**
@@ -96,7 +96,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
     const rows = await getDB()
       .select()
       .from(transactionTable)
-      .where(and(eq(transactionTable.id, id), eq(transactionTable.userId, userId.toNumb)))
+      .where(and(eq(transactionTable.id, id), eq(transactionTable.userId, userId.decode)))
       .limit(1);
 
     if (rows.length === 0) return null;
@@ -108,7 +108,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
     const rows = await getDB()
       .select()
       .from(transactionTable)
-      .where(eq(transactionTable.userId, userId.toNumb));
+      .where(eq(transactionTable.userId, userId.decode));
     return rows.map((r) => this.#toTransaction(r));
   }
 
@@ -121,7 +121,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
       .where(
         and(
           eq(transactionTable.type, type as Transaction["type"]),
-          eq(transactionTable.userId, userId.toNumb),
+          eq(transactionTable.userId, userId.decode),
         ),
       );
 
@@ -136,7 +136,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         and(
           gte(transactionTable.createdAt, start),
           lte(transactionTable.createdAt, end),
-          eq(transactionTable.userId, userId.toNumb),
+          eq(transactionTable.userId, userId.decode),
         ),
       );
 
@@ -162,7 +162,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
     const { limit, cursor, direction } = query;
     const position = cursor?.position ?? null;
     const forward = direction === "forward";
-    const user = eq(transactionTable.userId, userId.toNumb);
+    const user = eq(transactionTable.userId, userId.decode);
     const boundary = position === null ? undefined : this.#boundary(position, forward);
 
     const orderByClause = forward
@@ -230,8 +230,8 @@ export class TransactionRepositoryImpl implements TransactionRepository {
       })
       .where(
         and(
-          eq(transactionTable.id, transaction.id!.toNumb),
-          eq(transactionTable.userId, userId.toNumb),
+          eq(transactionTable.id, transaction.id!.decode),
+          eq(transactionTable.userId, userId.decode),
         ),
       )
       .returning();
@@ -242,6 +242,6 @@ export class TransactionRepositoryImpl implements TransactionRepository {
   async delete(id: number, userId: ID): Promise<void> {
     await getDB()
       .delete(transactionTable)
-      .where(and(eq(transactionTable.id, id), eq(transactionTable.userId, userId.toNumb)));
+      .where(and(eq(transactionTable.id, id), eq(transactionTable.userId, userId.decode)));
   }
 }

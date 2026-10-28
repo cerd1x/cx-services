@@ -15,7 +15,7 @@ import { ID } from "$services/shared/kernel";
 
 const mapTx = (txinp: Transaction): TxType => {
   return {
-    id: txinp.id?.toHash ?? "",
+    id: txinp.id?.str ?? "",
     amount: txinp.amount,
     capital: txinp.capital,
     type: txinp.type as TransactionType,
@@ -25,7 +25,7 @@ const mapTx = (txinp: Transaction): TxType => {
       type: txinp.paymentMethod.type as TxType["paymentMethod"]["type"],
       assetId: txinp.paymentMethod.assetId?.toString() ?? null,
     },
-    customerId: txinp?.customerId ? ID.new(txinp?.customerId as string | number).toHash : null,
+    customerId: txinp?.customerId ? ID.new(txinp?.customerId as string | number).str : null,
     category: txinp.category,
     createdAt: txinp.createdAt!,
     updatedAt: txinp.updatedAt,
@@ -103,15 +103,15 @@ const resolvers: Resolvers<YogaContext> = {
         paymentMethod: paymentMethod
           ? {
               type: paymentMethod.type as EntityPaymentMethod["type"],
-              assetId: paymentMethod.assetId ? ID.new(paymentMethod.assetId).toNumb : undefined,
+              assetId: paymentMethod.assetId ? ID.new(paymentMethod.assetId).decode : undefined,
             }
           : undefined,
-        customerId: customerId ? ID.new(customerId).toNumb : undefined,
+        customerId: customerId ? ID.new(customerId).decode : undefined,
         status: status as TransactionStatus | undefined,
         paymentStatus: paymentStatus ?? undefined,
-        userId: userAuth!.id.toNumb,
-        payWithAssetId: payWithAssetId ? ID.new(payWithAssetId).toNumb : undefined,
-        payToAssetId: payToAssetId ? ID.new(payToAssetId).toNumb : undefined,
+        userId: userAuth!.id.decode,
+        payWithAssetId: payWithAssetId ? ID.new(payWithAssetId).decode : undefined,
+        payToAssetId: payToAssetId ? ID.new(payToAssetId).decode : undefined,
       });
       return mapTx(tx);
     },
@@ -126,11 +126,11 @@ const resolvers: Resolvers<YogaContext> = {
             ? {
                 type: input.paymentMethod.type as EntityPaymentMethod["type"],
                 assetId: input.paymentMethod.assetId
-                  ? ID.new(input.paymentMethod.assetId).toNumb
+                  ? ID.new(input.paymentMethod.assetId).decode
                   : undefined,
               }
             : undefined,
-          customerId: input.customerId ? ID.new(input.customerId).toNumb : undefined,
+          customerId: input.customerId ? ID.new(input.customerId).decode : undefined,
           paymentStatus: input.paymentStatus ?? undefined,
         },
         userAuth!.id,

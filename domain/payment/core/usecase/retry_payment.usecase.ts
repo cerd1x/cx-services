@@ -18,12 +18,12 @@ export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: I
     const defaultGateway = this.deps.get(PaymentGateway);
     const retryPolicy = this.deps.get(RetryPolicyToken);
 
-    const existing = await paymentRepo.findById(input.paymentId.toNumb, input.userId);
+    const existing = await paymentRepo.findById(input.paymentId.decode, input.userId);
     if (!existing) {
-      throw new PaymentRetryExhaustedError(input.paymentId.toNumb, 0);
+      throw new PaymentRetryExhaustedError(input.paymentId.decode, 0);
     }
     if (!existing.id) {
-      throw new PaymentRetryExhaustedError(input.paymentId.toNumb, existing.maxRetries);
+      throw new PaymentRetryExhaustedError(input.paymentId.decode, existing.maxRetries);
     }
 
     const payment = new Payment({
@@ -44,14 +44,14 @@ export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: I
     });
 
     if (!payment.canRetry() || !retryPolicy.shouldRetry(payment.retryCount)) {
-      throw new PaymentRetryExhaustedError(input.paymentId.toNumb, retryPolicy.maxRetries);
+      throw new PaymentRetryExhaustedError(input.paymentId.decode, retryPolicy.maxRetries);
     }
 
     payment.incrementRetry();
     payment.transitionTo("processing");
 
     await paymentRepo.update(
-      input.paymentId.toNumb,
+      input.paymentId.decode,
       { status: payment.status, retryCount: payment.retryCount },
       input.userId,
     );
@@ -112,7 +112,7 @@ export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: I
     }
 
     return paymentRepo.update(
-      input.paymentId.toNumb,
+      input.paymentId.decode,
       {
         status: payment.status,
         gatewayRef: payment.gatewayRef,

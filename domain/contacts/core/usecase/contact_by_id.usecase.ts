@@ -17,12 +17,12 @@ export class ContactByIdUseCase extends CoreUsecase<Contact, ContactByIdInput> {
     const contactRepo = this.deps.get(ContactRepository);
     const { userId, contactId } = input;
 
-    const contact = await contactRepo.findById(userId.toNumb, contactId.toNumb);
+    const contact = await contactRepo.findById(userId.decode, contactId.decode);
     if (!contact) {
-      throw new NotFound(`Contact with id ${contactId.toNumb}`);
+      throw new NotFound(`Contact with id ${contactId.decode}`);
     }
-    if (contact.userId.toNumb !== userId.toNumb) {
-      throw new NotFound(`Contact with id ${contactId.toNumb}`);
+    if (contact.userId.decode !== userId.decode) {
+      throw new NotFound(`Contact with id ${contactId.decode}`);
     }
     return contact;
   }

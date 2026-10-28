@@ -186,8 +186,8 @@ export type TransactionAdapters = {
  * terjadi supaya composition bisa di-re-init dengan adapter lain (mis. test).
  */
 class LazyAssetSwapGateway implements AssetSwapGateway {
-  mutateSwapAsset(userId: ID, fromAssetId: ID, toAssetId: ID, amount: Money) {
-    return AssetService.getInstance().mutateSwapAsset(userId, fromAssetId, toAssetId, amount);
+  transferAsset(userId: ID, fromAssetId: ID, toAssetId: ID, amount: Money) {
+    return AssetService.getInstance().transferAsset(userId, fromAssetId, toAssetId, amount);
   }
 }
 
@@ -235,25 +235,34 @@ export const transactionService = createTransactionService({
 });
 logger.info("TransactionService initialized");
 
-EventBus.on("asset.swapped", async (payload) => {
-  const { userId, fromAssetId, toAssetId, amount, currency, fromAssetName, toAssetName } = payload;
-  const swapCurrency = findCurrency(String(currency));
-  if (!swapCurrency) {
+EventBus.on("asset.transferred", async (payload) => {
+  const {
+    userId,
+    fromAssetId,
+    toAssetId,
+    amount,
+    currency,
+    fromAssetName,
+    toAssetName,
+    description,
+  } = payload;
+  const transferCurrency = findCurrency(String(currency));
+  if (!transferCurrency) {
     throw new Error(`Unknown currency: ${String(currency)}`);
   }
-  const swapAmount = Money.fromNumber(Number(amount), swapCurrency);
+  const transferAmount = Money.fromNumber(Number(amount), transferCurrency);
   // Resolve late: composition bisa di-re-init dengan adapter lain (mis. test),
   // jadi subscriber harus memakai singleton yang aktif saat event terjadi.
   await TransactionService.getInstance().createTransaction({
     userId: Number(userId),
     payWithAssetId: Number(fromAssetId),
     payToAssetId: Number(toAssetId),
-    amount: swapAmount,
+    amount: transferAmount,
     capital: Money.zero(iso.IDR),
     type: "transfer",
     category: "Move Balances",
-    description: `Swap ( ${fromAssetName} to ${toAssetName} )`,
+    description: String(description ?? `Transfer ( ${fromAssetName} to ${toAssetName} )`),
     status: "success",
   });
 });
-logger.info("EventBus subscriber 'asset.swapped' registered");
+logger.info("EventBus subscriber 'asset.transferred' registered");

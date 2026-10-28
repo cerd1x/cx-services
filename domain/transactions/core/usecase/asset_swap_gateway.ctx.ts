@@ -3,7 +3,7 @@ import type { Money } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
 export class AssetSwapGatewayCtx implements AssetSwapGateway {
-  mutateSwapAsset(
+  transferAsset(
     _userId: ID,
     _fromAssetId: ID,
     _toAssetId: ID,

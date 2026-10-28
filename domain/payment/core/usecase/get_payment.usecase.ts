@@ -10,9 +10,9 @@ export class GetPaymentUseCase extends CoreUsecase<PaymentData, { id: ID; userId
   @logMethod(logger)
   async execute(input: { id: ID; userId: ID }): Promise<PaymentData> {
     const paymentRepo = this.deps.get(PaymentRepository);
-    const payment = await paymentRepo.findById(input.id.toNumb, input.userId);
+    const payment = await paymentRepo.findById(input.id.decode, input.userId);
     if (!payment) {
-      throw new PaymentValidationError(`Payment ${input.id.toNumb} not found`);
+      throw new PaymentValidationError(`Payment ${input.id.decode} not found`);
     }
     return payment;
   }

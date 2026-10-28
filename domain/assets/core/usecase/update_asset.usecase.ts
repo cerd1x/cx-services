@@ -22,6 +22,6 @@ export class UpdateAssetUseCase extends CoreUsecase<Asset, UpdateAssetInput> {
     if (input.data.type) data.type = input.data.type;
     if (input.data.balance) data.balance = input.data.balance;
 
-    return assetRepo.update(input.userId, input.assetId.toNumb, data);
+    return assetRepo.update(input.userId, input.assetId.decode, data);
   }
 }

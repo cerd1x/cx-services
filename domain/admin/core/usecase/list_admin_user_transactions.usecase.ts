@@ -23,7 +23,7 @@ export class ListAdminUserTransactionsUseCase extends CoreUsecase<
   @logMethod(logger)
   async execute(input: ListAdminUserTransactionsInput): Promise<AdminTransactionView[]> {
     const adminRepo = this.deps.get(AdminRepository);
-    const userId = input.userId.toNumb;
+    const userId = input.userId.decode;
 
     const requested = input.limit ?? ADMIN_PAGE_DEFAULT_LIMIT;
     if (!Number.isInteger(requested) || requested <= 0) {

@@ -35,7 +35,7 @@ export class AssetRepositoryImpl implements AssetRepository {
     const result = await db
       .insert(assetTable)
       .values({
-        userId: asset.userId.toNumb ?? null,
+        userId: asset.userId.decode ?? null,
         name: asset.name,
         type: asset.type,
         balance: minorValue(asset.balance),
@@ -56,7 +56,7 @@ export class AssetRepositoryImpl implements AssetRepository {
 
   async findAll(userId: ID, tx?: unknown): Promise<Asset[]> {
     const db = (tx ?? getDB()) as DB;
-    const rows = await db.select().from(assetTable).where(eq(assetTable.userId, userId.toNumb));
+    const rows = await db.select().from(assetTable).where(eq(assetTable.userId, userId.decode));
     return rows.map((r) =>
       Asset.new({
         id: r.id,
@@ -73,7 +73,7 @@ export class AssetRepositoryImpl implements AssetRepository {
     const rows = await db
       .select()
       .from(assetTable)
-      .where(and(eq(assetTable.name, name), eq(assetTable.userId, userId.toNumb)))
+      .where(and(eq(assetTable.name, name), eq(assetTable.userId, userId.decode)))
       .limit(1);
     if (rows.length === 0) return null;
 
@@ -91,7 +91,7 @@ export class AssetRepositoryImpl implements AssetRepository {
     const rows = await db
       .select()
       .from(assetTable)
-      .where(and(eq(assetTable.id, assetId.toNumb), eq(assetTable.userId, userId.toNumb)))
+      .where(and(eq(assetTable.id, assetId.decode), eq(assetTable.userId, userId.decode)))
       .limit(1);
     if (rows.length === 0) return null;
 
@@ -109,7 +109,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       const db = getDB() as DB;
       const current = await db.select().from(assetTable).where(eq(assetTable.id, id)).limit(1);
       if (current.length === 0) throw new Error("Asset not found");
-      if (current[0].userId !== userId.toNumb) throw new Error("Asset not found");
+      if (current[0].userId !== userId.decode) throw new Error("Asset not found");
 
       const q = db
         .update(assetTable)
@@ -137,7 +137,7 @@ export class AssetRepositoryImpl implements AssetRepository {
     const db = (tx ?? getDB()) as DB;
     const current = await db.select().from(assetTable).where(eq(assetTable.id, id)).limit(1);
     if (current.length === 0) throw new Error("Asset not found");
-    if (current[0].userId !== userId.toNumb) throw new Error("Asset not found");
+    if (current[0].userId !== userId.decode) throw new Error("Asset not found");
 
     const result = await db
       .update(assetTable)
@@ -163,7 +163,7 @@ export class AssetRepositoryImpl implements AssetRepository {
     const db = (tx ?? getDB()) as DB;
     await db
       .delete(assetTable)
-      .where(and(eq(assetTable.name, name), eq(assetTable.userId, userId.toNumb)));
+      .where(and(eq(assetTable.name, name), eq(assetTable.userId, userId.decode)));
   }
 
   async findMutationsByAssetId(assetId: ID, userId: ID): Promise<AssetMutationData[]> {
@@ -173,8 +173,8 @@ export class AssetRepositoryImpl implements AssetRepository {
       .from(assetMutationTable)
       .where(
         and(
-          eq(assetMutationTable.assetId, assetId.toNumb),
-          eq(assetMutationTable.userId, userId.toNumb),
+          eq(assetMutationTable.assetId, assetId.decode),
+          eq(assetMutationTable.userId, userId.decode),
         ),
       )
       .orderBy(desc(assetMutationTable.createdAt));
@@ -198,8 +198,8 @@ export class AssetRepositoryImpl implements AssetRepository {
     tx?: unknown,
   ): Promise<AssetMutationData> {
     const values = {
-      assetId: assetId.toNumb,
-      userId: data.userId.toNumb,
+      assetId: assetId.decode,
+      userId: data.userId.decode,
       type: data.type,
       amount: minorValue(data.amount),
       currency: data.amount.currency.code,
@@ -216,7 +216,7 @@ export class AssetRepositoryImpl implements AssetRepository {
 
       return {
         id: 0,
-        assetId: assetId.toNumb,
+        assetId: assetId.decode,
         userId: data.userId,
         type: data.type,
         amount: data.amount,
@@ -239,9 +239,7 @@ export class AssetRepositoryImpl implements AssetRepository {
       balanceBefore: fromMinorUnits(result[0].balanceBefore, result[0].currency),
       balanceAfter: fromMinorUnits(result[0].balanceAfter, result[0].currency),
       description: result[0].description,
-      createdAt: result[0].createdAt
-        ? result[0].createdAt.toISOString()
-        : new Date().toISOString(),
+      createdAt: result[0].createdAt ? result[0].createdAt.toISOString() : new Date().toISOString(),
     };
   }
 }

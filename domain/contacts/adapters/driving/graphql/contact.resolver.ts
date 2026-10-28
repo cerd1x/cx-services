@@ -6,8 +6,8 @@ import type { Resolvers } from "$services/shared/infra/graphql/types";
 import { UnauthorizedError } from "$services/shared/kernel/errors/service-error";
 
 const toContactShape = (c: Contact) => ({
-  id: c.id?.toHash ?? "",
-  userId: c.userId?.toHash ?? "",
+  id: c.id?.str ?? "",
+  userId: c.userId?.str ?? "",
   name: c.name,
   email: c.email,
   phone: c.phone,

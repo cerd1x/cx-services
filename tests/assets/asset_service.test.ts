@@ -125,7 +125,7 @@ describe("AssetService", () => {
     });
   });
 
-  describe("mutateAddAsset", () => {
+  describe("mutateAsset (CR)", () => {
     const mockAsset = {
       userId: ID.new(1),
       balance: Money.fromNumber(200, iso.USD),
@@ -134,23 +134,24 @@ describe("AssetService", () => {
       metadata: { id: "abc" },
     };
 
-    it("adds balance and records mutation", async () => {
+    it("adds balance and records a CR mutation", async () => {
       assetRepo.findById.mockResolvedValue(mockAsset);
       assetRepo.update.mockResolvedValue({} as any);
       assetRepo.createAssetMutation.mockResolvedValue({} as any);
 
-      await AssetService.getInstance().mutateAddAsset(
-        ID.new(1),
-        ID.new(1),
-        Money.fromNumber(100, iso.USD),
-      );
+      await AssetService.getInstance().mutateAsset({
+        userId: ID.new(1),
+        code: "CR",
+        assetId: ID.new(1),
+        amount: Money.fromNumber(100, iso.USD),
+      });
 
       expect(uow.run).toHaveBeenCalled();
       expect(assetRepo.findById).toHaveBeenCalledWith(ID.new(1), ID.new(1));
       expect(assetRepo.createAssetMutation).toHaveBeenCalledWith(
         ID.new(1),
         expect.objectContaining({
-          type: "add",
+          type: "CR",
           amount: expect.any(AnyMoney),
           balanceBefore: expect.any(AnyMoney),
           balanceAfter: expect.any(AnyMoney),
@@ -171,11 +172,12 @@ describe("AssetService", () => {
       assetRepo.findById.mockResolvedValue(null);
 
       await expect(
-        AssetService.getInstance().mutateAddAsset(
-          ID.new(1),
-          ID.new(1),
-          Money.fromNumber(100, iso.USD),
-        ),
+        AssetService.getInstance().mutateAsset({
+          userId: ID.new(1),
+          code: "CR",
+          assetId: ID.new(1),
+          amount: Money.fromNumber(100, iso.USD),
+        }),
       ).rejects.toThrow(NotFound);
 
       expect(assetRepo.update).not.toHaveBeenCalled();
@@ -183,7 +185,7 @@ describe("AssetService", () => {
     });
   });
 
-  describe("mutateSubtractAsset", () => {
+  describe("mutateAsset (DB)", () => {
     const mockAsset = {
       userId: ID.new(1),
       balance: Money.fromNumber(200, iso.USD),
@@ -192,21 +194,22 @@ describe("AssetService", () => {
       metadata: { id: "abc" },
     };
 
-    it("subtracts balance and records mutation", async () => {
+    it("subtracts balance and records a DB mutation", async () => {
       assetRepo.findById.mockResolvedValue(mockAsset);
       assetRepo.update.mockResolvedValue({} as any);
       assetRepo.createAssetMutation.mockResolvedValue({} as any);
 
-      await AssetService.getInstance().mutateSubtractAsset(
-        ID.new(1),
-        ID.new(1),
-        Money.fromNumber(50, iso.USD),
-      );
+      await AssetService.getInstance().mutateAsset({
+        userId: ID.new(1),
+        code: "DB",
+        assetId: ID.new(1),
+        amount: Money.fromNumber(50, iso.USD),
+      });
 
       expect(assetRepo.createAssetMutation).toHaveBeenCalledWith(
         ID.new(1),
         expect.objectContaining({
-          type: "subtract",
+          type: "DB",
           amount: expect.any(AnyMoney),
           balanceBefore: expect.any(AnyMoney),
           balanceAfter: expect.any(AnyMoney),
@@ -219,44 +222,64 @@ describe("AssetService", () => {
       assetRepo.findById.mockResolvedValue(null);
 
       await expect(
-        AssetService.getInstance().mutateSubtractAsset(
-          ID.new(1),
-          ID.new(1),
-          Money.fromNumber(100, iso.USD),
-        ),
+        AssetService.getInstance().mutateAsset({
+          userId: ID.new(1),
+          code: "DB",
+          assetId: ID.new(1),
+          amount: Money.fromNumber(100, iso.USD),
+        }),
       ).rejects.toThrow(NotFound);
     });
-  });
 
-  describe("mutateTransactionAsset", () => {
-    const mockAsset = {
-      userId: ID.new(1),
-      balance: Money.fromNumber(200, iso.USD),
-      name: "Cash",
-      type: "cash" as const,
-      metadata: { id: "abc" },
-    };
-
-    it("uses transaction type and records mutation", async () => {
+    it("rejects when balance is insufficient", async () => {
       assetRepo.findById.mockResolvedValue(mockAsset);
       assetRepo.update.mockResolvedValue({} as any);
       assetRepo.createAssetMutation.mockResolvedValue({} as any);
 
-      await AssetService.getInstance().mutateTransactionAsset(
-        ID.new(1),
-        ID.new(1),
-        Money.fromNumber(30, iso.USD),
-        "Transfer out",
-      );
+      await expect(
+        AssetService.getInstance().mutateAsset({
+          userId: ID.new(1),
+          code: "DB",
+          assetId: ID.new(1),
+          amount: Money.fromNumber(500, iso.USD),
+        }),
+      ).rejects.toThrow(/insufficient/i);
+
+      expect(assetRepo.update).not.toHaveBeenCalled();
+      expect(assetRepo.createAssetMutation).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("mutateAsset (EB)", () => {
+    const mockAsset = {
+      userId: ID.new(1),
+      balance: Money.fromNumber(200, iso.USD),
+      name: "GoPay",
+      type: "ewallet" as const,
+      metadata: { id: "abc" },
+    };
+
+    it("uses EB code and records the given description", async () => {
+      assetRepo.findById.mockResolvedValue(mockAsset);
+      assetRepo.update.mockResolvedValue({} as any);
+      assetRepo.createAssetMutation.mockResolvedValue({} as any);
+
+      await AssetService.getInstance().mutateAsset({
+        userId: ID.new(1),
+        code: "EB",
+        assetId: ID.new(1),
+        amount: Money.fromNumber(30, iso.USD),
+        description: "Pulsa topup",
+      });
 
       expect(assetRepo.createAssetMutation).toHaveBeenCalledWith(
         ID.new(1),
         expect.objectContaining({
-          type: "transaction",
+          type: "EB",
           amount: expect.any(AnyMoney),
           balanceBefore: expect.any(AnyMoney),
           balanceAfter: expect.any(AnyMoney),
-          description: "Transfer out",
+          description: "Pulsa topup",
         }),
         "tx",
       );

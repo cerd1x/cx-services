@@ -25,7 +25,7 @@ export class MergeContactsUseCase extends CoreUsecase<
       throw new ValidationError("Phone is required to merge contacts");
     }
 
-    const matches = await contactRepo.findByPhone(userId.toNumb, normalized);
+    const matches = await contactRepo.findByPhone(userId.decode, normalized);
     if (matches.length === 0) {
       throw new NotFound(`Contact with phone ${normalized}`);
     }
@@ -49,7 +49,7 @@ export class MergeContactsUseCase extends CoreUsecase<
 
     let merged = 0;
     for (const dup of duplicates) {
-      await contactRepo.delete(userId.toNumb, dup.id!.toNumb);
+      await contactRepo.delete(userId.decode, dup.id!.decode);
       merged++;
     }
 
@@ -60,7 +60,7 @@ export class MergeContactsUseCase extends CoreUsecase<
     ) {
       primary.phones = newPhones;
       primary.validateAll();
-      await contactRepo.update(userId.toNumb, primary);
+      await contactRepo.update(userId.decode, primary);
     }
 
     return { merged, primary };

@@ -44,7 +44,7 @@ export class InMemoryOutboxRepository extends OutboxRepository {
 }
 
 export const mockAssetSwapGateway: AssetSwapGateway = {
-  mutateSwapAsset: async () => {
-    throw new Error("mutateSwapAsset mock not implemented");
+  transferAsset: async () => {
+    throw new Error("transferAsset mock not implemented");
   },
 };

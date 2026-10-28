@@ -17,10 +17,10 @@ export class OrderByIdUseCase extends CoreUsecase<Order, OrderByIdInput> {
     const orderRepo = this.deps.get(OrderRepository);
     const { id, userId } = input;
 
-    const order = await orderRepo.findById(id.toNumb, userId.toNumb);
+    const order = await orderRepo.findById(id.decode, userId.decode);
 
     if (!order) {
-      throw new NotFound(`Order with id ${id.toNumb}`);
+      throw new NotFound(`Order with id ${id.decode}`);
     }
 
     return order;

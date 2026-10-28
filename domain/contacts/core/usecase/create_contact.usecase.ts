@@ -22,7 +22,7 @@ export class CreateContactUseCase extends CoreUsecase<Contact, CreateContactInpu
 
     if (email?.length === 0) email = undefined;
     let contact = Contact.new({ name, email, phones, group, avatar, userId }).validateAll();
-    contact = await contactRepo.save(userId.toNumb, contact);
+    contact = await contactRepo.save(userId.decode, contact);
 
     if (!contact.id) {
       throw new Error("Failed to create contact: no id returned");

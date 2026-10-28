@@ -33,7 +33,7 @@ export class SignUpUseCase extends CoreUsecase<
         type: "cash",
       });
 
-      await settingService.createDefaultSettings(user.id.toNumb, ID.new(cashAsset.IdStr).toNumb);
+      await settingService.createDefaultSettings(user.id.decode, ID.new(cashAsset.IdStr).decode);
     } catch (err) {
       const assetService = AssetService.getInstance();
       try {
@@ -45,12 +45,12 @@ export class SignUpUseCase extends CoreUsecase<
       throw err;
     }
 
-    let token = Token.create({ userId: user.id.toNumb });
+    let token = Token.create({ userId: user.id.decode });
 
     const sessionExpiry = token.metadata.expiresAt;
     const refreshExpiry = new Date(Date.now() + Token.defaultExpireAt * 7);
 
-    let resultToken = await authRepo.saveToken(user.id.toNumb, {
+    let resultToken = await authRepo.saveToken(user.id.decode, {
       sessionToken: await token.setType("session").generate(),
       refreshToken: await token
         .setType("refresh")

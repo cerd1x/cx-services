@@ -53,7 +53,7 @@ describe("ContactRepository integration", () => {
     const saved = await repo.save(userId, contact);
 
     expect(saved.id).toBeDefined();
-    const found = await repo.findById(userId, saved.id!.toNumb);
+    const found = await repo.findById(userId, saved.id!.decode);
     expect(found?.phones).toEqual(["08111111111", "08222222222"]);
     expect(found?.phone).toBe("08111111111");
   });
@@ -74,8 +74,8 @@ describe("ContactRepository integration", () => {
 
     const matches = await repo.findByPhone(userId, "08333333333");
 
-    expect(matches.map((m) => m.id!.toNumb).sort()).toEqual([a.id!.toNumb, b.id!.toNumb].sort());
-    expect(matches.find((m) => m.id!.toNumb === b.id!.toNumb)?.phones).toEqual([
+    expect(matches.map((m) => m.id!.decode).sort()).toEqual([a.id!.decode, b.id!.decode].sort());
+    expect(matches.find((m) => m.id!.decode === b.id!.decode)?.phones).toEqual([
       "08333333333",
       "08444444444",
     ]);
@@ -102,7 +102,7 @@ describe("ContactRepository integration", () => {
     expect(found?.phone).toBe("08555555555");
 
     const matches = await repo.findByPhone(userId, "08555555555");
-    expect(matches.map((m) => m.id!.toNumb)).toContain(id);
+    expect(matches.map((m) => m.id!.decode)).toContain(id);
   });
 
   it("scopes findByPhone to the owner", async () => {
@@ -146,7 +146,7 @@ describe("ContactRepository integration", () => {
           pageUserId,
           Contact.new({ name: `Pager ${i}`, userId: ID.new(pageUserId) }),
         );
-        ids.push(saved.id!.toNumb);
+        ids.push(saved.id!.decode);
       }
     });
 
@@ -159,7 +159,7 @@ describe("ContactRepository integration", () => {
     it("returns the newest contacts first", async () => {
       const result = await page({ first: 5 });
 
-      expect(result.items.map((c) => c.id?.toNumb)).toEqual(ids.slice(-5).reverse());
+      expect(result.items.map((c) => c.id?.decode)).toEqual(ids.slice(-5).reverse());
     });
 
     it("reports a next page while rows remain", async () => {
@@ -173,7 +173,7 @@ describe("ContactRepository integration", () => {
     it("reports no next page on the last window", async () => {
       const result = await page({ first: 10, after: Cursor.encode(ids[15]) });
 
-      expect(result.items.map((c) => c.id?.toNumb)).toEqual(
+      expect(result.items.map((c) => c.id?.decode)).toEqual(
         ids.slice(0, 15).reverse().slice(0, 10),
       );
       expect(result.hasNextPage).toBe(true);
@@ -186,7 +186,7 @@ describe("ContactRepository integration", () => {
 
       for (;;) {
         const result: Awaited<ReturnType<typeof page>> = await page({ first: 7, after });
-        seen.push(...result.items.map((c) => c.id!.toNumb));
+        seen.push(...result.items.map((c) => c.id!.decode));
         if (!result.hasNextPage) break;
         after = result.cursors[result.cursors.length - 1]!;
         if (++guard > 10) throw new Error("pagination did not terminate");
@@ -214,7 +214,7 @@ describe("ContactRepository integration", () => {
       // ids[11], so `last: 5` yields ids[11..15] flipped back to descending.
       const result = await page({ last: 5, before: Cursor.encode(ids[10]) });
 
-      expect(result.items.map((c) => c.id?.toNumb)).toEqual(ids.slice(11, 16).reverse());
+      expect(result.items.map((c) => c.id?.decode)).toEqual(ids.slice(11, 16).reverse());
       expect(result.hasPreviousPage).toBe(true);
       expect(result.hasNextPage).toBe(true);
     });
@@ -222,7 +222,7 @@ describe("ContactRepository integration", () => {
     it("reports no previous page when a backward window reaches the newest contact", async () => {
       const result = await page({ last: 50, before: Cursor.encode(ids[1]) });
 
-      expect(result.items.map((c) => c.id?.toNumb)).toEqual(ids.slice(2).reverse());
+      expect(result.items.map((c) => c.id?.decode)).toEqual(ids.slice(2).reverse());
       expect(result.hasPreviousPage).toBe(false);
       expect(result.hasNextPage).toBe(true);
     });
@@ -247,7 +247,7 @@ describe("ContactRepository integration", () => {
       const firstPage = await page({ first: 3 });
       const anchor = firstPage.cursors[2]!;
       const secondBefore = await page({ first: 3, after: anchor });
-      expect(secondBefore.items.map((c) => c.id?.toNumb)).toEqual(ids.slice(19, 22).reverse());
+      expect(secondBefore.items.map((c) => c.id?.decode)).toEqual(ids.slice(19, 22).reverse());
 
       const inserted = await repo.save(
         pageUserId,
@@ -258,13 +258,13 @@ describe("ContactRepository integration", () => {
       // cursor returns the same rows: a new contact taking a slot on page 1
       // cannot skip or duplicate anything the reader already paged past.
       const secondAfter = await page({ first: 3, after: anchor });
-      expect(secondAfter.items.map((c) => c.id?.toNumb)).toEqual(
-        secondBefore.items.map((c) => c.id?.toNumb),
+      expect(secondAfter.items.map((c) => c.id?.decode)).toEqual(
+        secondBefore.items.map((c) => c.id?.decode),
       );
 
       // Being the newest row, the new contact shows up on the first page only.
       const firstAfter = await page({ first: 3 });
-      expect(firstAfter.items[0]!.id?.toNumb).toBe(inserted.id!.toNumb);
+      expect(firstAfter.items[0]!.id?.decode).toBe(inserted.id!.decode);
     });
 
     it("returns exactly limit rows, hiding the overflow probe row", async () => {
@@ -291,7 +291,7 @@ describe("ContactRepository integration", () => {
             ownerId,
             Contact.new({ name: `Overflow ${i}`, userId: ID.new(ownerId) }),
           );
-          seeded.push(saved.id!.toNumb);
+          seeded.push(saved.id!.decode);
         }
         return { userId: ownerId, ids: seeded };
       }
@@ -309,11 +309,11 @@ describe("ContactRepository integration", () => {
 
         const result = await pageAs(userId, { first: 4 });
 
-        expect(result.items.map((c) => c.id?.toNumb)).toEqual(ids.slice(1).reverse());
+        expect(result.items.map((c) => c.id?.decode)).toEqual(ids.slice(1).reverse());
         expect(result.hasNextPage).toBe(true);
 
         const last = await pageAs(userId, { first: 4, after: result.cursors[3]! });
-        expect(last.items.map((c) => c.id?.toNumb)).toEqual([ids[0]]);
+        expect(last.items.map((c) => c.id?.decode)).toEqual([ids[0]]);
         expect(last.hasNextPage).toBe(false);
       });
 
@@ -322,7 +322,7 @@ describe("ContactRepository integration", () => {
 
         const result = await pageAs(userId, { first: 4 });
 
-        expect(result.items.map((c) => c.id?.toNumb)).toEqual(ids.slice().reverse());
+        expect(result.items.map((c) => c.id?.decode)).toEqual(ids.slice().reverse());
         expect(result.hasNextPage).toBe(false);
         expect(result.hasPreviousPage).toBe(false);
       });
@@ -333,7 +333,7 @@ describe("ContactRepository integration", () => {
         // `id > ids[1]` ascending returns ids[2..4], so ids[4] is the probe row.
         const result = await pageAs(userId, { last: 2, before: Cursor.encode(ids[1]) });
 
-        expect(result.items.map((c) => c.id?.toNumb)).toEqual([ids[3], ids[2]]);
+        expect(result.items.map((c) => c.id?.decode)).toEqual([ids[3], ids[2]]);
         expect(result.hasPreviousPage).toBe(true);
         expect(result.hasNextPage).toBe(true);
       });

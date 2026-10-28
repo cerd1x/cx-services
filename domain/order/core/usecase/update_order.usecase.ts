@@ -34,6 +34,6 @@ export class UpdateOrderUseCase extends CoreUsecase<OrderType, UpdateOrderInput>
     if (data.customerId !== undefined) existing.customerId = data.customerId;
 
     existing.validateAll();
-    return orderRepo.update(existing, userId.toNumb);
+    return orderRepo.update(existing, userId.decode);
   }
 }

@@ -22,7 +22,7 @@ export class DeleteAnyUserUseCase extends CoreUsecase<boolean, DeleteAnyUserInpu
   async execute(input: DeleteAnyUserInput): Promise<boolean> {
     const userService = this.deps.get(UserServiceCtx);
 
-    if (input.actorId.toNumb === input.userId.toNumb) {
+    if (input.actorId.decode === input.userId.decode) {
       throw new ValidationError("admin cannot delete their own account");
     }
 

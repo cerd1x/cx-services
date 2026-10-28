@@ -91,7 +91,7 @@ export class UserRepositoryImpl implements UserRepository {
         password: user.password,
         avatar: user.avatarUrl,
       })
-      .where(eq(userTable.id, user.id!.toNumb))
+      .where(eq(userTable.id, user.id!.decode))
       .returning();
 
     const row = result[0];

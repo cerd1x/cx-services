@@ -6,7 +6,7 @@ import type {
   GatewayRefundResponse,
   GatewayStatusResponse,
 } from "../../../core/ports/out/payment-gateway.port";
-import type { AssetService } from "$services/domain/assets";
+import type { AssetService, MutateAssetInput, MutateAssetResult } from "$services/domain/assets";
 import { Money, findCurrency } from "@lib/money";
 import { ID } from "$services/shared/kernel";
 
@@ -19,8 +19,8 @@ export interface AssetGatewayAsset {
 export type AssetMutator = {
   assets(userId: ID): Promise<AssetGatewayAsset[]>;
   assetById(userId: ID, assetId: ID): Promise<AssetGatewayAsset | null>;
-  mutateAddAsset(userId: ID, assetId: ID, amount: Money): Promise<AssetGatewayAsset>;
-  mutateSubtractAsset(userId: ID, assetId: ID, amount: Money): Promise<AssetGatewayAsset>;
+  /** Mutasi terpadu (CR/DB/TF/EB/ADM) lewat satu pintu `AssetService.mutateAsset`. */
+  mutateAsset(input: MutateAssetInput): Promise<MutateAssetResult>;
 };
 
 // Structural compatile: AssetService (domain `Asset`) memenuhi AssetMutator.
@@ -45,8 +45,8 @@ interface GatewayRefParts {
 /**
  * PaymentGateway berbasis asset (saldo internal user).
  *
- * `charge` mendebit saldo asset milik user (via AssetService.mutateSubtractAsset),
- * `refund` mengembalikannya (mutateAddAsset). `gatewayRef` yang dihasilkan
+ * `charge` mendebit saldo asset milik user (via AssetService.mutateAsset,
+ * kode `EB`), `refund` mengembalikannya (kode `CR`). `gatewayRef` yang dihasilkan
  * meng-encode identitas user + asset + jumlah, sehingga refund/getStatus bisa
  * berjalan tanpa state eksternal.
  *
@@ -107,7 +107,13 @@ export class AssetPaymentGateway implements PaymentGateway {
 
       const gatewayRef = this.#makeRef(request.userId, assetId, currency, request.amount);
 
-      await this.#assets.mutateSubtractAsset(ID.new(request.userId), ID.new(assetId), amount);
+      await this.#assets.mutateAsset({
+        userId: ID.new(request.userId),
+        code: "EB",
+        assetId: ID.new(assetId),
+        amount,
+        description: request.description,
+      });
 
       const refreshed = await this.#assets.assetById(ID.new(request.userId), ID.new(assetId));
 
@@ -163,11 +169,13 @@ export class AssetPaymentGateway implements PaymentGateway {
         };
       }
 
-      await this.#assets.mutateAddAsset(
-        ID.new(ref.userId),
-        ID.new(ref.assetId),
-        Money.fromNumber(amount, currency),
-      );
+      await this.#assets.mutateAsset({
+        userId: ID.new(ref.userId),
+        code: "CR",
+        assetId: ID.new(ref.assetId),
+        amount: Money.fromNumber(amount, currency),
+        description: request.reason,
+      });
 
       return {
         success: true,
@@ -217,13 +225,13 @@ export class AssetPaymentGateway implements PaymentGateway {
     const byCurrency = list.find(
       (asset) => asset.balance.currency.code.toUpperCase() === normalized,
     );
-    if (byCurrency) return ID.new(byCurrency.IdStr).toNumb;
+    if (byCurrency) return ID.new(byCurrency.IdStr).decode;
 
     const byName = list.find((asset) => asset.name === this.#config.defaultAssetName);
-    if (byName) return ID.new(byName.IdStr).toNumb;
+    if (byName) return ID.new(byName.IdStr).decode;
 
     const first = list[0];
-    return first ? ID.new(first.IdStr).toNumb : null;
+    return first ? ID.new(first.IdStr).decode : null;
   }
 
   #makeRef(userId: number, assetId: number, currency: string, amount: number): string {

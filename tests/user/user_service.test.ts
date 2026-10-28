@@ -29,7 +29,7 @@ describe("UserService", () => {
 
       const result = await UserService.getInstance().createUser("Test", "testuser", "password123");
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect(result.username).toBe("testuser");
       expect(userRepo.save).toHaveBeenCalled();
     });

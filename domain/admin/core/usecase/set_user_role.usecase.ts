@@ -27,7 +27,7 @@ export class SetUserRoleUseCase extends CoreUsecase<UserType, SetUserRoleInput> 
 
     // Menolak demosi diri sendiri menutup jalan mengunci seluruh akun admin:
     // kalau hanya ada satu admin, demosi berarti tidak ada yang bisa membatalkan.
-    if (input.actorId.toNumb === input.userId.toNumb) {
+    if (input.actorId.decode === input.userId.decode) {
       throw new ValidationError("admin cannot change their own role");
     }
 

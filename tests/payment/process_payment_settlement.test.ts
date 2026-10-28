@@ -38,29 +38,29 @@ class PaymentRepo extends PaymentRepository {
   }
 
   async findById(id: number, userId: ID): Promise<PaymentData | null> {
-    return this.store.find((p) => p.id === id && p.userId === userId.toNumb) ?? null;
+    return this.store.find((p) => p.id === id && p.userId === userId.decode) ?? null;
   }
 
   async findAll(userId: ID): Promise<PaymentData[]> {
-    return this.store.filter((p) => p.userId === userId.toNumb);
+    return this.store.filter((p) => p.userId === userId.decode);
   }
 
   async findByStatus(status: string, userId: ID): Promise<PaymentData[]> {
-    return this.store.filter((p) => p.userId === userId.toNumb && p.status === status);
+    return this.store.filter((p) => p.userId === userId.decode && p.status === status);
   }
 
   async findByInvoiceId(invoiceId: number, userId: ID): Promise<PaymentData[]> {
-    return this.store.filter((p) => p.userId === userId.toNumb && p.invoiceId === invoiceId);
+    return this.store.filter((p) => p.userId === userId.decode && p.invoiceId === invoiceId);
   }
 
   async findByGatewayRef(gatewayRef: string, userId: ID): Promise<PaymentData | null> {
     return (
-      this.store.find((p) => p.userId === userId.toNumb && p.gatewayRef === gatewayRef) ?? null
+      this.store.find((p) => p.userId === userId.decode && p.gatewayRef === gatewayRef) ?? null
     );
   }
 
   async update(id: number, data: PaymentUpdateData, userId: ID): Promise<PaymentData> {
-    const idx = this.store.findIndex((p) => p.id === id && p.userId === userId.toNumb);
+    const idx = this.store.findIndex((p) => p.id === id && p.userId === userId.decode);
     if (idx === -1) throw new Error("payment not found");
     this.store[idx] = { ...this.store[idx], ...data };
     return this.store[idx];

@@ -5,7 +5,7 @@ import type { Resolvers } from "$services/shared/infra/graphql/types";
 const resolvers: Resolvers<YogaContext> = {
   Query: {
     statistics: async (_parent, _args, { statistic, userAuth }) => {
-      return statistic.getStatistic(userAuth!.id.toNumb);
+      return statistic.getStatistic(userAuth!.id.decode);
     },
   },
 };

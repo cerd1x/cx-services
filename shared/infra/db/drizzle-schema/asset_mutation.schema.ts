@@ -4,7 +4,7 @@ import { userTable } from "./user.schema";
 import { assetTable } from "./asset.schema";
 
 /** Nilai `asset_mutation.type` yang sah. Dipakai juga oleh CHECK constraint. */
-export const ASSET_MUTATION_TYPES = ["add", "subtract", "transaction", "swap"] as const;
+export const ASSET_MUTATION_TYPES = ["CR", "DB", "TF", "EB", "ADM"] as const;
 
 export const assetMutationTable = sqliteTable(
   "asset_mutation",
@@ -31,9 +31,6 @@ export const assetMutationTable = sqliteTable(
   },
   // Sama seperti `asset`: CHECK eksplisit supaya ikut ke migrasi.
   (table) => [
-    check(
-      "asset_mutation_type_check",
-      sql`${table.type} in ('add', 'subtract', 'transaction', 'swap')`,
-    ),
+    check("asset_mutation_type_check", sql`${table.type} in ('CR', 'DB', 'TF', 'EB', 'ADM')`),
   ],
 );

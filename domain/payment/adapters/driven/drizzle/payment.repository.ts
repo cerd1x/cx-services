@@ -32,7 +32,7 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.toNumb)))
+      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)))
       .limit(1);
 
     if (rows.length === 0) return null;
@@ -43,7 +43,7 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(eq(paymentTable.userId, userId.toNumb));
+      .where(eq(paymentTable.userId, userId.decode));
     return rows.map((r) => this.#toPayment(r));
   }
 
@@ -51,7 +51,7 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(and(eq(paymentTable.status, status as any), eq(paymentTable.userId, userId.toNumb)));
+      .where(and(eq(paymentTable.status, status as any), eq(paymentTable.userId, userId.decode)));
     return rows.map((r) => this.#toPayment(r));
   }
 
@@ -59,7 +59,7 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(and(eq(paymentTable.invoiceId, invoiceId), eq(paymentTable.userId, userId.toNumb)));
+      .where(and(eq(paymentTable.invoiceId, invoiceId), eq(paymentTable.userId, userId.decode)));
     return rows.map((r) => this.#toPayment(r));
   }
 
@@ -67,7 +67,7 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(and(eq(paymentTable.gatewayRef, gatewayRef), eq(paymentTable.userId, userId.toNumb)))
+      .where(and(eq(paymentTable.gatewayRef, gatewayRef), eq(paymentTable.userId, userId.decode)))
       .limit(1);
 
     if (rows.length === 0) return null;
@@ -85,7 +85,7 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     const result = await getDB()
       .update(paymentTable)
       .set(updateData)
-      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.toNumb)))
+      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)))
       .returning();
 
     return this.#toPayment(result[0]);
@@ -94,7 +94,7 @@ export class PaymentRepositoryImpl implements PaymentRepository {
   async delete(id: number, userId: ID): Promise<void> {
     await getDB()
       .delete(paymentTable)
-      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.toNumb)));
+      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)));
   }
 
   #parseMetadata(raw: string | null | undefined): Record<string, unknown> | undefined {

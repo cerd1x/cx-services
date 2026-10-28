@@ -17,9 +17,9 @@ export class ProductByIdUseCase extends CoreUsecase<ProductType, ProductByIdInpu
     const productRepo = this.deps.get(ProductRepository);
     const { id, userId } = input;
 
-    const product = await productRepo.findById(id.toNumb, userId);
+    const product = await productRepo.findById(id.decode, userId);
     if (!product) {
-      throw new NotFound(`Product with id ${id.toNumb}`);
+      throw new NotFound(`Product with id ${id.decode}`);
     }
     return product;
   }

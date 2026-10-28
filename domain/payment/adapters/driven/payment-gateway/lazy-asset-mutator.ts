@@ -1,5 +1,5 @@
-import type { Money } from "@lib/money";
 import type { ID } from "$services/shared/kernel";
+import type { MutateAssetInput, MutateAssetResult } from "$services/domain/assets";
 import { AssetService } from "$services/domain/assets";
 import type { AssetGatewayAsset, AssetMutator } from "./asset-gateway.adapter";
 
@@ -18,11 +18,7 @@ export class LazyAssetMutator implements AssetMutator {
     return AssetService.getInstance().assetById(userId, assetId);
   }
 
-  mutateAddAsset(userId: ID, assetId: ID, amount: Money): Promise<AssetGatewayAsset> {
-    return AssetService.getInstance().mutateAddAsset(userId, assetId, amount);
-  }
-
-  mutateSubtractAsset(userId: ID, assetId: ID, amount: Money): Promise<AssetGatewayAsset> {
-    return AssetService.getInstance().mutateSubtractAsset(userId, assetId, amount);
+  mutateAsset(input: MutateAssetInput): Promise<MutateAssetResult> {
+    return AssetService.getInstance().mutateAsset(input);
   }
 }

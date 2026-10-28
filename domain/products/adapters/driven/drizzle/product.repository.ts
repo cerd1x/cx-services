@@ -103,7 +103,7 @@ export class ProductRepositoryImpl implements ProductRepository {
         stock: product.stock,
         trackStock: product.trackStock ? 1 : 0,
       })
-      .where(and(eq(productTable.id, product.id!.toNumb), eq(productTable.userId, userId)))
+      .where(and(eq(productTable.id, product.id!.decode), eq(productTable.userId, userId)))
       .returning();
 
     return new Product({

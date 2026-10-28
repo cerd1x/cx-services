@@ -35,7 +35,7 @@ export class InvoiceRepositoryImpl implements InvoiceRepository {
     const rows = await getDB()
       .select()
       .from(invoiceTable)
-      .where(and(eq(invoiceTable.id, id), eq(invoiceTable.userId, userId.toNumb)))
+      .where(and(eq(invoiceTable.id, id), eq(invoiceTable.userId, userId.decode)))
       .limit(1);
 
     if (rows.length === 0) return null;
@@ -47,7 +47,7 @@ export class InvoiceRepositoryImpl implements InvoiceRepository {
       .select()
       .from(invoiceTable)
       .where(
-        and(eq(invoiceTable.invoiceNumber, invoiceNumber), eq(invoiceTable.userId, userId.toNumb)),
+        and(eq(invoiceTable.invoiceNumber, invoiceNumber), eq(invoiceTable.userId, userId.decode)),
       )
       .limit(1);
 
@@ -59,7 +59,7 @@ export class InvoiceRepositoryImpl implements InvoiceRepository {
     const rows = await getDB()
       .select()
       .from(invoiceTable)
-      .where(eq(invoiceTable.userId, userId.toNumb));
+      .where(eq(invoiceTable.userId, userId.decode));
     return rows.map((r) => this.#toInvoice(r));
   }
 
@@ -67,7 +67,7 @@ export class InvoiceRepositoryImpl implements InvoiceRepository {
     const rows = await getDB()
       .select()
       .from(invoiceTable)
-      .where(and(eq(invoiceTable.status, status as any), eq(invoiceTable.userId, userId.toNumb)));
+      .where(and(eq(invoiceTable.status, status as any), eq(invoiceTable.userId, userId.decode)));
     return rows.map((r) => this.#toInvoice(r));
   }
 
@@ -84,7 +84,7 @@ export class InvoiceRepositoryImpl implements InvoiceRepository {
     const result = await getDB()
       .update(invoiceTable)
       .set(updateData)
-      .where(and(eq(invoiceTable.id, id), eq(invoiceTable.userId, userId.toNumb)))
+      .where(and(eq(invoiceTable.id, id), eq(invoiceTable.userId, userId.decode)))
       .returning();
 
     return this.#toInvoice(result[0]);
@@ -93,7 +93,7 @@ export class InvoiceRepositoryImpl implements InvoiceRepository {
   async delete(id: number, userId: ID): Promise<void> {
     await getDB()
       .delete(invoiceTable)
-      .where(and(eq(invoiceTable.id, id), eq(invoiceTable.userId, userId.toNumb)));
+      .where(and(eq(invoiceTable.id, id), eq(invoiceTable.userId, userId.decode)));
   }
 
   #parseMetadata(raw: string | null | undefined): Record<string, unknown> | undefined {

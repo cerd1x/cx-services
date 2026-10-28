@@ -78,7 +78,7 @@ export class Setting {
       currency: this.#currency,
       darkMode: this.#darkMode,
       dateFormat: this.#dateFormat,
-      defaultAssetCashId: this.#defaultAssetCashId?.toNumb,
+      defaultAssetCashId: this.#defaultAssetCashId?.decode,
     };
   }
 
@@ -111,7 +111,7 @@ export class Setting {
 
   setDefaultAssetCashId(defaultAssetCashId: ID | undefined): Setting {
     if (defaultAssetCashId) {
-      const result = defaultAssetCashIdSchema.safeParse(defaultAssetCashId.toNumb);
+      const result = defaultAssetCashIdSchema.safeParse(defaultAssetCashId.decode);
       if (!result.success) {
         throw new Error(result.error.issues.map((i) => i.message).join(", "));
       }

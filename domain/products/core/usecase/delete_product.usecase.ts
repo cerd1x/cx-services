@@ -17,6 +17,6 @@ export class DeleteProductUseCase extends CoreUsecase<void, DeleteProductInput> 
     const { id, userId } = input;
 
     await this.deps.get(ProductByIdUseCase).execute({ id, userId });
-    await productRepo.delete(id.toNumb, userId);
+    await productRepo.delete(id.decode, userId);
   }
 }

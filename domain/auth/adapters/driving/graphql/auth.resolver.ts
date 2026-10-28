@@ -37,7 +37,7 @@ const resolvers: Resolvers<YogaContext> = {
       if (!userAuth) throw new Error("Unauthorized");
       const { rpID } = getRpContext(request);
       const result = await auth.passkeyRegistrationOptions({
-        userId: userAuth.id.toNumb,
+        userId: userAuth.id.decode,
         rpID,
         rpName: RP_NAME,
       });
@@ -56,7 +56,7 @@ const resolvers: Resolvers<YogaContext> = {
     },
     passkeys: async (_parent, _args, { auth, userAuth }) => {
       if (!userAuth) throw new Error("Unauthorized");
-      const list = await auth.listPasskeys(userAuth.id.toNumb);
+      const list = await auth.listPasskeys(userAuth.id.decode);
       return list.map((passkey) => ({
         id: passkey.credentialId,
         deviceName: passkey.deviceName,
@@ -86,7 +86,7 @@ const resolvers: Resolvers<YogaContext> = {
 
       return {
         user: {
-          id: result.user.id?.toHash ?? "",
+          id: result.user.id?.str ?? "",
           name: user.name,
           username: user.username,
         },
@@ -109,7 +109,7 @@ const resolvers: Resolvers<YogaContext> = {
 
       return {
         user: {
-          id: result.user.id?.toHash ?? "",
+          id: result.user.id?.str ?? "",
           name: result.user.name,
           username: result.user.username,
         },
@@ -139,7 +139,7 @@ const resolvers: Resolvers<YogaContext> = {
 
       return {
         user: {
-          id: result.user.id?.toHash ?? "",
+          id: result.user.id?.str ?? "",
           name: result.user.name,
           username: result.user.username,
         },
@@ -152,7 +152,7 @@ const resolvers: Resolvers<YogaContext> = {
       if (!userAuth) throw new Error("Unauthorized");
       const { rpID, origin } = getRpContext(request);
       await auth.registerPasskey({
-        userId: userAuth.id.toNumb,
+        userId: userAuth.id.decode,
         challenge: args.input.challenge,
         attestationResponse: parseJsonObject(args.input.attestationResponse),
         origin,
@@ -164,7 +164,7 @@ const resolvers: Resolvers<YogaContext> = {
 
     deletePasskey: async (_parent, args, { auth, userAuth }) => {
       if (!userAuth) throw new Error("Unauthorized");
-      return auth.deletePasskey(userAuth.id.toNumb, args.credentialId);
+      return auth.deletePasskey(userAuth.id.decode, args.credentialId);
     },
 
     signOut: async (_parent, _args, { auth, cookie, cookies }) => {

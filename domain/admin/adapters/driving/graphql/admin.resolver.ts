@@ -31,13 +31,13 @@ function actorId(context: YogaContext): ID {
 
 /** `User` di SDL tidak punya `role`, jadi field `AdminUser` punya bentuk sendiri. */
 function toUserPayload(user: {
-  id?: { toHash: string };
+  id?: { str: string };
   name: string;
   username: string;
   avatarUrl: string | null;
 }) {
   return {
-    id: user.id?.toHash ?? "",
+    id: user.id?.str ?? "",
     name: user.name,
     username: user.username,
     avatarUrl: user.avatarUrl,
@@ -50,7 +50,7 @@ const resolvers: Resolvers<YogaContext> = {
       const users = await admin.users();
       return users.map((u) => ({
         ...u,
-        id: ID.new(u.id).toHash,
+        id: ID.new(u.id).str,
         role: toGraphQLRole(u.role),
       }));
     },
@@ -61,8 +61,8 @@ const resolvers: Resolvers<YogaContext> = {
       const rows = await admin.userTransactions(ID.new(args.userId), args.limit);
       return rows.map((row) => ({
         ...row,
-        id: ID.new(row.id).toHash,
-        userId: ID.new(row.userId).toHash,
+        id: ID.new(row.id).str,
+        userId: ID.new(row.userId).str,
       }));
     },
   },

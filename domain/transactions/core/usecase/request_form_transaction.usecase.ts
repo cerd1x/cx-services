@@ -14,19 +14,19 @@ export class RequestFormTransactionUseCase extends CoreUsecase<string, ID> {
     const rId = Math.floor(10000 + Math.random() * 90000).toString();
     const hash = await PasswordUtils.hash(rId.toString());
 
-    RequestFormTransactionUseCase.#formIdCache.set(userId.toHash, hash);
+    RequestFormTransactionUseCase.#formIdCache.set(userId.str, hash);
 
     return hash;
   }
 
   @logMethod(logger)
   validateFormTransaction(hash: string, userId: ID): void {
-    const storedHash = RequestFormTransactionUseCase.#formIdCache.get(userId.toHash);
+    const storedHash = RequestFormTransactionUseCase.#formIdCache.get(userId.str);
 
     if (!storedHash || storedHash !== hash) {
       throw new NotFound("hash form invalid");
     }
 
-    RequestFormTransactionUseCase.#formIdCache.delete(userId.toHash);
+    RequestFormTransactionUseCase.#formIdCache.delete(userId.str);
   }
 }

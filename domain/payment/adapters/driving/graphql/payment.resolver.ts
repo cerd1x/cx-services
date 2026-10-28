@@ -14,12 +14,12 @@ import type { InvoiceData } from "../../../core/model/invoice.model";
 import { ID } from "$services/shared/kernel";
 
 const toHashOrNull = (numb?: number): string | null =>
-  numb !== undefined ? ID.new(numb).toHash : null;
+  numb !== undefined ? ID.new(numb).str : null;
 
 function mapPayment(data: PaymentData): GqlPayment {
   return {
-    id: data.id !== undefined ? ID.new(data.id).toHash : "",
-    userId: ID.new(data.userId).toHash,
+    id: data.id !== undefined ? ID.new(data.id).str : "",
+    userId: ID.new(data.userId).str,
     invoiceId: toHashOrNull(data.invoiceId),
     amount: data.amount,
     currency: data.currency,
@@ -36,8 +36,8 @@ function mapPayment(data: PaymentData): GqlPayment {
 
 function mapInvoice(data: InvoiceData): GqlInvoice {
   return {
-    id: data.id !== undefined ? ID.new(data.id).toHash : "",
-    userId: ID.new(data.userId).toHash,
+    id: data.id !== undefined ? ID.new(data.id).str : "",
+    userId: ID.new(data.userId).str,
     invoiceNumber: data.invoiceNumber,
     customerId: toHashOrNull(data.customerId),
     items: data.items.map((item) => ({
@@ -94,11 +94,11 @@ const resolvers: Resolvers<YogaContext> = {
       { payment, userAuth },
     ) => {
       const data = await payment.processPayment({
-        userId: userAuth!.id.toNumb,
+        userId: userAuth!.id.decode,
         amount,
         currency,
         method,
-        invoiceId: invoiceId ? ID.new(invoiceId).toNumb : undefined,
+        invoiceId: invoiceId ? ID.new(invoiceId).decode : undefined,
         description: description ?? undefined,
       });
       return mapPayment(data);
@@ -113,8 +113,8 @@ const resolvers: Resolvers<YogaContext> = {
       { payment, userAuth },
     ) => {
       const data = await payment.createInvoice({
-        userId: userAuth!.id.toNumb,
-        customerId: customerId ? ID.new(customerId).toNumb : undefined,
+        userId: userAuth!.id.decode,
+        customerId: customerId ? ID.new(customerId).decode : undefined,
         items: items.map((item) => ({ ...item, unitPrice: String(item.unitPrice) })),
         currency,
         tax: tax ?? undefined,

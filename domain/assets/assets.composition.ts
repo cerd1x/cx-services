@@ -11,10 +11,11 @@ import { AssetByNameUseCase } from "./core/usecase/asset_by_name.usecase";
 import { AssetByIdUseCase } from "./core/usecase/asset_by_id.usecase";
 import { UpdateAssetUseCase } from "./core/usecase/update_asset.usecase";
 import { ApplyAssetMutationUseCase } from "./core/usecase/apply_asset_mutation.usecase";
-import { MutateAddAssetUseCase } from "./core/usecase/mutate_add_asset.usecase";
-import { MutateSubtractAssetUseCase } from "./core/usecase/mutate_subtract_asset.usecase";
-import { MutateTransactionAssetUseCase } from "./core/usecase/mutate_transaction_asset.usecase";
-import { MutateSwapAssetUseCase } from "./core/usecase/mutate_swap_asset.usecase";
+import {
+  MutateAssetUseCase,
+  type MutateAssetInput,
+  type MutateAssetResult,
+} from "./core/usecase/mutate_asset.usecase";
 import { DeleteAssetUseCase } from "./core/usecase/delete_asset.usecase";
 import { AssetMutationsUseCase } from "./core/usecase/asset_mutations.usecase";
 import { ServiceContainer } from "$services/shared/base";
@@ -25,6 +26,11 @@ import { AssetRepositoryImpl } from "./adapters/driven/drizzle/asset.repository"
 import { UnitOfWorkImpl } from "./adapters/driven/drizzle/uow.repository";
 import { AssetRepository } from "./core/ports/out/asset-repository.port";
 
+export type { MutateAssetInput, MutateAssetResult };
+
+/** Hasil TF dari `transferAsset`; sejajar `SwapBalanceResult` di domain transactions. */
+export type AssetTransferResult = { from: Asset; to: Asset };
+
 export class AssetService {
   static #instanceAssetService: AssetService;
   #createAsset: CreateAssetUseCase;
@@ -33,10 +39,7 @@ export class AssetService {
   #assetByName: AssetByNameUseCase;
   #assetById: AssetByIdUseCase;
   #updateAsset: UpdateAssetUseCase;
-  #mutateAddAsset: MutateAddAssetUseCase;
-  #mutateSubtractAsset: MutateSubtractAssetUseCase;
-  #mutateTransactionAsset: MutateTransactionAssetUseCase;
-  #mutateSwapAsset: MutateSwapAssetUseCase;
+  #mutateAsset: MutateAssetUseCase;
   #deleteAsset: DeleteAssetUseCase;
   #assetMutations: AssetMutationsUseCase;
 
@@ -49,10 +52,7 @@ export class AssetService {
     assetById: AssetByIdUseCase,
     updateAsset: UpdateAssetUseCase,
     applyMutation: ApplyAssetMutationUseCase,
-    mutateAddAsset: MutateAddAssetUseCase,
-    mutateSubtractAsset: MutateSubtractAssetUseCase,
-    mutateTransactionAsset: MutateTransactionAssetUseCase,
-    mutateSwapAsset: MutateSwapAssetUseCase,
+    mutateAsset: MutateAssetUseCase,
     deleteAsset: DeleteAssetUseCase,
     assetMutations: AssetMutationsUseCase,
   ): AssetService {
@@ -64,10 +64,7 @@ export class AssetService {
       assetById,
       updateAsset,
       applyMutation,
-      mutateAddAsset,
-      mutateSubtractAsset,
-      mutateTransactionAsset,
-      mutateSwapAsset,
+      mutateAsset,
       deleteAsset,
       assetMutations,
     );
@@ -90,10 +87,7 @@ export class AssetService {
     assetById: AssetByIdUseCase,
     updateAsset: UpdateAssetUseCase,
     applyMutation: ApplyAssetMutationUseCase,
-    mutateAddAsset: MutateAddAssetUseCase,
-    mutateSubtractAsset: MutateSubtractAssetUseCase,
-    mutateTransactionAsset: MutateTransactionAssetUseCase,
-    mutateSwapAsset: MutateSwapAssetUseCase,
+    mutateAsset: MutateAssetUseCase,
     deleteAsset: DeleteAssetUseCase,
     assetMutations: AssetMutationsUseCase,
   ) {
@@ -103,10 +97,7 @@ export class AssetService {
     this.#assetByName = assetByName;
     this.#assetById = assetById;
     this.#updateAsset = updateAsset;
-    this.#mutateAddAsset = mutateAddAsset;
-    this.#mutateSubtractAsset = mutateSubtractAsset;
-    this.#mutateTransactionAsset = mutateTransactionAsset;
-    this.#mutateSwapAsset = mutateSwapAsset;
+    this.#mutateAsset = mutateAsset;
     this.#deleteAsset = deleteAsset;
     this.#assetMutations = assetMutations;
   }
@@ -145,44 +136,37 @@ export class AssetService {
     return this.#updateAsset.execute({ userId, assetId, data: input });
   }
 
+  /**
+   * Mutasi asset terpadu (CR/DB/TF/EB/ADM). Satu pintu untuk credit, debit,
+   * transfer antar-asset, transaksi e-wallet/banking, dan biaya admin.
+   */
   @logMethod(logger)
-  async mutateAddAsset(userId: ID, assetId: ID, amount: Money): Promise<Asset> {
-    return this.#mutateAddAsset.execute({ userId, assetId, amount });
+  async mutateAsset(input: MutateAssetInput): Promise<MutateAssetResult> {
+    return this.#mutateAsset.execute(input);
   }
 
+  /**
+   * Convenience TF (transfer) yang memenuhi kontrak `AssetSwapGateway`
+   * di domain transactions.
+   */
   @logMethod(logger)
-  async mutateSubtractAsset(userId: ID, assetId: ID, amount: Money): Promise<Asset> {
-    return this.#mutateSubtractAsset.execute({ userId, assetId, amount });
-  }
-
-  @logMethod(logger)
-  async mutateTransactionAsset(
-    userId: ID,
-    assetId: ID,
-    amount: Money,
-    description?: string,
-  ): Promise<Asset> {
-    return this.#mutateTransactionAsset.execute({
-      userId,
-      assetId,
-      amount,
-      description,
-    });
-  }
-
-  @logMethod(logger)
-  async mutateSwapAsset(
+  async transferAsset(
     userId: ID,
     fromAssetId: ID,
     toAssetId: ID,
     amount: Money,
-  ): Promise<{ from: Asset; to: Asset }> {
-    return this.#mutateSwapAsset.execute({
+  ): Promise<AssetTransferResult> {
+    const result = await this.#mutateAsset.execute({
       userId,
+      code: "TF",
       fromAssetId,
       toAssetId,
       amount,
     });
+    if (result.code !== "TF") {
+      throw new Error("transferAsset expected a TF result");
+    }
+    return { from: result.from, to: result.to };
   }
 
   @logMethod(logger)
@@ -215,16 +199,14 @@ export function createAssetService({ assetRepo, uow, outboxRepo }: AssetAdapters
   const assetByName = new AssetByNameUseCase().setContext(container);
   const assetById = new AssetByIdUseCase().setContext(container);
   const updateAsset = new UpdateAssetUseCase().setContext(container);
-  const mutateAddAsset = new MutateAddAssetUseCase().setContext(container);
-  const mutateSubtractAsset = new MutateSubtractAssetUseCase().setContext(container);
-  const mutateTransactionAsset = new MutateTransactionAssetUseCase().setContext(container);
-  const mutateSwapAsset = new MutateSwapAssetUseCase().setContext(container);
+  const mutateAsset = new MutateAssetUseCase().setContext(container);
   const deleteAsset = new DeleteAssetUseCase().setContext(container);
   const assetMutations = new AssetMutationsUseCase().setContext(container);
 
   container.set(CreateAssetUseCase, createAsset);
   container.set(CreateDefaultAssetCashUseCase, createDefaultAssetCash);
   container.set(ApplyAssetMutationUseCase, applyMutation);
+  container.set(MutateAssetUseCase, mutateAsset);
 
   return AssetService.init(
     createAsset,
@@ -234,10 +216,7 @@ export function createAssetService({ assetRepo, uow, outboxRepo }: AssetAdapters
     assetById,
     updateAsset,
     applyMutation,
-    mutateAddAsset,
-    mutateSubtractAsset,
-    mutateTransactionAsset,
-    mutateSwapAsset,
+    mutateAsset,
     deleteAsset,
     assetMutations,
   );

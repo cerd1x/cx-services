@@ -19,6 +19,6 @@ export class DeleteTransactionUseCase extends CoreUsecase<void, DeleteTransactio
 
     if (!idTx) throw Error("Not Found");
 
-    await txRepo.delete(idTx.toNumb, userId);
+    await txRepo.delete(idTx.decode, userId);
   }
 }

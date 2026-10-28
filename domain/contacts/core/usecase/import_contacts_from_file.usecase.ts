@@ -30,7 +30,7 @@ export class ImportContactsFromFileUseCase extends CoreUsecase<
     const ext = file.name.split(".").pop()?.toLowerCase();
     const contacts = ext === "vcf" ? parseVCF(text) : parseCSV(text);
 
-    const existingContacts = await contactRepo.findAll(userId.toNumb);
+    const existingContacts = await contactRepo.findAll(userId.decode);
     const existingMap = new Map(existingContacts.map((c) => [c.name.toLowerCase().trim(), c]));
 
     let imported = 0;
@@ -65,7 +65,7 @@ export class ImportContactsFromFileUseCase extends CoreUsecase<
           }
           if (updated) {
             existing.validateAll();
-            await contactRepo.update(userId.toNumb, existing);
+            await contactRepo.update(userId.decode, existing);
             merged++;
           }
         } else {

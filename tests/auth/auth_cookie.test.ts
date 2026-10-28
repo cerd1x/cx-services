@@ -53,9 +53,9 @@ describe("signUp with mocked UserRepository + AuthRepository", () => {
   };
 
   const mockAssetService = () => ({
-    createAsset: mock().mockResolvedValue({ IdStr: ID.new(1).toHash } as Asset),
+    createAsset: mock().mockResolvedValue({ IdStr: ID.new(1).str } as Asset),
     deleteAsset: mock().mockResolvedValue(undefined),
-    createDefaultAssetCash: mock().mockResolvedValue({ IdStr: ID.new(1).toHash } as Asset),
+    createDefaultAssetCash: mock().mockResolvedValue({ IdStr: ID.new(1).str } as Asset),
   });
 
   const assetSpy = spyOn(AssetService, "getInstance");

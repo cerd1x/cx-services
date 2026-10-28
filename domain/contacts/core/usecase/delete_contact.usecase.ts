@@ -17,6 +17,6 @@ export class DeleteContactUseCase extends CoreUsecase<void, DeleteContactInput> 
     const { userId, contactId } = input;
 
     await this.deps.get(ContactByIdUseCase).execute({ userId, contactId });
-    await contactRepo.delete(userId.toNumb, contactId.toNumb);
+    await contactRepo.delete(userId.decode, contactId.decode);
   }
 }

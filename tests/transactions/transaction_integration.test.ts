@@ -46,7 +46,7 @@ describe("Transaction integration", () => {
       createdAt: overrides?.createdAt,
       customerId: 1,
     });
-    return tx.id!.toNumb;
+    return tx.id!.decode;
   }
 
   let userSeq = 0;

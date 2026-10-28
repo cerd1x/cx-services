@@ -10,9 +10,9 @@ export class CancelInvoiceUseCase extends CoreUsecase<InvoiceData, { id: ID; use
   async execute(input: { id: ID; userId: ID }): Promise<InvoiceData> {
     const invoiceRepo = this.deps.get(InvoiceRepository);
 
-    const existing = await invoiceRepo.findById(input.id.toNumb, input.userId);
+    const existing = await invoiceRepo.findById(input.id.decode, input.userId);
     if (!existing) {
-      throw new Error(`Invoice with id ${input.id.toNumb} not found`);
+      throw new Error(`Invoice with id ${input.id.decode} not found`);
     }
 
     const invoice = Invoice.new({
@@ -28,6 +28,6 @@ export class CancelInvoiceUseCase extends CoreUsecase<InvoiceData, { id: ID; use
 
     invoice.markAsCancelled();
 
-    return invoiceRepo.update(input.id.toNumb, { status: invoice.status }, input.userId);
+    return invoiceRepo.update(input.id.decode, { status: invoice.status }, input.userId);
   }
 }

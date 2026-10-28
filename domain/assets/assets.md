@@ -228,10 +228,8 @@ Operasi aritmetika pakai API `Money` (immutable — `add`/`subtract` mengembalik
   - `assetByName(name, userId)` — Ambil asset by nama
   - `assetById(userId, assetId)` — Ambil asset by ID
   - `updateAsset(userId, assetId, input)` — Update asset
-  - `mutateAddAsset(userId, assetId, amount)` — Tambah saldo asset
-  - `mutateSubtractAsset(userId, assetId, amount)` — Kurangi saldo asset
-  - `mutateTransactionAsset(userId, assetId, amount, description?)` — Mutasi saldo (tanpa add/subtract)
-  - `swapBalance(userId, fromAssetId, toAssetId, amount)` — Pindah saldo antar asset
+  - `mutateAsset(input)` — Mutasi terpadu ala perbankan (CR/DB/TF/EB/ADM), satu usecase untuk semua arus dana
+  - `transferAsset(userId, fromAssetId, toAssetId, amount)` — Pindah saldo antar asset (code `TF`)
   - `deleteAsset(name, userId)` — Hapus asset
   - `assetMutations(userId, assetId)` — Ambil riwayat mutasi
 

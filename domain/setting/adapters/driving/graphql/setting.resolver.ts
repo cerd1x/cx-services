@@ -7,7 +7,7 @@ const resolvers: Resolvers<YogaContext> = {
   Query: {
     setting: async (_parent, _args, { setting, userAuth }) => {
       if (!userAuth) throw new AuthenticationError("Not authenticated");
-      const result = await setting.settingByUserId(userAuth.id.toNumb);
+      const result = await setting.settingByUserId(userAuth.id.decode);
 
       return {
         id: String(result.id),
@@ -37,7 +37,7 @@ const resolvers: Resolvers<YogaContext> = {
         input.defaultAssetCashId = Number(args.input.defaultAssetCashId);
       }
 
-      const result = await setting.updateSetting(userAuth.id.toNumb, input);
+      const result = await setting.updateSetting(userAuth.id.decode, input);
 
       return {
         id: String(result.id),

@@ -75,7 +75,7 @@ export class OrderRepositoryImpl implements OrderRepository {
         description: order.description ?? null,
         customerId: order.customerId ?? null,
       })
-      .where(and(eq(orderTable.id, order.id!.toNumb), eq(orderTable.userId, userId)))
+      .where(and(eq(orderTable.id, order.id!.decode), eq(orderTable.userId, userId)))
       .returning();
 
     return this.#toOrder(result[0]);

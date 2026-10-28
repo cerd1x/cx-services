@@ -35,7 +35,7 @@ export class ValidateCSRFTokenUseCase extends CoreUsecase<void, ValidateCSRFToke
       throw new NotFound("CSRF token invalid or expired");
     }
 
-    if (stored.userId !== userId.toHash) {
+    if (stored.userId !== userId.str) {
       throw new NotFound("CSRF token does not belong to this user");
     }
 
@@ -53,7 +53,7 @@ export class ValidateCSRFTokenUseCase extends CoreUsecase<void, ValidateCSRFToke
   async requestFormCSRFToken(userId: ID): Promise<string> {
     const { token, randHex } = await CsrfToken.generate();
 
-    ValidateCSRFTokenUseCase.#csrfCache.set(token, { userId: userId.toHash, randHex });
+    ValidateCSRFTokenUseCase.#csrfCache.set(token, { userId: userId.str, randHex });
 
     return token;
   }

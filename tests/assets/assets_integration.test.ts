@@ -88,7 +88,7 @@ describe("assets integrations", () => {
       "password123",
       "alice@test.com",
     );
-    expect(user1.id?.toNumb).toBe(1);
+    expect(user1.id?.decode).toBe(1);
     expect(user1.username).toBe("alice");
 
     // ---- 2. Create user 2 ----
@@ -99,7 +99,7 @@ describe("assets integrations", () => {
     });
 
     user2 = await UserService.getInstance().createUser("Bob", "bob", "password456", "bob@test.com");
-    expect(user2.id?.toNumb).toBe(2);
+    expect(user2.id?.decode).toBe(2);
     expect(user2.username).toBe("bob");
 
     // Verify both users were saved
@@ -121,7 +121,7 @@ describe("assets integrations", () => {
       balance: Money.fromNumber(1000000, iso.IDR),
     });
     expect(asset1.name).toBe("Alice's Bank");
-    expect(asset1.userId.toNumb).toBe(user1Id.toNumb);
+    expect(asset1.userId.decode).toBe(user1Id.decode);
 
     // ---- 4. User 2 creates an asset (ewallet) ----
     const user2Id = user2.id!;
@@ -139,7 +139,7 @@ describe("assets integrations", () => {
       balance: Money.fromNumber(500000, iso.IDR),
     });
     expect(asset2.name).toBe("Bob's GoPay");
-    expect(asset2.userId.toNumb).toBe(user2Id.toNumb);
+    expect(asset2.userId.decode).toBe(user2Id.decode);
 
     // ---- 5. User 1 subtracts balance from their asset ----
     assetRepo.findById.mockResolvedValueOnce({
@@ -152,11 +152,12 @@ describe("assets integrations", () => {
     assetRepo.update.mockResolvedValueOnce({} as any);
     assetRepo.createAssetMutation.mockResolvedValueOnce({} as any);
 
-    await AssetService.getInstance().mutateSubtractAsset(
-      user1Id,
-      ID.new(1),
-      Money.fromNumber(200000, iso.IDR),
-    );
+    await AssetService.getInstance().mutateAsset({
+      userId: user1Id,
+      code: "DB",
+      assetId: ID.new(1),
+      amount: Money.fromNumber(200000, iso.IDR),
+    });
 
     expect(uow.run).toHaveBeenCalled();
     expect(assetRepo.findById).toHaveBeenCalledWith(user1Id, ID.new(1));
@@ -164,7 +165,7 @@ describe("assets integrations", () => {
       ID.new(1),
       expect.objectContaining({
         userId: user1Id,
-        type: "subtract",
+        type: "DB",
         amount: expect.any(AnyMoney),
         balanceBefore: expect.any(AnyMoney),
         balanceAfter: expect.any(AnyMoney),

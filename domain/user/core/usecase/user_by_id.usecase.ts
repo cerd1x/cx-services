@@ -10,9 +10,9 @@ export class UserByIdUseCase extends CoreUsecase<UserType, ID> {
   @logMethod(logger)
   async execute(id: ID): Promise<UserType> {
     const userRepo = this.deps.get(UserRepository);
-    const user = await userRepo.findById(id.toNumb);
+    const user = await userRepo.findById(id.decode);
     if (!user) {
-      throw new NotFound(`User with id ${id.toNumb}`);
+      throw new NotFound(`User with id ${id.decode}`);
     }
     return user;
   }

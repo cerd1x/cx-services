@@ -32,6 +32,6 @@ export class UpdateUserRoleUseCase extends CoreUsecase<UserType, UpdateUserRoleI
 
     const role: UserRole = parsed.data;
 
-    return userRepo.updateRole(input.id.toNumb, role);
+    return userRepo.updateRole(input.id.decode, role);
   }
 }

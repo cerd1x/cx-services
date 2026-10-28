@@ -167,7 +167,7 @@ export function toTransactionPage(window: PageWindow, direction: PageDirection):
 
   return {
     items,
-    cursors: items.map((tx) => Cursor.encode(tx.createdAt ?? new Date(0), tx.id?.toNumb ?? 0)),
+    cursors: items.map((tx) => Cursor.encode(tx.createdAt ?? new Date(0), tx.id?.decode ?? 0)),
     hasNextPage: direction === "forward" ? window.hasMore : window.hasLess,
     hasPreviousPage: direction === "forward" ? window.hasLess : window.hasMore,
   };

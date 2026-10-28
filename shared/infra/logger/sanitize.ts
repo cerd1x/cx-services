@@ -48,7 +48,7 @@ export function sanitizeLogValue(
   if (depth > 4) return "[MaxDepth]";
   if (seen.has(value as object)) return "[Circular]";
 
-  if (ID.is(value)) return `ID #${value.toNumb}`;
+  if (ID.is(value)) return `ID #${value.decode}`;
   if (value instanceof Date) return value.toISOString();
   if (value instanceof Error) {
     if (debug) return value;

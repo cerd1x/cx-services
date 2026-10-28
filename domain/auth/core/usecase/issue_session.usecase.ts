@@ -17,7 +17,7 @@ export class IssueSessionUseCase extends CoreUsecase<
   }> {
     const authRepo = this.deps.get(AuthRepository);
 
-    const existing = await authRepo.findTokensByUserId(user.id!.toNumb);
+    const existing = await authRepo.findTokensByUserId(user.id!.decode);
 
     if (existing) {
       const refreshStillValid =
@@ -27,10 +27,10 @@ export class IssueSessionUseCase extends CoreUsecase<
         const sessionExpired = Date.now() >= existing.expiredAtSession.getTime();
 
         if (sessionExpired) {
-          const t = Token.create({ userId: user.id!.toNumb });
+          const t = Token.create({ userId: user.id!.decode });
           const newSession = await t.setType("session").generate();
 
-          await authRepo.updateToken(user.id!.toNumb, {
+          await authRepo.updateToken(user.id!.decode, {
             session: newSession,
             expiredAtSession: new Date(Date.now() + Token.defaultExpireAt),
           });
@@ -50,7 +50,7 @@ export class IssueSessionUseCase extends CoreUsecase<
       }
     }
 
-    let token = Token.create({ userId: user.id!.toNumb });
+    let token = Token.create({ userId: user.id!.decode });
 
     const newSession = await token.setType("session").generate();
     const newRefresh = await token
@@ -62,14 +62,14 @@ export class IssueSessionUseCase extends CoreUsecase<
     const refreshExpiry = new Date(Date.now() + Token.defaultExpireAt * 7);
 
     if (existing) {
-      await authRepo.updateToken(user.id!.toNumb, {
+      await authRepo.updateToken(user.id!.decode, {
         session: newSession,
         refresh: newRefresh,
         expiredAtSession: sessionExpiry,
         expiredAtRefresh: refreshExpiry,
       });
     } else {
-      await authRepo.saveToken(user.id!.toNumb, {
+      await authRepo.saveToken(user.id!.decode, {
         sessionToken: newSession,
         refreshToken: newRefresh,
         expiredAtSession: sessionExpiry,

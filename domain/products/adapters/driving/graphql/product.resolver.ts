@@ -6,9 +6,9 @@ import type { Resolvers } from "$services/shared/infra/graphql/types";
 const resolvers: Resolvers<YogaContext> = {
   Query: {
     product: async (_parent, args, { product, userAuth }) => {
-      const result = await product.product(ID.new(args.id), userAuth!.id.toNumb);
+      const result = await product.product(ID.new(args.id), userAuth!.id.decode);
       return {
-        id: result.id?.toHash ?? "",
+        id: result.id?.str ?? "",
         name: result.name,
         description: result.description,
         price: result.price,
@@ -22,9 +22,9 @@ const resolvers: Resolvers<YogaContext> = {
       };
     },
     products: async (_parent, _args, { product, userAuth }) => {
-      const products = await product.products(userAuth!.id.toNumb);
+      const products = await product.products(userAuth!.id.decode);
       return products.map((p) => ({
-        id: p.id?.toHash ?? "",
+        id: p.id?.str ?? "",
         name: p.name,
         description: p.description,
         price: p.price,
@@ -40,9 +40,9 @@ const resolvers: Resolvers<YogaContext> = {
   },
   Mutation: {
     createProduct: async (_parent, args, { product, userAuth, setting }) => {
-      const userSetting = await setting.settingByUserId(userAuth!.id.toNumb);
+      const userSetting = await setting.settingByUserId(userAuth!.id.decode);
       const result = await product.createProduct(
-        userAuth!.id.toNumb,
+        userAuth!.id.decode,
         args.input.name,
         args.input.price,
         userSetting.currency,
@@ -52,7 +52,7 @@ const resolvers: Resolvers<YogaContext> = {
         args.input.trackStock ?? undefined,
       );
       return {
-        id: result.id?.toHash ?? "",
+        id: result.id?.str ?? "",
         name: result.name,
         description: result.description,
         price: result.price,
@@ -77,10 +77,10 @@ const resolvers: Resolvers<YogaContext> = {
           stock: args.input.stock ?? undefined,
           trackStock: args.input.trackStock ?? undefined,
         },
-        userAuth!.id.toNumb,
+        userAuth!.id.decode,
       );
       return {
-        id: result.id?.toHash ?? "",
+        id: result.id?.str ?? "",
         name: result.name,
         description: result.description,
         price: result.price,
@@ -94,14 +94,14 @@ const resolvers: Resolvers<YogaContext> = {
       };
     },
     deleteProduct: async (_parent, args, { product, userAuth }) => {
-      await product.deleteProduct(ID.new(args.id), userAuth!.id.toNumb);
+      await product.deleteProduct(ID.new(args.id), userAuth!.id.decode);
       return true;
     },
     importProductFromCSV: async (_parent, args, { product, userAuth }) => {
       if (!userAuth) throw new Error("Not authenticated");
       const buffer = Buffer.from(args.content, "base64");
       const file = new File([buffer], args.filename, { type: "text/csv" });
-      const result = await product.importFromFile(userAuth.id.toNumb, file);
+      const result = await product.importFromFile(userAuth.id.decode, file);
       return {
         imported: result.imported,
         failed: result.failed,

@@ -337,7 +337,7 @@ string uang di domain — string `"KODE NOMINAL"` hanya hidup di boundary:
 | GraphQL (wire)                                                     | string `"KODE NOMINAL"`, mis. `"IDR 1500000"` — via scalar `Money` di [`shared/infra/graphql/scalars/money.ts`](shared/infra/graphql/scalars/money.ts) |
 | Domain (model, usecase, port)                                      | instance `Money`                                                                                                                                       |
 | Database, tabel dengan kolom `currency`                            | integer **minor unit** (satuan terkecil, mis. `IDR 1500000` → `150000000`)                                                                             |
-| Database, tabel tanpa kolom `currency` (mis. `transaction.amount`) | TEXT berisi string instance `Money`: `"IDR 1500000"` (ISO code + decimal)                                                                                                   |
+| Database, tabel tanpa kolom `currency` (mis. `transaction.amount`) | TEXT berisi string instance `Money`: `"IDR 1500000"` (ISO code + decimal)                                                                              |
 
 Konversi DB terpusat di [`shared/infra/db/money.ts`](shared/infra/db/money.ts):
 `toMinorUnits(money)`, `fromMinorUnits(value, code)`, `serializeMoney(money)`,

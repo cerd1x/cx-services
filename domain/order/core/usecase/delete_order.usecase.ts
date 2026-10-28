@@ -17,6 +17,6 @@ export class DeleteOrderUseCase extends CoreUsecase<void, DeleteOrderInput> {
     const { id, userId } = input;
 
     await this.deps.get(OrderByIdUseCase).execute({ id, userId });
-    await orderRepo.delete(id.toNumb, userId.toNumb);
+    await orderRepo.delete(id.decode, userId.decode);
   }
 }

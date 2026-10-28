@@ -123,7 +123,7 @@ describe("OrderService", () => {
         description: "Test sale",
       });
 
-      expect(result.id?.toNumb).toBe(100);
+      expect(result.id?.decode).toBe(100);
       expect(result.totalAmount.toNumber()).toBe(100000);
       expect(result.itemCount).toBe(2);
       expect(result.status).toBe("success");
@@ -280,7 +280,7 @@ describe("OrderService", () => {
         itemCount: 2,
       });
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect(result.totalAmount.toNumber()).toBe(100000);
       expect(result.currency).toBe("IDR");
       expect(result.itemCount).toBe(2);
@@ -351,7 +351,7 @@ describe("OrderService", () => {
 
       const result = await OrderService.getInstance().order(ID.new(1), userId);
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect(result.totalAmount.toNumber()).toBe(100000);
     });
 

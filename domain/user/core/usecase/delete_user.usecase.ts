@@ -8,7 +8,7 @@ export class DeleteUserUseCase extends CoreUsecase<boolean, ID> {
   @logMethod(logger)
   async execute(userId: ID): Promise<boolean> {
     const userRepo = this.deps.get(UserRepository);
-    await userRepo.delete(userId.toNumb);
+    await userRepo.delete(userId.decode);
     return true;
   }
 }

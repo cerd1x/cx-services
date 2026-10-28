@@ -8,13 +8,13 @@ describe("AssetMutation", () => {
     const m = AssetMutation.new({
       userId: ID.new(1),
       assetId: 1,
-      type: "add",
+      type: "CR",
       amount: Money.fromNumber(100, iso.USD),
       balanceBefore: Money.fromNumber(200, iso.USD),
       balanceAfter: Money.fromNumber(300, iso.USD),
     });
 
-    expect(m.type).toBe("add");
+    expect(m.type).toBe("CR");
     expect(m.amount).toBeInstanceOf(Money);
     expect(m.amount.toNumber()).toBe(100);
     expect(m.currency).toBe("USD");
@@ -27,7 +27,7 @@ describe("AssetMutation", () => {
     const m = AssetMutation.new({
       userId: ID.new(1),
       assetId: 1,
-      type: "subtract",
+      type: "DB",
       amount: Money.fromNumber(50, iso.IDR),
       balanceBefore: Money.fromNumber(500, iso.IDR),
       balanceAfter: Money.fromNumber(450, iso.IDR),
@@ -41,20 +41,20 @@ describe("AssetMutation", () => {
     const m = AssetMutation.new({
       userId: ID.new(1),
       assetId: 1,
-      type: "transaction",
+      type: "EB",
       amount: Money.fromNumber(30, iso.USD),
       balanceBefore: Money.fromNumber(100, iso.USD),
       balanceAfter: Money.fromNumber(70, iso.USD),
     });
 
-    expect(m.type).toBe("transaction");
+    expect(m.type).toBe("EB");
   });
 
   it("requiredId throws when id is missing", () => {
     const m = AssetMutation.new({
       userId: ID.new(1),
       assetId: 1,
-      type: "add",
+      type: "CR",
       amount: Money.fromNumber(100, iso.USD),
       balanceBefore: Money.fromNumber(200, iso.USD),
       balanceAfter: Money.fromNumber(300, iso.USD),
@@ -67,7 +67,7 @@ describe("AssetMutation", () => {
     const m = AssetMutation.new({
       userId: ID.new(1),
       assetId: 1,
-      type: "add",
+      type: "CR",
       amount: Money.fromNumber(100, iso.USD),
       balanceBefore: Money.fromNumber(200, iso.USD),
       balanceAfter: Money.fromNumber(300, iso.USD),
@@ -80,14 +80,14 @@ describe("AssetMutation", () => {
     const m = AssetMutation.new({
       userId: ID.new(1),
       assetId: 1,
-      type: "subtract",
+      type: "DB",
       amount: Money.fromNumber(50, iso.IDR),
       balanceBefore: Money.fromNumber(500, iso.IDR),
       balanceAfter: Money.fromNumber(450, iso.IDR),
     });
 
     const meta = m.metadata;
-    expect(meta.type).toBe("subtract");
+    expect(meta.type).toBe("DB");
     expect(meta.amount.toNumber()).toBe(50);
     expect(meta.currency).toBe("IDR");
     expect(meta.balanceBefore.toNumber()).toBe(500);

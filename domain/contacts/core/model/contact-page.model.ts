@@ -154,7 +154,7 @@ export function toContactPage(window: PageWindow, direction: PageDirection): Con
 
   return {
     items,
-    cursors: items.map((contact) => Cursor.encode(contact.id?.toNumb ?? 0)),
+    cursors: items.map((contact) => Cursor.encode(contact.id?.decode ?? 0)),
     hasNextPage: direction === "forward" ? window.hasMore : window.hasLess,
     hasPreviousPage: direction === "forward" ? window.hasLess : window.hasMore,
   };

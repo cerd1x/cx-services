@@ -3,6 +3,7 @@ import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
 import type { Money } from "@lib/money";
 import type { AssetInput } from "../../../core/model/asset.model";
 import { ID } from "$services/shared/kernel";
+import { expectSingleAsset } from "$services/domain/assets";
 import typeDefs from "./asset.gql?raw";
 
 const resolvers: Resolvers<YogaContext> = {
@@ -84,25 +85,33 @@ const resolvers: Resolvers<YogaContext> = {
       };
     },
     addBalance: async (_parent, args, { asset, userAuth }) => {
-      const result = await asset.mutateAddAsset(userAuth!.id, ID.new(args.assetId), args.amount);
+      const result = await asset.mutateAsset({
+        userId: userAuth!.id,
+        code: "CR",
+        assetId: ID.new(args.assetId),
+        amount: args.amount,
+      });
+      const updated = expectSingleAsset(result);
       return {
-        id: result.IdStr,
-        balance: result.balance,
-        name: result.name,
-        type: result.type as AssetType,
+        id: updated.IdStr,
+        balance: updated.balance,
+        name: updated.name,
+        type: updated.type as AssetType,
       };
     },
     subtractBalance: async (_parent, args, { asset, userAuth }) => {
-      const result = await asset.mutateSubtractAsset(
-        userAuth!.id,
-        ID.new(args.assetId),
-        args.amount,
-      );
+      const result = await asset.mutateAsset({
+        userId: userAuth!.id,
+        code: "DB",
+        assetId: ID.new(args.assetId),
+        amount: args.amount,
+      });
+      const updated = expectSingleAsset(result);
       return {
-        id: result.IdStr,
-        balance: result.balance,
-        name: result.name,
-        type: result.type as AssetType,
+        id: updated.IdStr,
+        balance: updated.balance,
+        name: updated.name,
+        type: updated.type as AssetType,
       };
     },
     deleteAsset: async (_parent, args, { asset, userAuth }) => {

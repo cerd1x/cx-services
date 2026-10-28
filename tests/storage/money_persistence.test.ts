@@ -71,7 +71,7 @@ describe("money di database", () => {
   });
 
   describe("helper string Money", () => {
-    it("menyimpan instance Money sebagai string \"KODE NOMINAL\"", () => {
+    it('menyimpan instance Money sebagai string "KODE NOMINAL"', () => {
       expect(serializeMoney(Money.fromNumber(100.5, iso.USD))).toBe("USD 100.5");
       expect(serializeMoney(Money.fromNumber(1500000, iso.IDR))).toBe("IDR 1500000");
     });
@@ -117,13 +117,13 @@ describe("money di database", () => {
       const row = await db
         .select()
         .from(assetTable)
-        .where(eq(assetTable.id, ID.new(saved!.IdStr).toNumb))
+        .where(eq(assetTable.id, ID.new(saved!.IdStr).decode))
         .limit(1);
 
       expect(row[0].balance).toBe(150000000);
       expect(row[0].currency).toBe("IDR");
 
-      const found = await repo.findById(ID.new(userId), ID.new(ID.new(saved!.IdStr).toNumb));
+      const found = await repo.findById(ID.new(userId), ID.new(ID.new(saved!.IdStr).decode));
       expect(found?.balance.toNumber()).toBe(1500000);
     });
 
@@ -137,10 +137,10 @@ describe("money di database", () => {
         balance: Money.fromNumber(100, iso.USD),
       });
 
-      const mutation = await repo.createAssetMutation(ID.new(ID.new(saved!.IdStr).toNumb), {
+      const mutation = await repo.createAssetMutation(ID.new(ID.new(saved!.IdStr).decode), {
         userId: ID.new(userId),
-        assetId: ID.new(saved!.IdStr).toNumb,
-        type: "add",
+        assetId: ID.new(saved!.IdStr).decode,
+        type: "CR",
         amount: Money.fromNumber(25.5, iso.USD),
         balanceBefore: Money.fromNumber(100, iso.USD),
         balanceAfter: Money.fromNumber(125.5, iso.USD),
@@ -158,7 +158,7 @@ describe("money di database", () => {
       });
 
       const mutations = await repo.findMutationsByAssetId(
-        ID.new(ID.new(saved!.IdStr).toNumb),
+        ID.new(ID.new(saved!.IdStr).decode),
         ID.new(userId),
       );
       expect(mutations).toHaveLength(1);
@@ -187,13 +187,13 @@ describe("money di database", () => {
       const row = await db
         .select()
         .from(transactionTable)
-        .where(eq(transactionTable.id, saved.id!.toNumb))
+        .where(eq(transactionTable.id, saved.id!.decode))
         .limit(1);
 
       expect(row[0].amount).toBe("IDR 1500000");
       expect(row[0].capital).toBe("IDR 500000");
 
-      const found = await repo.findById(saved.id!.toNumb, ID.new(userId));
+      const found = await repo.findById(saved.id!.decode, ID.new(userId));
       expect(found?.amount.toNumber()).toBe(1500000);
       expect(found?.capital.toNumber()).toBe(500000);
       expect(found?.amount.currency.code).toBe("IDR");

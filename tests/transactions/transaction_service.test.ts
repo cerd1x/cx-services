@@ -47,7 +47,7 @@ describe("TransactionService", () => {
         category: "Work",
       });
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect(result.type).toBe("income");
       expect(result.amount?.toNumber() ?? result.amount).toBe(500000);
       expect(txRepo.save).toHaveBeenCalledWith(
@@ -109,7 +109,7 @@ describe("TransactionService", () => {
 
       const result = await TransactionService.getInstance().transaction(ID.new(1), userId);
 
-      expect(result.id?.toNumb).toBe(1);
+      expect(result.id?.decode).toBe(1);
       expect((result.amount as any)?.toNumber() ?? result.amount).toBe(500000);
     });
 

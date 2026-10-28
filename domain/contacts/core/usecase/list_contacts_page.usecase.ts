@@ -18,7 +18,7 @@ export class ListContactsPageUseCase extends CoreUsecase<ContactPage, ListContac
     const { userId, ...request } = input;
     const query = resolvePageQuery(request);
     const contactRepo = this.deps.get(ContactRepository);
-    const window = await contactRepo.findPage(userId.toNumb, query);
+    const window = await contactRepo.findPage(userId.decode, query);
     return toContactPage(window, query.direction);
   }
 }

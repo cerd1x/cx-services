@@ -51,7 +51,7 @@ export class ContactRepositoryImpl implements ContactRepository {
     const result = await getDB()
       .insert(contactTable)
       .values({
-        userId: contact.userId?.toNumb ?? null,
+        userId: contact.userId?.decode ?? null,
         name: contact.name,
         email: contact.email ?? null,
         phone: serializePhones(contact.phones),
@@ -116,7 +116,7 @@ export class ContactRepositoryImpl implements ContactRepository {
       return { items, hasMore: false, hasLess: false };
     }
 
-    const ids = items.map((c) => c.id!.toNumb);
+    const ids = items.map((c) => c.id!.decode);
     const lowest = Math.min(...ids);
     const highest = Math.max(...ids);
 
@@ -163,14 +163,14 @@ export class ContactRepositoryImpl implements ContactRepository {
     const result = await getDB()
       .update(contactTable)
       .set({
-        userId: contact.userId?.toNumb ?? null,
+        userId: contact.userId?.decode ?? null,
         name: contact.name,
         email: contact.email ?? null,
         phone: serializePhones(contact.phones),
         group: contact.group ?? null,
         avatar: contact.avatar ?? null,
       })
-      .where(and(eq(contactTable.userId, userId), eq(contactTable.id, contact.id!.toNumb)))
+      .where(and(eq(contactTable.userId, userId), eq(contactTable.id, contact.id!.decode)))
       .returning();
 
     return toContact(result[0]);

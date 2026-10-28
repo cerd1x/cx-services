@@ -9,6 +9,6 @@ export class ListOrdersUseCase extends CoreUsecase<OrderType[], ID> {
   @logMethod(logger)
   async execute(userId: ID): Promise<OrderType[]> {
     const orderRepo = this.deps.get(OrderRepository);
-    return orderRepo.findAll(userId.toNumb);
+    return orderRepo.findAll(userId.decode);
   }
 }

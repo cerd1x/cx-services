@@ -81,8 +81,8 @@ describe("asset e2e (GraphQL over HTTP)", () => {
     );
     expect(mutations.errors).toBeUndefined();
     expect(mutations.data!.assetMutations.length).toBeGreaterThanOrEqual(2);
-    expect(mutations.data!.assetMutations.some((m) => m.type === "add")).toBe(true);
-    expect(mutations.data!.assetMutations.some((m) => m.type === "subtract")).toBe(true);
+    expect(mutations.data!.assetMutations.some((m) => m.type === "CR")).toBe(true);
+    expect(mutations.data!.assetMutations.some((m) => m.type === "DB")).toBe(true);
 
     const del = await gql<{ deleteAsset: boolean }>(
       `mutation($name: String!) { deleteAsset(name: $name) }`,

@@ -8,6 +8,6 @@ export class IsUserIdTakenUseCase extends CoreUsecase<boolean, ID> {
   @logMethod(logger)
   async execute(userId: ID): Promise<boolean> {
     const userRepo = this.deps.get(UserRepository);
-    return userRepo.isWithUserId(userId.toNumb);
+    return userRepo.isWithUserId(userId.decode);
   }
 }

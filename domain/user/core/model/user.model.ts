@@ -80,7 +80,7 @@ export class User {
 
   get idHash(): string {
     if (isMybe(this.id)) throw new Error("required id for get idHash");
-    return this.id?.toHash as string;
+    return this.id?.str as string;
   }
 
   requiredId(): User {

@@ -59,11 +59,14 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
       savedTxId = createdTx.id ?? null;
 
       if (data.payWithAssetId) {
-        await AssetService.getInstance().mutateSubtractAsset(
-          ID.new(data.userId),
-          ID.new(data.payWithAssetId),
+        await AssetService.getInstance().mutateAsset({
+          userId: ID.new(data.userId),
+          code: "DB",
+          assetId: ID.new(data.payWithAssetId),
           amount,
-        );
+          description: data.description,
+          category: "Expense",
+        });
         assetMutated = true;
       }
 
@@ -95,11 +98,13 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
 
       if (assetMutated && data.payWithAssetId) {
         try {
-          await AssetService.getInstance().mutateAddAsset(
-            ID.new(data.userId),
-            ID.new(data.payWithAssetId),
+          await AssetService.getInstance().mutateAsset({
+            userId: ID.new(data.userId),
+            code: "CR",
+            assetId: ID.new(data.payWithAssetId),
             amount,
-          );
+            description: "Rollback expense",
+          });
         } catch {
           /* ignore rollback error */
         }

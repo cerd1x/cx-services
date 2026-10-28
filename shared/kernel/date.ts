@@ -66,10 +66,7 @@ export const formatEpochToHuman = formatEpochHuman;
 export const toHumanReadable = formatEpochHuman;
 
 /** Alias generik `formatEpoch(epoch, options?)` → ISO string standar. */
-export function formatEpoch(
-  epoch: number | Date,
-  _options?: unknown,
-): string {
+export function formatEpoch(epoch: number | Date, _options?: unknown): string {
   return epochToISOString(epoch);
 }
 
@@ -110,10 +107,7 @@ export function parseISOString(iso: string): Date {
 }
 
 /** Parse string tanggal-waktu → epoch (detik secara default). */
-export function parseToEpoch(
-  raw: string,
-  unit: "s" | "ms" = "s",
-): number {
+export function parseToEpoch(raw: string, unit: "s" | "ms" = "s"): number {
   const ms = parseUtcTimestamp(raw).getTime();
   return unit === "ms" ? ms : Math.trunc(ms / 1000);
 }

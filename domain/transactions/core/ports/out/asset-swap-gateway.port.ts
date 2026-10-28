@@ -17,7 +17,7 @@ export type SwapBalanceResult = {
 };
 
 export type AssetSwapGateway = {
-  mutateSwapAsset(
+  transferAsset(
     userId: ID,
     fromAssetId: ID,
     toAssetId: ID,

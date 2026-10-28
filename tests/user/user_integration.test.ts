@@ -92,16 +92,16 @@ describe("User queries through services", () => {
     expect(typeof result.refreshToken).toBe("string");
 
     const userId = result.user.id!;
-    const setting = await SettingService.getInstance().settingByUserId(userId.toNumb);
+    const setting = await SettingService.getInstance().settingByUserId(userId.decode);
     const cashAsset = await AssetService.getInstance().assetByName("MyCash", userId);
 
-    expect(setting.defaultAssetCashId).toBe(ID.new(cashAsset.IdStr).toNumb);
+    expect(setting.defaultAssetCashId).toBe(ID.new(cashAsset.IdStr).decode);
 
     const stored = sqlite
       .prepare(
         "SELECT typeof(created_at) AS createdAtType, typeof(updated_at) AS updatedAtType FROM setting WHERE user_id = ?",
       )
-      .get(userId.toNumb) as { createdAtType: string; updatedAtType: string };
+      .get(userId.decode) as { createdAtType: string; updatedAtType: string };
 
     expect(stored.createdAtType).toBe("integer");
     expect(stored.updatedAtType).toBe("integer");

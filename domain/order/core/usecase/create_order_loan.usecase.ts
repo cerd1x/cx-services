@@ -61,11 +61,14 @@ export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLo
       savedTxId = createdTx.id ?? null;
 
       if (data.payWithAssetId) {
-        await AssetService.getInstance().mutateSubtractAsset(
-          ID.new(data.userId),
-          ID.new(data.payWithAssetId),
+        await AssetService.getInstance().mutateAsset({
+          userId: ID.new(data.userId),
+          code: "DB",
+          assetId: ID.new(data.payWithAssetId),
           amount,
-        );
+          description: data.description,
+          category: "Loan",
+        });
         assetMutated = true;
       }
 
@@ -97,11 +100,13 @@ export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLo
 
       if (assetMutated && data.payWithAssetId) {
         try {
-          await AssetService.getInstance().mutateAddAsset(
-            ID.new(data.userId),
-            ID.new(data.payWithAssetId),
+          await AssetService.getInstance().mutateAsset({
+            userId: ID.new(data.userId),
+            code: "CR",
+            assetId: ID.new(data.payWithAssetId),
             amount,
-          );
+            description: "Rollback loan",
+          });
         } catch {
           /* ignore rollback error */
         }

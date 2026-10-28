@@ -36,14 +36,14 @@ export class SignInUseCase extends CoreUsecase<
       throw new AuthenticationError("Invalid password");
     }
 
-    log.child("validate").success("success", { id: user.id?.toNumb, name: user.name });
+    log.child("validate").success("success", { id: user.id?.decode, name: user.name });
 
     if (!user.id) throw new AuthenticationError("userId is required");
 
     const result = await this.deps.get(IssueSessionUseCase).execute(user);
 
     log.child("result").success({
-      user: { id: result.user.id?.toNumb, name: result.user.name },
+      user: { id: result.user.id?.decode, name: result.user.name },
       session: result.session,
       refreshToken: result.refreshToken,
     });
