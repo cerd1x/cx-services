@@ -2,6 +2,7 @@ import { Logger, streamLog } from "./shared/infra/logger";
 import { Elysia, status, type Context } from "elysia";
 import { cors } from "@elysia/cors";
 import { rateLimit } from "elysia-rate-limit";
+import { openapi } from "@elysiajs/openapi";
 import { betaReportEmailer, betaReportStore, isBetaReportAdmin } from "./shared/infra/beta-report";
 import type { BetaReportFile, BetaReportMeta, BetaReportPayload } from "./shared/infra/beta-report";
 import { appConfigs, corsOrigins } from "./app.config";
@@ -103,6 +104,28 @@ function createApp() {
       sameSite: appConfigs.cookie.sameSite,
     },
   })
+    .use(
+      openapi({
+        path: "/openapi",
+        documentation: {
+          info: {
+            title: "CX Services API",
+            version: "1.0.0",
+            description:
+              "CX Services API - REST endpoints + GraphQL at /graphql. Use GraphQL introspection or GraphiQL for full schema exploration.",
+            contact: {
+              name: "CX Services",
+            },
+          },
+          tags: [
+            { name: "Health", description: "Health check endpoints" },
+            { name: "BetaReport", description: "Beta report ingestion and management" },
+            { name: "Admin", description: "Administrative endpoints" },
+            { name: "GraphQL", description: "GraphQL API endpoint" },
+          ],
+        },
+      }),
+    )
     .use((ctx) => {
       ctx.onRequest(({ request: { url, method } }) => {
         let _url = new URL(url);
@@ -140,122 +163,214 @@ function createApp() {
       }),
     )
     .onError("global", RateLimitExceededError, () => status(429, { error: "Too many requests" }))
-    .get("/", () => {
-      return "🦊 Cerdix API Server Running";
-    })
-    .get("/health", () => ({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-    }))
-    .post("/beta/report", receiveBetaReport)
-    .post("/api/beta/report", receiveBetaReport)
-    .get("/beta/report/list", async ({ request, set }: Context) => {
-      if (!isBetaReportAdminRequest(request)) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-      const items = await betaReportStore.list();
-      return { status: "ok", items };
-    })
-    .get("/beta/report/:id", async ({ params, request, set }: Context) => {
-      if (!isBetaReportAdminRequest(request)) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-      const key = resolveBetaReportKey(params?.id, await betaReportStore.list());
-      if (!key) {
-        set.status = 404;
-        return { error: "Not found" };
-      }
-      const file = await betaReportStore.get(key);
-      if (!file) {
-        set.status = 404;
-        return { error: "Not found" };
-      }
-      return new Response(file.body, {
-        headers: {
-          "content-type": "application/json",
-          "content-disposition": `attachment; filename="beta-report-${params?.id}.json"`,
+    .get(
+      "/",
+      () => {
+        return "🦊 Cerdix API Server Running";
+      },
+      {
+        detail: {
+          tags: ["Health"],
+          summary: "Root endpoint",
+          description: "Basic service status check",
         },
-      });
-    })
-    .post("/beta/report/email", async ({ request, body, set }: Context) => {
-      if (!isBetaReportAdminRequest(request)) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-      const { id, ids, subject, to } = (body ?? {}) as {
-        id?: string;
-        ids?: string[];
-        subject?: string;
-        to?: string[];
-      };
-      const targets = ids && ids.length > 0 ? ids : id ? [id] : [];
-      const items = await betaReportStore.list();
-      const files: BetaReportFile[] = [];
-      for (const target of targets) {
-        const key = resolveBetaReportKey(target, items);
-        if (!key) continue;
-        const file = await betaReportStore.get(key);
-        if (file) files.push(file);
-      }
-      if (files.length === 0) {
-        set.status = 404;
-        return { error: "No report found", found: 0 };
-      }
-      const result = await betaReportEmailer.send({
-        report: files[0],
-        subject,
-        recipients: to,
-      });
-      if (!result.sent) {
-        set.status = 500;
-        return { status: "error", reason: result.reason };
-      }
-      return {
-        status: "sent",
-        count: files.length,
-        messageId: result.messageId,
-      };
-    })
-    .get("/admin/killswitch", async ({ request, set }: Context) => {
-      if (!isKillswitchAdminRequest(request)) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-      const items = await apiKillswitchService.listDisabledOperations();
-      return {
+      },
+    )
+    .get(
+      "/health",
+      () => ({
         status: "ok",
-        count: items.length,
-        items: items.map((i) => ({
-          operation: i.operation,
-          reason: i.reason ?? null,
-          disabledAt: i.disabledAt,
-        })),
-      };
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        detail: {
+          tags: ["Health"],
+          summary: "Health check",
+          description: "Service health status",
+        },
+      },
+    )
+    .post("/beta/report", receiveBetaReport, {
+      detail: {
+        tags: ["BetaReport"],
+        summary: "Submit beta report",
+        description: "Submit beta report with logs",
+      },
     })
-    .post("/admin/killswitch/:operation", async ({ params, request, body, set }: Context) => {
-      if (!isKillswitchAdminRequest(request)) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-      const { reason } = (body ?? {}) as { reason?: string };
-      const entry = await apiKillswitchService.disableOperation(params?.operation, reason);
-      return {
-        status: "disabled",
-        operation: entry.operation,
-        reason: entry.reason ?? null,
-        disabledAt: entry.disabledAt,
-      };
+    .post("/api/beta/report", receiveBetaReport, {
+      detail: {
+        tags: ["BetaReport"],
+        summary: "Submit beta report (API path)",
+        description: "Submit beta report with logs",
+      },
     })
-    .delete("/admin/killswitch/:operation", async ({ params, request, set }: Context) => {
-      if (!isKillswitchAdminRequest(request)) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-      const result = await apiKillswitchService.enableOperation(params?.operation);
-      return { status: "enabled", ...result };
-    })
+    .get(
+      "/beta/report/list",
+      async ({ request, set }: Context) => {
+        if (!isBetaReportAdminRequest(request)) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+        const items = await betaReportStore.list();
+        return { status: "ok", items };
+      },
+      {
+        detail: {
+          tags: ["BetaReport"],
+          summary: "List beta reports",
+          description: "List all beta reports (admin only)",
+        },
+      },
+    )
+    .get(
+      "/beta/report/:id",
+      async ({ params, request, set }: Context) => {
+        if (!isBetaReportAdminRequest(request)) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+        const key = resolveBetaReportKey(params?.id, await betaReportStore.list());
+        if (!key) {
+          set.status = 404;
+          return { error: "Not found" };
+        }
+        const file = await betaReportStore.get(key);
+        if (!file) {
+          set.status = 404;
+          return { error: "Not found" };
+        }
+        return new Response(file.body, {
+          headers: {
+            "content-type": "application/json",
+            "content-disposition": `attachment; filename="beta-report-${params?.id}.json"`,
+          },
+        });
+      },
+      {
+        detail: {
+          tags: ["BetaReport"],
+          summary: "Get beta report",
+          description: "Download a beta report by ID (admin only)",
+        },
+      },
+    )
+    .post(
+      "/beta/report/email",
+      async ({ request, body, set }: Context) => {
+        if (!isBetaReportAdminRequest(request)) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+        const { id, ids, subject, to } = (body ?? {}) as {
+          id?: string;
+          ids?: string[];
+          subject?: string;
+          to?: string[];
+        };
+        const targets = ids && ids.length > 0 ? ids : id ? [id] : [];
+        const items = await betaReportStore.list();
+        const files: BetaReportFile[] = [];
+        for (const target of targets) {
+          const key = resolveBetaReportKey(target, items);
+          if (!key) continue;
+          const file = await betaReportStore.get(key);
+          if (file) files.push(file);
+        }
+        if (files.length === 0) {
+          set.status = 404;
+          return { error: "No report found", found: 0 };
+        }
+        const result = await betaReportEmailer.send({
+          report: files[0],
+          subject,
+          recipients: to,
+        });
+        if (!result.sent) {
+          set.status = 500;
+          return { status: "error", reason: result.reason };
+        }
+        return {
+          status: "sent",
+          count: files.length,
+          messageId: result.messageId,
+        };
+      },
+      {
+        detail: {
+          tags: ["BetaReport"],
+          summary: "Email beta report",
+          description: "Send beta report via email (admin only)",
+        },
+      },
+    )
+    .get(
+      "/admin/killswitch",
+      async ({ request, set }: Context) => {
+        if (!isKillswitchAdminRequest(request)) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+        const items = await apiKillswitchService.listDisabledOperations();
+        return {
+          status: "ok",
+          count: items.length,
+          items: items.map((i) => ({
+            operation: i.operation,
+            reason: i.reason ?? null,
+            disabledAt: i.disabledAt,
+          })),
+        };
+      },
+      {
+        detail: {
+          tags: ["Admin"],
+          summary: "List disabled GraphQL operations",
+          description: "List all operations currently disabled by kill switch (admin only)",
+        },
+      },
+    )
+    .post(
+      "/admin/killswitch/:operation",
+      async ({ params, request, body, set }: Context) => {
+        if (!isKillswitchAdminRequest(request)) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+        const { reason } = (body ?? {}) as { reason?: string };
+        const entry = await apiKillswitchService.disableOperation(params?.operation, reason);
+        return {
+          status: "disabled",
+          operation: entry.operation,
+          reason: entry.reason ?? null,
+          disabledAt: entry.disabledAt,
+        };
+      },
+      {
+        detail: {
+          tags: ["Admin"],
+          summary: "Disable GraphQL operation",
+          description: "Disable a specific GraphQL operation (admin only)",
+        },
+      },
+    )
+    .delete(
+      "/admin/killswitch/:operation",
+      async ({ params, request, set }: Context) => {
+        if (!isKillswitchAdminRequest(request)) {
+          set.status = 401;
+          return { error: "Unauthorized" };
+        }
+        const result = await apiKillswitchService.enableOperation(params?.operation);
+        return { status: "enabled", ...result };
+      },
+      {
+        detail: {
+          tags: ["Admin"],
+          summary: "Enable GraphQL operation",
+          description: "Re-enable a previously disabled GraphQL operation (admin only)",
+        },
+      },
+    )
     .use(gqlYogaAsPluginElysia({ logging: true }))
     .compile();
 }
