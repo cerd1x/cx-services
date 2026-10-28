@@ -1,12 +1,3 @@
--- Migrasi data: peta nilai enum lama -> kode perbankan baru.
-UPDATE `asset_mutation` SET
-	`type` = CASE `type`
-		WHEN 'add' THEN 'CR'
-		WHEN 'subtract' THEN 'DB'
-		WHEN 'swap' THEN 'TF'
-		WHEN 'transaction' THEN 'EB'
-		ELSE `type`
-	END;
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
 CREATE TABLE `__new_asset_mutation` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
@@ -24,7 +15,17 @@ CREATE TABLE `__new_asset_mutation` (
 	CONSTRAINT "asset_mutation_type_check" CHECK("type" in ('CR', 'DB', 'TF', 'EB', 'ADM'))
 );
 --> statement-breakpoint
-INSERT INTO `__new_asset_mutation`(`id`, `asset_id`, `user_id`, `type`, `amount`, `currency`, `balance_before`, `balance_after`, `description`, `created_at`) SELECT `id`, `asset_id`, `user_id`, `type`, `amount`, `currency`, `balance_before`, `balance_after`, `description`, `created_at` FROM `asset_mutation`;--> statement-breakpoint
+INSERT INTO `__new_asset_mutation`(`id`, `asset_id`, `user_id`, `type`, `amount`, `currency`, `balance_before`, `balance_after`, `description`, `created_at`)
+SELECT `id`, `asset_id`, `user_id`,
+	CASE `type`
+		WHEN 'add' THEN 'CR'
+		WHEN 'subtract' THEN 'DB'
+		WHEN 'swap' THEN 'TF'
+		WHEN 'transaction' THEN 'EB'
+		ELSE `type`
+	END,
+	`amount`, `currency`, `balance_before`, `balance_after`, `description`, `created_at`
+FROM `asset_mutation`;--> statement-breakpoint
 DROP TABLE `asset_mutation`;--> statement-breakpoint
 ALTER TABLE `__new_asset_mutation` RENAME TO `asset_mutation`;--> statement-breakpoint
 PRAGMA foreign_keys=ON;
