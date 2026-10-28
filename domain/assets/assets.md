@@ -185,11 +185,12 @@ Operasi aritmetika pakai API `Money` (immutable — `add`/`subtract` mengembalik
          - `id?: number` — opsional, auto-generate oleh DB jika tidak diberikan
          - `assetId: number` — **wajib**, ID asset yang dimutasi (number, bukan `ID`)
          - `userId: ID` — **wajib**, instance `ID` pemilik asset (bukan number)
-         - `type: "add" | "subtract" | "transaction" | "swap"` — **wajib**, enum `MutationType`:
-           - `"add"` — saldo bertambah
-           - `"subtract"` — saldo berkurang
-           - `"transaction"` — mutasi netral (pencatatan transaksi tanpa add/subtract)
-           - `"swap"` — mutasi perpindahan dana/value/balance antara asset (pencatatan transaksi tanpa add/subtract/transaction)
+         - `type: "CR" | "DB" | "TF" | "EB" | "ADM"` — **wajib**, enum `MutationType`:
+           - `"CR"` — credit (saldo bertambah)
+           - `"DB"` — debit (saldo berkurang)
+           - `"EB"` — transaksi e-wallet/banking (debit)
+           - `"TF"` — transfer perpindahan dana antara asset (from -> to)
+           - `"ADM"` — biaya admin (debit)
            - Nilai ini juga ditegakkan di database oleh `CHECK` constraint `asset_mutation_type_check`; `asset.type` oleh `asset_type_check`. Keduanya ditulis eksplisit di `drizzle-schema` karena drizzle-kit tidak menurunkan `CHECK` dari `enum`.
          - `amount: Money` — **wajib**, nominal mutasi sebagai instance `Money` (currency ikut di dalamnya)
          - `balanceBefore: Money` — **wajib**, saldo sebelum mutasi
@@ -359,13 +360,13 @@ async updateAsset(userId: ID, assetId: ID, input: Partial<AssetInput> & { balanc
 
 ---
 
-- [mutateAddAsset](services/domain/assets/app/asset.service.ts)(line 149:169) Tambah saldo asset
+- [mutateAsset](services/domain/assets/core/usecase/mutate_asset.usecase.ts)(line 74:145) Mutasi saldo terpadu ala perbankan (CR/DB/TF/EB/ADM)
 
 ```ts
 async mutateAddAsset(userId: ID, assetId: ID, amount: Money): Promise<Asset>
 ```
 
-    > > `#applyMutation(userId, assetId, "add", balanceAmount)`
+    > > `#applyMutation(userId, assetId, "CR", balanceAmount)`
     > >     > `assetRepo.findById(userId, assetId)` — cek asset ada
     > >     > null → `NotFoundError`
     > >     > `current = asset.balance` — saldo saat ini (`Money`)
@@ -377,7 +378,7 @@ async mutateAddAsset(userId: ID, assetId: ID, amount: Money): Promise<Asset>
     > >     > `return Asset.new({ id, userId, name, type, balance: current })`
     > >
     > > Setelah mutation berhasil → `TransactionService.getInstance().createTransaction()`
-    > >     > type: "income", category: "Add Balance", description: "Add Balance TO ( ${result.name} )"
+    > >     > type: "income", category: "Credit", description: "CR Credit To ( ${result.name} )"
 
 ---
 
