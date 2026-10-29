@@ -2,14 +2,23 @@ import { Logger, streamLog } from "./shared/infra/logger";
 import { Elysia, status, type Context } from "elysia";
 import { cors } from "@elysia/cors";
 import { rateLimit } from "elysia-rate-limit";
-import { openapi } from "@elysiajs/openapi";
+import { openapi } from "@elysia/openapi";
 import { betaReportEmailer, betaReportStore, isBetaReportAdmin } from "./shared/infra/beta-report";
 import type { BetaReportFile, BetaReportMeta, BetaReportPayload } from "./shared/infra/beta-report";
 import { appConfigs, corsOrigins } from "./app.config";
 import { apiKillswitchService } from "./composition/root.container";
+import { staticPlugin } from "@elysia/static";
 import { gqlYogaAsPluginElysia } from "./shared/infra/graphql/yoga-server";
 import { WebStandardAdapter } from "elysia/adapter/web-standard";
+
 const l = streamLog(Logger.fromConfig(appConfigs.logger)).child("ApiServer");
+
+/**
+ * `true` hanya saat `app.ts` dijalankan langsung oleh Bun (`bun run app.ts`).
+ * Build Worker (`scripts/build.ts` → `worker.ts`), test, dan runtime workerd
+ * tidak pernah masuk mode ini sehingga tetap memakai `WebStandardAdapter`.
+ */
+const isBunDevServer = import.meta.main === true && typeof Bun !== "undefined";
 
 /**
  * Cloudflare Workers melarang pembuatan objek I/O (`Response`) di global scope,
@@ -89,6 +98,16 @@ function getApp() {
   return app;
 }
 
+/**
+ * Docs GraphQL (SpectaQL) untuk runtime non-fullstack (test / Bun biasa).
+ * Di Bun Fullstack Dev Server (`bun run app.ts`) halaman ini justru disajikan
+ * sebagai HTML bundle lewat `routes` di default export, bukan dari disk.
+ */
+const gqlDocsPlugin = await staticPlugin({
+  assets: "build/graphql-docs",
+  prefix: "/graphql/docs",
+});
+
 function createApp() {
   return new Elysia({
     // Elysia 2 tidak lagi menyediakan `CloudflareAdapter` (itu API Elysia 1.x).
@@ -107,12 +126,16 @@ function createApp() {
     .use(
       openapi({
         path: "/openapi",
+        // Wajib `true` untuk target Cloudflare Workers: tanpa ini plugin memilih
+        // handler `page` saat runtime Workers tetapi `page()` (Response) saat
+        // build Bun, sehingga Elysia AOT mendeteksi drift pada GET /openapi.
+        embedSpec: true,
         documentation: {
           info: {
             title: "CX Services API",
             version: "1.0.0",
             description:
-              "CX Services API - REST endpoints + GraphQL at /graphql. Use GraphQL introspection or GraphiQL for full schema exploration.",
+              "CX Services API - REST endpoints + GraphQL at /graphql. GraphQL docs: /graphql/docs. Use GraphiQL at /graphql for interactive exploration.",
             contact: {
               name: "CX Services",
             },
@@ -126,6 +149,7 @@ function createApp() {
         },
       }),
     )
+    .use(gqlDocsPlugin)
     .use((ctx) => {
       ctx.onRequest(({ request: { url, method } }) => {
         let _url = new URL(url);
@@ -165,9 +189,6 @@ function createApp() {
     .onError("global", RateLimitExceededError, () => status(429, { error: "Too many requests" }))
     .get(
       "/",
-      () => {
-        return "🦊 Cerdix API Server Running";
-      },
       {
         detail: {
           tags: ["Health"],
@@ -175,13 +196,12 @@ function createApp() {
           description: "Basic service status check",
         },
       },
+      () => {
+        return "🦊 Cerdix API Server Running";
+      },
     )
     .get(
       "/health",
-      () => ({
-        status: "ok",
-        timestamp: new Date().toISOString(),
-      }),
       {
         detail: {
           tags: ["Health"],
@@ -189,23 +209,42 @@ function createApp() {
           description: "Service health status",
         },
       },
+      () => ({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+      }),
     )
-    .post("/beta/report", receiveBetaReport, {
-      detail: {
-        tags: ["BetaReport"],
-        summary: "Submit beta report",
-        description: "Submit beta report with logs",
+    .post(
+      "/beta/report",
+      {
+        detail: {
+          tags: ["BetaReport"],
+          summary: "Submit beta report",
+          description: "Submit beta report with logs",
+        },
       },
-    })
-    .post("/api/beta/report", receiveBetaReport, {
-      detail: {
-        tags: ["BetaReport"],
-        summary: "Submit beta report (API path)",
-        description: "Submit beta report with logs",
+      receiveBetaReport,
+    )
+    .post(
+      "/api/beta/report",
+      {
+        detail: {
+          tags: ["BetaReport"],
+          summary: "Submit beta report (API path)",
+          description: "Submit beta report with logs",
+        },
       },
-    })
+      receiveBetaReport,
+    )
     .get(
       "/beta/report/list",
+      {
+        detail: {
+          tags: ["BetaReport"],
+          summary: "List beta reports",
+          description: "List all beta reports (admin only)",
+        },
+      },
       async ({ request, set }: Context) => {
         if (!isBetaReportAdminRequest(request)) {
           set.status = 401;
@@ -214,16 +253,16 @@ function createApp() {
         const items = await betaReportStore.list();
         return { status: "ok", items };
       },
-      {
-        detail: {
-          tags: ["BetaReport"],
-          summary: "List beta reports",
-          description: "List all beta reports (admin only)",
-        },
-      },
     )
     .get(
       "/beta/report/:id",
+      {
+        detail: {
+          tags: ["BetaReport"],
+          summary: "Get beta report",
+          description: "Download a beta report by ID (admin only)",
+        },
+      },
       async ({ params, request, set }: Context) => {
         if (!isBetaReportAdminRequest(request)) {
           set.status = 401;
@@ -246,16 +285,16 @@ function createApp() {
           },
         });
       },
-      {
-        detail: {
-          tags: ["BetaReport"],
-          summary: "Get beta report",
-          description: "Download a beta report by ID (admin only)",
-        },
-      },
     )
     .post(
       "/beta/report/email",
+      {
+        detail: {
+          tags: ["BetaReport"],
+          summary: "Email beta report",
+          description: "Send beta report via email (admin only)",
+        },
+      },
       async ({ request, body, set }: Context) => {
         if (!isBetaReportAdminRequest(request)) {
           set.status = 401;
@@ -295,16 +334,16 @@ function createApp() {
           messageId: result.messageId,
         };
       },
-      {
-        detail: {
-          tags: ["BetaReport"],
-          summary: "Email beta report",
-          description: "Send beta report via email (admin only)",
-        },
-      },
     )
     .get(
       "/admin/killswitch",
+      {
+        detail: {
+          tags: ["Admin"],
+          summary: "List disabled GraphQL operations",
+          description: "List all operations currently disabled by kill switch (admin only)",
+        },
+      },
       async ({ request, set }: Context) => {
         if (!isKillswitchAdminRequest(request)) {
           set.status = 401;
@@ -321,16 +360,16 @@ function createApp() {
           })),
         };
       },
-      {
-        detail: {
-          tags: ["Admin"],
-          summary: "List disabled GraphQL operations",
-          description: "List all operations currently disabled by kill switch (admin only)",
-        },
-      },
     )
     .post(
       "/admin/killswitch/:operation",
+      {
+        detail: {
+          tags: ["Admin"],
+          summary: "Disable GraphQL operation",
+          description: "Disable a specific GraphQL operation (admin only)",
+        },
+      },
       async ({ params, request, body, set }: Context) => {
         if (!isKillswitchAdminRequest(request)) {
           set.status = 401;
@@ -345,16 +384,16 @@ function createApp() {
           disabledAt: entry.disabledAt,
         };
       },
-      {
-        detail: {
-          tags: ["Admin"],
-          summary: "Disable GraphQL operation",
-          description: "Disable a specific GraphQL operation (admin only)",
-        },
-      },
     )
     .delete(
       "/admin/killswitch/:operation",
+      {
+        detail: {
+          tags: ["Admin"],
+          summary: "Enable GraphQL operation",
+          description: "Re-enable a previously disabled GraphQL operation (admin only)",
+        },
+      },
       async ({ params, request, set }: Context) => {
         if (!isKillswitchAdminRequest(request)) {
           set.status = 401;
@@ -363,19 +402,37 @@ function createApp() {
         const result = await apiKillswitchService.enableOperation(params?.operation);
         return { status: "enabled", ...result };
       },
-      {
-        detail: {
-          tags: ["Admin"],
-          summary: "Enable GraphQL operation",
-          description: "Re-enable a previously disabled GraphQL operation (admin only)",
-        },
-      },
     )
     .use(gqlYogaAsPluginElysia({ logging: true }))
     .compile();
 }
 
 const app = createApp();
+
+/**
+ * Bun Fullstack Dev Server (https://elysiajs.com/patterns/fullstack-dev-server.html).
+ *
+ * `import()` file HTML memakai bundler, transpiler, dan parser CSS bawaan Bun,
+ * lalu HTML bundle-nya disajikan router native Bun lewat `routes` di default
+ * export. Tag `<script>`/`<link>` ditulis ulang ke aset hasil bundel (`/_bun/*`)
+ * sehingga halaman SpectaQL ter-render tanpa file statis terpisah.
+ */
+const docsBundle = isBunDevServer
+  ? (
+      await import("./build/graphql-docs/index.html").catch((error) => {
+        l.warn(`Gagal memuat HTML bundle GraphQL docs: ${error}`);
+        return { default: undefined };
+      })
+    ).default
+  : undefined;
+
+const nativeRoutes = docsBundle
+  ? {
+      "/graphql/docs": docsBundle,
+      "/graphql/docs/": docsBundle,
+      "/graphql/docs/index.html": docsBundle,
+    }
+  : undefined;
 
 const handler = {
   async fetch(request: Request) {
@@ -384,6 +441,7 @@ const handler = {
   async handle(request: Request) {
     return this.fetch(request);
   },
+  ...(nativeRoutes ? { routes: nativeRoutes } : {}),
 };
 
 export default handler;

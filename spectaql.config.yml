@@ -1,0 +1,20 @@
+spectaql:
+  displayAllServers: true
+
+introspection:
+  schemaFile: ./.tmp/schema.graphql
+
+servers:
+  - url: https://your-domain.com/graphql
+    description: Production
+    headers:
+      - name: Authorization
+        example: Bearer <token>
+        comment: Add your JWT token here
+
+info:
+  title: CX Services GraphQL API
+  description: API reference for CX Services GraphQL schema
+  version: 1.0.0
+  contact:
+    name: CX Services

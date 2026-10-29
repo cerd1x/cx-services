@@ -245,3 +245,4 @@ export const gqlYogaAsPluginElysia = (opts: GqlYogaPluginOptions = {}) => {
 };
 
 export { yoga };
+export { schema };
