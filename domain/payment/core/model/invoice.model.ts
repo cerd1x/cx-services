@@ -100,7 +100,7 @@ export class Invoice {
     paidAt?: Date;
     description?: string;
     metadata?: Record<string, unknown>;
-    id?: number;
+    id?: number | ID;
     createdAt?: Date;
     updatedAt?: Date;
   }) {
@@ -118,7 +118,7 @@ export class Invoice {
     this.paidAt = data.paidAt;
     this.description = data.description;
     this.metadata = data.metadata;
-    this.id = data.id ? ID.new(data.id) : undefined;
+    this.id = data.id ? (data.id instanceof ID ? data.id : ID.invoice(data.id)) : undefined;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

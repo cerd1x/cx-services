@@ -1,6 +1,7 @@
 import type { Resolvers } from "$gql/types.generated";
 import type { YogaContext } from "$services/shared/infra/graphql/yoga-context";
 import { AuthenticationError } from "$services/shared/kernel/errors/service-error";
+import { ID } from "$services/shared/kernel";
 import typeDefs from "./setting.gql?raw";
 
 const resolvers: Resolvers<YogaContext> = {
@@ -10,13 +11,13 @@ const resolvers: Resolvers<YogaContext> = {
       const result = await setting.settingByUserId(userAuth.id.decode);
 
       return {
-        id: String(result.id),
-        userId: String(result.userId),
+        id: result.id !== undefined ? ID.setting(result.id).str : "",
+        userId: result.userId !== undefined ? ID.user(result.userId).str : "",
         currency: result.currency,
         darkMode: result.darkMode,
         dateFormat: result.dateFormat,
         defaultAssetCashId:
-          result.defaultAssetCashId != null ? String(result.defaultAssetCashId) : null,
+          result.defaultAssetCashId != null ? ID.asset(result.defaultAssetCashId).str : null,
       };
     },
   },
@@ -34,19 +35,19 @@ const resolvers: Resolvers<YogaContext> = {
       if (args.input.darkMode != null) input.darkMode = args.input.darkMode;
       if (args.input.dateFormat != null) input.dateFormat = args.input.dateFormat;
       if (args.input.defaultAssetCashId != null) {
-        input.defaultAssetCashId = Number(args.input.defaultAssetCashId);
+        input.defaultAssetCashId = ID.new(args.input.defaultAssetCashId).decode;
       }
 
       const result = await setting.updateSetting(userAuth.id.decode, input);
 
       return {
-        id: String(result.id),
-        userId: String(result.userId),
+        id: result.id !== undefined ? ID.setting(result.id).str : "",
+        userId: result.userId !== undefined ? ID.user(result.userId).str : "",
         currency: result.currency,
         darkMode: result.darkMode,
         dateFormat: result.dateFormat,
         defaultAssetCashId:
-          result.defaultAssetCashId != null ? String(result.defaultAssetCashId) : null,
+          result.defaultAssetCashId != null ? ID.asset(result.defaultAssetCashId).str : null,
       };
     },
   },

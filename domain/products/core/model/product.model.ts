@@ -64,7 +64,7 @@ export class Product {
     this.currency = data.currency;
     this.stock = data.stock ?? 0;
     this.trackStock = data.trackStock ?? true;
-    this.id = data.id ? ID.new(data.id) : undefined;
+    this.id = data.id ? ID.product(data.id) : undefined;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

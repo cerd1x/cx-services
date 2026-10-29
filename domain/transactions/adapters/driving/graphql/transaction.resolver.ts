@@ -23,9 +23,12 @@ const mapTx = (txinp: Transaction): TxType => {
     paymentStatus: txinp.paymentStatus as TxType["paymentStatus"],
     paymentMethod: {
       type: txinp.paymentMethod.type as TxType["paymentMethod"]["type"],
-      assetId: txinp.paymentMethod.assetId?.toString() ?? null,
+      assetId:
+        txinp.paymentMethod.assetId !== undefined
+          ? ID.asset(txinp.paymentMethod.assetId).str
+          : null,
     },
-    customerId: txinp?.customerId ? ID.new(txinp?.customerId as string | number).str : null,
+    customerId: txinp.customerId !== undefined ? ID.contact(txinp.customerId).str : null,
     category: txinp.category,
     createdAt: txinp.createdAt!,
     updatedAt: txinp.updatedAt,

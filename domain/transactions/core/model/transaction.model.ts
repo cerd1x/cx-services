@@ -126,7 +126,7 @@ export class Transaction {
     this.customerId = data.customerId;
     // `!== undefined`, bukan truthy: id 0 adalah value yang valid secara tipe,
     // dan baris yang belum tersimpan tidak punya id sama sekali — bukan id 0.
-    this.id = data.id !== undefined ? ID.new(data.id) : undefined;
+    this.id = data.id !== undefined ? ID.transaction(data.id) : undefined;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

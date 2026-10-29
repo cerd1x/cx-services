@@ -51,7 +51,7 @@ export class User {
     password: string;
     avatarUrl?: string | null;
     role?: UserRole;
-    id?: number;
+    id?: number | ID;
   }) {
     this.name = data.name;
     this.username = data.username;
@@ -59,7 +59,7 @@ export class User {
     this.password = data.password;
     this.avatarUrl = data.avatarUrl ?? null;
     this.role = data.role ?? "user";
-    this.id = data.id ? ID.new(data.id) : undefined;
+    this.id = data.id ? (data.id instanceof ID ? data.id : ID.user(data.id)) : undefined;
   }
 
   static new(data: {

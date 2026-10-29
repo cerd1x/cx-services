@@ -19,13 +19,13 @@ const mapPaymentMethod = (input: PaymentMethodType | null | undefined): string |
 
 const mapOrder = (order: OrderEntity): GqlOrder => ({
   id: order.id?.str ?? "",
-  userId: order.userId?.toString(),
+  userId: order.userId !== undefined ? ID.user(order.userId).str : undefined,
   status: order.status,
   paymentMethod: order.paymentMethod as PaymentMethodType,
   price: order.totalAmount,
   itemCount: order.itemCount,
   description: order.description,
-  customerId: order.customerId?.toString(),
+  customerId: order.customerId !== undefined ? ID.contact(order.customerId).str : undefined,
   createdAt: order.createdAt,
   updatedAt: order.updatedAt,
 });
@@ -49,7 +49,7 @@ const resolvers: Resolvers<YogaContext> = {
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
         description: args.input.description ?? undefined,
-        customerId: args.input.customerId ? parseInt(args.input.customerId) : undefined,
+        customerId: args.input.customerId ? ID.new(args.input.customerId).decode : undefined,
       });
       return mapOrder(result);
     },
@@ -60,7 +60,7 @@ const resolvers: Resolvers<YogaContext> = {
           status: (args.input.status as "pending" | "success" | "cancelled") ?? undefined,
           paymentMethod: mapPaymentMethod(args.input.paymentMethod),
           description: args.input.description ?? undefined,
-          customerId: args.input.customerId ? parseInt(args.input.customerId) : undefined,
+          customerId: args.input.customerId ? ID.new(args.input.customerId).decode : undefined,
         },
         userAuth!.id,
       );

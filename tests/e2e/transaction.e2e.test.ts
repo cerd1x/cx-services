@@ -38,8 +38,9 @@ describe("transaction e2e (GraphQL over HTTP)", () => {
     expect(create.errors).toBeUndefined();
     expect(create.data!.createTransaction.type).toBe("income");
     expect(create.data!.createTransaction.amount).toBe("IDR 50000");
-    expect(create.data!.createTransaction.customerId).toBeTruthy();
+    expect(create.data!.createTransaction.customerId).toMatch(/^CT\./);
     const txId = create.data!.createTransaction.id;
+    expect(txId).toMatch(/^TRX\./);
 
     const list = await gql<{ transactions: TxDto[] }>(
       `{ transactions { id type amount } }`,
@@ -135,6 +136,8 @@ describe("transaction e2e (GraphQL over HTTP)", () => {
     expect(swap.errors).toBeUndefined();
     expect(swap.data!.swapBalance.from.balance).toBe("IDR 750000");
     expect(swap.data!.swapBalance.to.balance).toBe("IDR 750000");
+    expect(swap.data!.swapBalance.from.id).toMatch(/^AST\./);
+    expect(swap.data!.swapBalance.to.id).toMatch(/^AST\./);
 
     const transfers = await gql<{ transactions: TxDto[] }>(
       `{ transactions { id type category amount } }`,

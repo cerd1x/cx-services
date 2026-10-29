@@ -34,7 +34,7 @@ function toContact(row: {
   updatedAt: Date | null;
 }): Contact {
   return new Contact({
-    id: row.id,
+    id: ID.contact(row.id),
     userId: ID.new(row.userId),
     name: row.name,
     email: row.email ?? undefined,

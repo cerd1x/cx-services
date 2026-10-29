@@ -69,7 +69,7 @@ export class Order {
     if (data.paymentMethod) this.paymentMethod = data.paymentMethod;
     this.description = data.description;
     this.customerId = data.customerId;
-    this.id = data.id ? ID.new(data.id) : undefined;
+    this.id = data.id ? ID.order(data.id) : undefined;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

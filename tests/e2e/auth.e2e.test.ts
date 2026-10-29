@@ -20,6 +20,7 @@ describe("auth e2e (GraphQL over HTTP)", () => {
     expect(result.user.name).toBe("E2E User");
     expect(result.user.username).toBe(result.username);
     expect(result.user.id).toBeTruthy();
+    expect(result.user.id).toMatch(/^USR\./);
   });
 
   it("signIn returns a new session", async () => {
@@ -52,6 +53,7 @@ describe("auth e2e (GraphQL over HTTP)", () => {
     expect(errors).toBeUndefined();
     expect(data!.me.name).toBe("E2E User");
     expect(data!.me.id).toBeTruthy();
+    expect(data!.me.id).toMatch(/^USR\./);
   });
 
   it("checkAuthorized is true with token and false without", async () => {

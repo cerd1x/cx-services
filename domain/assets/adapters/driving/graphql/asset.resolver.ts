@@ -43,7 +43,7 @@ const resolvers: Resolvers<YogaContext> = {
     assetMutations: async (_parent, args, { asset, userAuth }) => {
       const mutations = await asset.assetMutations(userAuth!.id, ID.new(args.assetId));
       return mutations.map((m) => ({
-        id: String(m.id),
+        id: m.id !== undefined ? ID.assetMutation(m.id).str : "",
         type: m.type,
         amount: m.amount.toNumber(),
         currency: m.amount.currency.code,

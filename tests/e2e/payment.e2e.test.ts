@@ -44,6 +44,7 @@ describe("payment e2e (GraphQL over HTTP)", () => {
     expect(create.data!.createInvoice.subtotal).toBe(100000);
     expect(create.data!.createInvoice.totalAmount).toBe(100000);
     expect(create.data!.createInvoice.items).toHaveLength(1);
+    expect(create.data!.createInvoice.id).toMatch(/^INV\./);
     const invoiceId = create.data!.createInvoice.id;
 
     const list = await gql<{ invoices: InvoiceDto[] }>(
@@ -115,6 +116,7 @@ describe("payment e2e (GraphQL over HTTP)", () => {
     expect(paid.errors).toBeUndefined();
     expect(paid.data!.processPayment.amount).toBe(75000);
     expect(paid.data!.processPayment.invoiceId).toBe(invoiceId);
+    expect(paid.data!.processPayment.id).toMatch(/^PAY\./);
     const paymentId = paid.data!.processPayment.id;
 
     const byStatus = await gql<{ paymentsByStatus: PaymentDto[] }>(

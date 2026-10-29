@@ -62,8 +62,8 @@ export class Asset {
   #balance: Money;
   #userId: ID;
 
-  private constructor(data: AssetData & { balance: Money }) {
-    if (data.id) this.#id = ID.new(data.id);
+  private constructor(data: Omit<AssetData, "id"> & { id?: number | ID; balance: Money }) {
+    if (data.id) this.#id = data.id instanceof ID ? data.id : ID.asset(data.id);
     this.#name = data.name;
     this.#type = data.type;
     this.#balance = data.balance;
@@ -75,7 +75,7 @@ export class Asset {
   }
 
   setId(id: number | string): Asset {
-    this.#id = ID.new(id);
+    this.#id = ID.asset(id);
     return this;
   }
 

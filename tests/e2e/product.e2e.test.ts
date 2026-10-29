@@ -34,6 +34,7 @@ describe("product e2e (GraphQL over HTTP)", () => {
 
     const id = create.data!.createProduct.id;
     expect(id).toBeTruthy();
+    expect(id).toMatch(/^PRD\./);
 
     const list = await gql<{ products: ProductDto[] }>(
       `{ products { id name price margin stock } }`,

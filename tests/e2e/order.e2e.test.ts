@@ -30,6 +30,7 @@ describe("order e2e (GraphQL over HTTP)", () => {
     expect(create.data!.createOrder.status).toBe("pending");
     const orderId = create.data!.createOrder.id;
     expect(orderId).toBeTruthy();
+    expect(orderId).toMatch(/^ORD\./);
 
     const list = await gql<{ orders: OrderDto[] }>(
       `{ orders { id status price itemCount } }`,
@@ -123,6 +124,7 @@ describe("order e2e (GraphQL over HTTP)", () => {
       authHeaders(session),
     );
     expect(sale.errors).toBeUndefined();
+    expect(sale.data!.createOrderProductSale.id).toMatch(/^ORD\./);
     expect(sale.data!.createOrderProductSale.price).toBe("IDR 50000");
 
     const after = await gql<{ product: { id: string; stock: number } }>(

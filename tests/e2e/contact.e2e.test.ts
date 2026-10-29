@@ -45,6 +45,7 @@ describe("contact e2e (GraphQL over HTTP)", () => {
     expect(create.data!.createContact.name).toBe("Andi Wijaya");
     expect(create.data!.createContact.phones).toEqual(["+6281234567890", "+6289876543210"]);
     expect(create.data!.createContact.id).toBeTruthy();
+    expect(create.data!.createContact.id).toMatch(/^CT\./);
     const contactId = create.data!.createContact.id;
 
     const list = await gql<{ contacts: ContactDto[] }>(

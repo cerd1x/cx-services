@@ -76,6 +76,16 @@ export class ID {
     return ID.new(id);
   }
 
+  static setting(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("STG", id);
+    return ID.new(id);
+  }
+
+  static assetMutation(id: number | string): ID {
+    if (typeof id === "number") return ID.withScope("AM", id);
+    return ID.new(id);
+  }
+
   /** Hash Sqids dari nomor asli. */
   static encode(id: number): string {
     return ID.#sqids.encode([id]);

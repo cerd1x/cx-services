@@ -20,6 +20,7 @@ describe("asset e2e (GraphQL over HTTP)", () => {
     expect(create.data!.createAsset.name).toBe("Bank BCA");
     expect(create.data!.createAsset.balance).toBe("IDR 1000000");
     expect(create.data!.createAsset.id).toBeTruthy();
+    expect(create.data!.createAsset.id).toMatch(/^AST\./);
     const assetId = create.data!.createAsset.id;
 
     const list = await gql<{ assets: AssetDto[] }>(
@@ -83,6 +84,7 @@ describe("asset e2e (GraphQL over HTTP)", () => {
     expect(mutations.data!.assetMutations.length).toBeGreaterThanOrEqual(2);
     expect(mutations.data!.assetMutations.some((m) => m.type === "CR")).toBe(true);
     expect(mutations.data!.assetMutations.some((m) => m.type === "DB")).toBe(true);
+    expect(mutations.data!.assetMutations.every((m) => m.id.startsWith("AM."))).toBe(true);
 
     const del = await gql<{ deleteAsset: boolean }>(
       `mutation($name: String!) { deleteAsset(name: $name) }`,

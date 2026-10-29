@@ -74,7 +74,7 @@ describe("AssetService", () => {
       });
 
       expect(result.name).toBe("BCA");
-      expect(result.metadata.id).toBe("UkLWZg9DAJ");
+      expect(result.metadata.id).toBe(ID.asset(1).str);
       expect(assetRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "BCA",

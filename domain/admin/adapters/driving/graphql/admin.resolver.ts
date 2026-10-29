@@ -50,7 +50,7 @@ const resolvers: Resolvers<YogaContext> = {
       const users = await admin.users();
       return users.map((u) => ({
         ...u,
-        id: ID.new(u.id).str,
+        id: ID.user(u.id).str,
         role: toGraphQLRole(u.role),
       }));
     },
@@ -61,8 +61,8 @@ const resolvers: Resolvers<YogaContext> = {
       const rows = await admin.userTransactions(ID.new(args.userId), args.limit);
       return rows.map((row) => ({
         ...row,
-        id: ID.new(row.id).str,
-        userId: ID.new(row.userId).str,
+        id: ID.transaction(row.id).str,
+        userId: ID.user(row.userId).str,
       }));
     },
   },

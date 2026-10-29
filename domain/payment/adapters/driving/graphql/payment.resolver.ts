@@ -13,14 +13,14 @@ import type { PaymentData } from "../../../core/model/payment.model";
 import type { InvoiceData } from "../../../core/model/invoice.model";
 import { ID } from "$services/shared/kernel";
 
-const toHashOrNull = (numb?: number): string | null =>
-  numb !== undefined ? ID.new(numb).str : null;
+const toHashOrNull = (id: number | undefined, scope: (id: number) => ID): string | null =>
+  id !== undefined ? scope(id).str : null;
 
 function mapPayment(data: PaymentData): GqlPayment {
   return {
-    id: data.id !== undefined ? ID.new(data.id).str : "",
-    userId: ID.new(data.userId).str,
-    invoiceId: toHashOrNull(data.invoiceId),
+    id: data.id !== undefined ? ID.payment(data.id).str : "",
+    userId: ID.user(data.userId).str,
+    invoiceId: toHashOrNull(data.invoiceId, ID.invoice),
     amount: data.amount,
     currency: data.currency,
     method: data.method as PaymentMethodEnum,
@@ -36,10 +36,10 @@ function mapPayment(data: PaymentData): GqlPayment {
 
 function mapInvoice(data: InvoiceData): GqlInvoice {
   return {
-    id: data.id !== undefined ? ID.new(data.id).str : "",
-    userId: ID.new(data.userId).str,
+    id: data.id !== undefined ? ID.invoice(data.id).str : "",
+    userId: ID.user(data.userId).str,
     invoiceNumber: data.invoiceNumber,
-    customerId: toHashOrNull(data.customerId),
+    customerId: toHashOrNull(data.customerId, ID.contact),
     items: data.items.map((item) => ({
       description: item.description,
       quantity: item.quantity,

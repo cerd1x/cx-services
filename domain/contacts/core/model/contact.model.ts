@@ -61,7 +61,7 @@ export class Contact {
     phones?: string | string[];
     group?: string;
     avatar?: string;
-    id?: number;
+    id?: number | ID;
     createdAt?: Date;
     updatedAt?: Date;
   }) {
@@ -71,7 +71,7 @@ export class Contact {
     this.phones = normalizePhones(data.phones ?? data.phone);
     this.group = data.group;
     this.avatar = data.avatar;
-    this.id = data.id ? ID.new(data.id) : undefined;
+    this.id = data.id ? (data.id instanceof ID ? data.id : ID.contact(data.id)) : undefined;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }
@@ -89,7 +89,7 @@ export class Contact {
   }
 
   set setId(id: number) {
-    this.id = ID.new(id);
+    this.id = ID.contact(id);
   }
 
   // Compatibility accessor: first/primary phone number.

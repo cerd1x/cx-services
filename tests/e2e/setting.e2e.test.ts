@@ -7,6 +7,7 @@ type SettingDto = {
   currency: string;
   darkMode: boolean;
   dateFormat: string;
+  defaultAssetCashId: string | null;
 };
 
 describe("setting e2e (GraphQL over HTTP)", () => {
@@ -16,7 +17,7 @@ describe("setting e2e (GraphQL over HTTP)", () => {
     const { session } = await signUpUser();
 
     const { data, errors } = await gql<{ setting: SettingDto }>(
-      `{ setting { id userId currency darkMode dateFormat } }`,
+      `{ setting { id userId currency darkMode dateFormat defaultAssetCashId } }`,
       undefined,
       authHeaders(session),
     );
@@ -25,7 +26,9 @@ describe("setting e2e (GraphQL over HTTP)", () => {
     expect(data!.setting.currency).toBe("IDR");
     expect(data!.setting.darkMode).toBe(false);
     expect(data!.setting.dateFormat).toBe("d MMM yyyy, HH:mm");
-    expect(data!.setting.userId).toBeTruthy();
+    expect(data!.setting.id).toMatch(/^STG\./);
+    expect(data!.setting.userId).toMatch(/^USR\./);
+    expect(data!.setting.defaultAssetCashId).toMatch(/^AST\./);
   });
 
   it("updates currency and theme", async () => {

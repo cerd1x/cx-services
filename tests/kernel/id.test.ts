@@ -28,6 +28,49 @@ describe("ID", () => {
     });
   });
 
+  describe("scoped helpers", () => {
+    it("encodes each aggregate with its own scope", () => {
+      expect(ID.user(42).str).toBe(`USR.${ID.encode(42)}`);
+      expect(ID.contact(42).str).toBe(`CT.${ID.encode(42)}`);
+      expect(ID.asset(42).str).toBe(`AST.${ID.encode(42)}`);
+      expect(ID.invoice(42).str).toBe(`INV.${ID.encode(42)}`);
+      expect(ID.product(42).str).toBe(`PRD.${ID.encode(42)}`);
+      expect(ID.order(42).str).toBe(`ORD.${ID.encode(42)}`);
+      expect(ID.transaction(42).str).toBe(`TRX.${ID.encode(42)}`);
+      expect(ID.payment(42).str).toBe(`PAY.${ID.encode(42)}`);
+      expect(ID.setting(42).str).toBe(`STG.${ID.encode(42)}`);
+      expect(ID.assetMutation(42).str).toBe(`AM.${ID.encode(42)}`);
+    });
+
+    it("round-trips every scoped id back to the database number", () => {
+      const scopes = [
+        ID.user,
+        ID.contact,
+        ID.asset,
+        ID.invoice,
+        ID.product,
+        ID.order,
+        ID.transaction,
+        ID.payment,
+        ID.setting,
+        ID.assetMutation,
+      ];
+
+      for (const make of scopes) {
+        const id = make(7);
+
+        expect(ID.new(id.str).decode).toBe(7);
+        expect(ID.is(id.str)).toBe(true);
+      }
+    });
+
+    it("does not re-scope an already encoded id", () => {
+      const id = ID.user(7);
+
+      expect(ID.user(id.str).str).toBe(id.str);
+    });
+  });
+
   describe("withScope", () => {
     it("creates a composite encoded id from scope + number", () => {
       const id = ID.withScope("CT", 42);
