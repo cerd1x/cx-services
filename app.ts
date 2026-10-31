@@ -99,13 +99,15 @@ function getApp() {
 }
 
 /**
- * Docs GraphQL (SpectaQL) untuk runtime non-fullstack (test / Bun biasa).
+ * Docs GraphQL (Magidoc) untuk runtime non-fullstack (test / Bun biasa).
  * Di Bun Fullstack Dev Server (`bun run app.ts`) halaman ini justru disajikan
  * sebagai HTML bundle lewat `routes` di default export, bukan dari disk.
  */
 const gqlDocsPlugin = await staticPlugin({
-  assets: "build/graphql-docs",
+  assets: "docs",
   prefix: "/graphql/docs",
+  alwaysStatic: true,
+  bunFullstack: false,
 });
 
 function createApp() {
@@ -415,11 +417,11 @@ const app = createApp();
  * `import()` file HTML memakai bundler, transpiler, dan parser CSS bawaan Bun,
  * lalu HTML bundle-nya disajikan router native Bun lewat `routes` di default
  * export. Tag `<script>`/`<link>` ditulis ulang ke aset hasil bundel (`/_bun/*`)
- * sehingga halaman SpectaQL ter-render tanpa file statis terpisah.
+ * sehingga halaman Magidoc ter-render tanpa file statis terpisah.
  */
 const docsBundle = isBunDevServer
   ? (
-      await import("./build/graphql-docs/index.html").catch((error) => {
+      await import("./docs/index.html").catch((error) => {
         l.warn(`Gagal memuat HTML bundle GraphQL docs: ${error}`);
         return { default: undefined };
       })

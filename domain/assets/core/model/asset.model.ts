@@ -144,7 +144,7 @@ export class Asset {
   }
 
   /**
-   * Aturan mutasi saldo yang butuh dua asset (add/subtract/swap).
+   * Aturan mutasi saldo.
    * `Money` di sini adalah nilai uang bersih, bukan saldo asset yang
    * sedang dimutasi.
    */
@@ -154,9 +154,9 @@ export class Asset {
     }
   }
 
-  static canMutateAsset(asset: Asset, type: "add" | "subtract", amount: Money): void {
+  static canMutateAsset(asset: Asset, direction: "credit" | "debit", amount: Money): void {
     this.validateMutationAmount(amount);
-    if (type === "subtract") {
+    if (direction === "debit") {
       Asset.canSubtract(asset.balance, amount);
     }
   }

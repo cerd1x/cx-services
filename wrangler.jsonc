@@ -3,6 +3,11 @@
   "name": "cxs",
   "main": "./build/worker.js",
   "no_bundle": true,
+  // Pastikan folder `docs` ada di root project sebelum deploy
+  // Dokumen GraphQL akan tersedia di /graphql/docs
+  "assets": {
+    "directory": "./docs"
+  },
   // >= 2026-08-04: Workers mengaktifkan nodejs_compat + nodejs_compat_v2
   // secara default, jadi tidak perlu `compatibility_flags` lagi.
   "compatibility_date": "2026-08-04",

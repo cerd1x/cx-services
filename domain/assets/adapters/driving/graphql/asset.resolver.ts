@@ -84,34 +84,47 @@ const resolvers: Resolvers<YogaContext> = {
         type: result.type as AssetType,
       };
     },
-    addBalance: async (_parent, args, { asset, userAuth }) => {
+    mutateAsset: async (_parent, args, { asset, userAuth }) => {
+      const input = args.input;
       const result = await asset.mutateAsset({
         userId: userAuth!.id,
-        code: "CR",
-        assetId: ID.new(args.assetId),
-        amount: args.amount,
+        code: input.code as any,
+        assetId: input.assetId ? ID.new(input.assetId) : undefined,
+        fromAssetId: input.fromAssetId ? ID.new(input.fromAssetId) : undefined,
+        toAssetId: input.toAssetId ? ID.new(input.toAssetId) : undefined,
+        amount: input.amount,
+        description: input.description ?? undefined,
       });
+
+      if (result.code === "TF") {
+        return {
+          __typename: "AssetTransferResult",
+          code: result.code,
+          from: {
+            id: result.from.IdStr,
+            balance: result.from.balance,
+            name: result.from.name,
+            type: result.from.type as AssetType,
+          },
+          to: {
+            id: result.to.IdStr,
+            balance: result.to.balance,
+            name: result.to.name,
+            type: result.to.type as AssetType,
+          },
+        };
+      }
+
       const updated = expectSingleAsset(result);
       return {
-        id: updated.IdStr,
-        balance: updated.balance,
-        name: updated.name,
-        type: updated.type as AssetType,
-      };
-    },
-    subtractBalance: async (_parent, args, { asset, userAuth }) => {
-      const result = await asset.mutateAsset({
-        userId: userAuth!.id,
-        code: "DB",
-        assetId: ID.new(args.assetId),
-        amount: args.amount,
-      });
-      const updated = expectSingleAsset(result);
-      return {
-        id: updated.IdStr,
-        balance: updated.balance,
-        name: updated.name,
-        type: updated.type as AssetType,
+        __typename: "AssetSingleMutationResult",
+        code: result.code,
+        asset: {
+          id: updated.IdStr,
+          balance: updated.balance,
+          name: updated.name,
+          type: updated.type as AssetType,
+        },
       };
     },
     deleteAsset: async (_parent, args, { asset, userAuth }) => {

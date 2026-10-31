@@ -1,0 +1,838 @@
+directive @authorized on OBJECT | FIELD_DEFINITION
+
+directive @admin on OBJECT | FIELD_DEFINITION
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar DateTime
+
+"""
+The javascript `Date` as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
+"""
+scalar Timestamp
+
+"""
+Menerima ISO 8601 date string (contoh: '2026-06-21T10:30:00Z') atau Unix epoch timestamp dalam detik (contoh: 1789852200). Selalu mengembalikan ISO string pada output.
+"""
+scalar DateTimeOrTimestamp
+
+"""
+Nominal uang berformat "KODE_ISO NOMINAL", contoh: "IDR 1500000" atau "USD 100.50".
+"""
+scalar Money
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+enum IsoCurrency {
+  AED
+  AFN
+  ALL
+  AMD
+  AOA
+  ARS
+  AUD
+  AWG
+  AZN
+  BAM
+  BBD
+  BDT
+  BGN
+  BHD
+  BIF
+  BMD
+  BND
+  BOB
+  BOV
+  BRL
+  BSD
+  BTN
+  BWP
+  BYN
+  BZD
+  CAD
+  CDF
+  CHE
+  CHF
+  CHW
+  CLF
+  CLP
+  CNY
+  COP
+  COU
+  CRC
+  CUP
+  CVE
+  CZK
+  DJF
+  DKK
+  DOP
+  DZD
+  EGP
+  ERN
+  ETB
+  EUR
+  FJD
+  FKP
+  GBP
+  GEL
+  GHS
+  GIP
+  GMD
+  GNF
+  GTQ
+  GYD
+  HKD
+  HNL
+  HTG
+  HUF
+  IDR
+  ILS
+  INR
+  IQD
+  IRR
+  ISK
+  JMD
+  JOD
+  JPY
+  KES
+  KGS
+  KHR
+  KMF
+  KPW
+  KRW
+  KWD
+  KYD
+  KZT
+  LAK
+  LBP
+  LKR
+  LRD
+  LSL
+  LYD
+  MAD
+  MDL
+  MGA
+  MKD
+  MMK
+  MNT
+  MOP
+  MRU
+  MUR
+  MVR
+  MWK
+  MXN
+  MXV
+  MYR
+  MZN
+  NAD
+  NGN
+  NIO
+  NOK
+  NPR
+  NZD
+  OMR
+  PAB
+  PEN
+  PGK
+  PHP
+  PKR
+  PLN
+  PYG
+  QAR
+  RON
+  RSD
+  RUB
+  RWF
+  SAR
+  SBD
+  SCR
+  SDG
+  SEK
+  SGD
+  SHP
+  SLE
+  SOS
+  SRD
+  SSP
+  STN
+  SVC
+  SYP
+  SZL
+  THB
+  TJS
+  TMT
+  TND
+  TOP
+  TRY
+  TTD
+  TWD
+  TZS
+  UAH
+  UGX
+  USD
+  USN
+  UYI
+  UYU
+  UYW
+  UZS
+  VES
+  VED
+  VND
+  VUV
+  WST
+  XAD
+  XAF
+  XAG
+  XAU
+  XBA
+  XBB
+  XBC
+  XBD
+  XCD
+  XCG
+  XDR
+  XOF
+  XPD
+  XPF
+  XPT
+  XSU
+  XTS
+  XUA
+  XXX
+  YER
+  ZAR
+  ZMW
+  ZWG
+  ANG
+  BYR
+  CUC
+  HRK
+  ROL
+  SKK
+  SLL
+  STD
+  ZMK
+  ZWL
+}
+
+"""
+Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+tanpa token mendapat 401.
+"""
+type Query {
+  me: MeUser!
+  checkAuthorized: Boolean!
+  passkeyRegistrationOptions: PasskeyRegistrationOptionsPayload!
+  passkeyAuthenticationOptions: PasskeyAuthenticationOptionsPayload!
+  passkeys: [PasskeyInfo!]!
+  assets: [Asset!]!
+  asset(name: String!): Asset
+  assetById(id: ID!): Asset
+  assetMutations(assetId: ID!): [AssetMutationType!]!
+  user(username: String!): User
+  users: [User!]!
+  product(id: String!): Product
+  products: [Product!]!
+  contact(id: String!): Contact
+  contacts: [Contact!]!
+  contactConnection(first: Int, after: String, last: Int, before: String): ContactConnection!
+  transaction(id: String!): Transaction
+  transactions: [Transaction!]!
+  transactionConnection(first: Int, after: String, last: Int, before: String): TransactionConnection!
+  transactionsByType(type: TransactionType!): [Transaction!]!
+  transactionsByDateRange(start: DateTime!, end: DateTime!): [Transaction!]!
+  setting: Setting!
+  statistics: Statistic!
+  order(id: String!): Order
+  orders: [Order!]!
+  payment(id: ID!): Payment
+  payments: [Payment!]!
+  paymentsByStatus(status: PaymentStatusEnum!): [Payment!]!
+  invoice(id: ID!): Invoice
+  invoices: [Invoice!]!
+  invoicesByStatus(status: InvoiceStatusEnum!): [Invoice!]!
+  adminUsers: [AdminUser!]!
+  adminOverview: AdminOverview!
+  adminUserTransactions(userId: ID!, limit: Int): [AdminTransaction!]!
+}
+
+type MeUser {
+  id: ID!
+  username: String!
+  name: String!
+  avatarUrl: String
+}
+
+type PasskeyRegistrationOptionsPayload {
+  options: String!
+  challenge: String!
+}
+
+type PasskeyAuthenticationOptionsPayload {
+  options: String!
+  challenge: String!
+}
+
+type PasskeyInfo {
+  id: String!
+  deviceName: String
+  createdAt: DateTime!
+}
+
+type Mutation {
+  signUp(input: SignUpInput!): SignUpPayload!
+  signIn(input: SignInInput!): SignInPayload!
+  signInWithPassKey(input: SignInWithPassKeyInput!): SignInPayload!
+  signOut: Boolean!
+  registerPasskey(input: RegisterPasskeyInput!): Boolean!
+  deletePasskey(credentialId: String!): Boolean!
+  createAsset(input: CreateAssetInput!): Asset!
+  updateAsset(id: ID!, input: AssetInputUpdate!): Asset!
+  deleteAsset(name: String!): Boolean!
+  addBalance(assetId: ID!, amount: Money!): Asset!
+  subtractBalance(assetId: ID!, amount: Money!): Asset!
+  createUser(input: CreateUserInput!): User!
+  updateUserAvatar(input: UpdateUserAvatarInput!): User!
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: String!, input: UpdateProductInput!): Product!
+  deleteProduct(id: String!): Boolean!
+  importProductFromCSV(content: String!, filename: String!): ImportProductResult!
+  createContact(input: CreateContactInput!): Contact!
+  updateContact(id: String!, input: UpdateContactInput!): Contact!
+  deleteContact(id: String!): Boolean!
+  importContacts(content: String!, filename: String!): ImportResult!
+  mergeContacts(phone: String!): MergeResult!
+  createTransaction(input: CreateTransactionInput!): Transaction!
+  updateTransaction(id: ID!, input: UpdateTransactionInput!): Transaction!
+  deleteTransaction(id: ID!): Boolean!
+  swapBalance(fromAssetId: ID!, toAssetId: ID!, amount: Money!): SwapBalanceResult!
+  updateSetting(input: UpdateSettingInput!): Setting!
+  createOrder(input: CreateOrderInput!): Order!
+  updateOrder(id: String!, input: UpdateOrderInput!): Order!
+  deleteOrder(id: String!): Boolean!
+  createOrderProductSale(input: CreateOrderProductSaleInput!): Order!
+  createOrderExpense(input: CreateOrderExpenseInput!): Order!
+  createOrderLoan(input: CreateOrderLoanInput!): Order!
+  processPayment(input: ProcessPaymentInput!): Payment!
+  retryPayment(paymentId: ID!): Payment!
+  createInvoice(input: CreateInvoiceInput!): Invoice!
+  issueInvoice(id: ID!): Invoice!
+  cancelInvoice(id: ID!): Invoice!
+  adminSetUserRole(input: AdminSetUserRoleInput!): User!
+  adminDeleteUser(userId: ID!): Boolean!
+}
+
+input SignUpInput {
+  name: String!
+  username: String!
+  password: String!
+}
+
+type SignUpPayload {
+  user: User!
+  session: String!
+  refreshToken: String!
+}
+
+input SignInInput {
+  username: String!
+  password: String!
+}
+
+type SignInPayload {
+  user: User!
+  session: String!
+  refreshToken: String!
+}
+
+input SignInWithPassKeyInput {
+  challenge: String!
+  credentialId: String!
+  assertionResponse: String!
+}
+
+input RegisterPasskeyInput {
+  challenge: String!
+  attestationResponse: String!
+  deviceName: String
+}
+
+input CreateAssetInput {
+  name: String!
+  type: AssetType!
+  balance: Money!
+}
+
+input AssetInputUpdate {
+  name: String
+  type: AssetType
+  balance: Money
+  currency: String
+}
+
+enum AssetType {
+  bank
+  ewallet
+  cash
+  crypto
+  loan
+}
+
+type Asset {
+  id: ID!
+  name: String!
+  type: AssetType!
+  balance: Money!
+}
+
+type AssetMutationType {
+  id: ID!
+  type: String!
+  amount: Float!
+  currency: String!
+  balanceBefore: Money!
+  balanceAfter: Money!
+  description: String
+  createdAt: String!
+}
+
+input CreateUserInput {
+  name: String!
+  username: String!
+  password: String!
+}
+
+input UpdateUserAvatarInput {
+  userId: ID!
+  avatarUrl: String
+}
+
+type User {
+  id: ID
+  name: String!
+  username: String!
+  avatarUrl: String
+}
+
+type ImportProductResult {
+  imported: Int!
+  failed: Int!
+  merged: Int!
+}
+
+input CreateProductInput {
+  name: String!
+  description: String
+  price: Float!
+  capital: Float
+  stock: Int
+  trackStock: Boolean
+}
+
+input UpdateProductInput {
+  name: String
+  description: String
+  price: Float
+  capital: Float
+  currency: String
+  stock: Int
+  trackStock: Boolean
+}
+
+type Product {
+  id: ID
+  name: String!
+  description: String
+  price: Float!
+  capital: Float
+  margin: Float!
+  currency: String!
+  stock: Int!
+  trackStock: Boolean!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type ContactEdge {
+  cursor: String!
+  node: Contact!
+}
+
+type ContactConnection {
+  edges: [ContactEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ImportResult {
+  imported: Int!
+  failed: Int!
+  merged: Int!
+}
+
+type MergeResult {
+  merged: Int!
+  primary: Contact!
+}
+
+input CreateContactInput {
+  name: String!
+  userId: ID
+  email: String
+  phone: String
+  phones: [String!]
+  group: String
+  avatar: String
+}
+
+input UpdateContactInput {
+  name: String
+  email: String
+  phone: String
+  phones: [String!]
+  group: String
+}
+
+type Contact {
+  id: ID!
+  userId: ID!
+  name: String!
+  email: String
+  phone: String
+  phones: [String!]
+  group: String
+  avatar: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
+}
+
+type TransactionConnection {
+  edges: [TransactionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type SwapBalanceResult {
+  from: Asset!
+  to: Asset!
+}
+
+enum TransactionType {
+  income
+  expense
+  transfer
+  outcome
+  cash
+}
+
+input PaymentMethodInput {
+  type: PaymentMethodType!
+  assetId: ID
+}
+
+input CreateTransactionInput {
+  type: TransactionType!
+  amount: Money!
+  capital: Money!
+  date: DateTimeOrTimestamp!
+  description: String
+  category: String
+  paymentMethod: PaymentMethodInput
+  customerId: ID!
+  status: TransactionStatus
+  paymentStatus: TransactionPaymentStatus
+  payWithAssetId: ID
+  payToAssetId: ID
+}
+
+input UpdateTransactionInput {
+  type: TransactionType
+  amount: Money
+  capital: Money
+  date: DateTimeOrTimestamp
+  description: String
+  category: String
+  paymentMethod: PaymentMethodInput
+  customerId: ID!
+  paymentStatus: TransactionPaymentStatus
+}
+
+type PaymentMethod {
+  type: PaymentMethodType!
+  assetId: ID
+}
+
+enum PaymentMethodType {
+  cash
+  bank_transfer
+  ewallet
+  credit_card
+  debit_card
+  credit
+}
+
+type Transaction {
+  id: ID!
+  type: TransactionType!
+  status: TransactionStatus!
+  paymentStatus: TransactionPaymentStatus!
+  amount: Money!
+  capital: Money!
+  description: String
+  category: String
+  paymentMethod: PaymentMethod!
+  customerId: ID
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+enum TransactionStatus {
+  pending
+  success
+  failed
+}
+
+enum TransactionPaymentStatus {
+  paid
+  unpaid
+}
+
+input UpdateSettingInput {
+  currency: String
+  darkMode: Boolean
+  dateFormat: String
+  defaultAssetCashId: ID
+}
+
+type Setting {
+  id: ID!
+  userId: ID!
+  currency: String!
+  darkMode: Boolean!
+  dateFormat: String!
+  defaultAssetCashId: ID
+}
+
+type Statistic {
+  totalIncome: Float!
+  totalExpense: Float!
+  totalProfit: Float!
+  totalLoan: Float!
+  totalCash: Float!
+  totalAsset: Float!
+}
+
+input CreateOrderProductSaleInput {
+  productId: ID!
+  itemCount: Int!
+  price: Money!
+  paymentMethod: PaymentMethodType
+  customerId: ID
+  description: String
+  payWithAssetId: ID
+  paymentStatus: TransactionPaymentStatus
+}
+
+input CreateOrderExpenseInput {
+  price: Money!
+  itemCount: Int!
+  description: String
+  customerId: String
+  paymentMethod: PaymentMethodType
+  payWithAssetId: ID
+}
+
+input CreateOrderInput {
+  price: Money!
+  itemCount: Int!
+  paymentMethod: PaymentMethodType
+  description: String
+  customerId: String
+}
+
+input CreateOrderLoanInput {
+  price: Money!
+  itemCount: Int!
+  paymentMethod: PaymentMethodType
+  customerId: ID
+  description: String
+  payWithAssetId: ID
+  paymentStatus: TransactionPaymentStatus
+}
+
+input UpdateOrderInput {
+  status: String
+  paymentMethod: PaymentMethodType
+  description: String
+  customerId: String
+}
+
+type Order {
+  id: ID
+  userId: ID
+  status: String!
+  paymentMethod: PaymentMethodType!
+  price: Money!
+  itemCount: Int!
+  description: String
+  customerId: ID
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+enum PaymentStatusEnum {
+  pending
+  processing
+  completed
+  failed
+  refunded
+  cancelled
+}
+
+enum InvoiceStatusEnum {
+  draft
+  issued
+  paid
+  partially_paid
+  overdue
+  cancelled
+}
+
+enum PaymentMethodEnum {
+  cash
+  bank_transfer
+  ewallet
+  credit_card
+  debit_card
+  credit
+}
+
+type Payment {
+  id: ID!
+  userId: ID!
+  invoiceId: ID
+  amount: Float!
+  currency: String!
+  method: PaymentMethodEnum!
+  status: PaymentStatusEnum!
+  gatewayRef: String
+  description: String
+  retryCount: Int!
+  maxRetries: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type InvoiceItem {
+  description: String!
+  quantity: Int!
+  unitPrice: Float!
+}
+
+type Invoice {
+  id: ID!
+  userId: ID!
+  invoiceNumber: String!
+  customerId: ID
+  items: [InvoiceItem!]!
+  subtotal: Float!
+  tax: Float!
+  totalAmount: Float!
+  currency: String!
+  status: InvoiceStatusEnum!
+  issuedAt: DateTime
+  dueAt: DateTime
+  paidAt: DateTime
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+input ProcessPaymentInput {
+  amount: Float!
+  currency: String!
+  method: PaymentMethodEnum!
+  invoiceId: ID
+  description: String
+}
+
+input InvoiceItemInput {
+  description: String!
+  quantity: Int!
+  unitPrice: Float!
+}
+
+input CreateInvoiceInput {
+  customerId: ID
+  items: [InvoiceItemInput!]!
+  currency: String!
+  tax: Float
+  dueAt: DateTimeOrTimestamp
+  description: String
+}
+
+input AdminSetUserRoleInput {
+  userId: ID!
+  role: UserRole!
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+"""
+User yang dilihat admin. Sengaja tidak memuat `password`, dan `email` hanya
+ada di sini — bukan di type `User` biasa.
+"""
+type AdminUser {
+  id: ID!
+  name: String!
+  username: String!
+  email: String!
+  role: UserRole!
+  avatarUrl: String
+  createdAt: DateTime!
+}
+
+type AdminOverview {
+  totalUsers: Int!
+  totalAdmins: Int!
+  totalTransactions: Int!
+  totalAssets: Int!
+
+  """
+  Total `amount` untuk transaksi bertipe income, dijumlahkan apa adanya.
+  Nilainya belum dinormalisasi ke satu mata uang.
+  """
+  totalIncome: Float!
+
+  """
+  Total `amount` untuk transaksi bertipe expense, dijumlahkan apa adanya.
+  """
+  totalExpense: Float!
+}
+
+type AdminTransaction {
+  id: ID!
+  userId: ID!
+  type: String!
+  status: String!
+  paymentStatus: String!
+  amount: Float!
+  capital: Float!
+  description: String
+  category: String
+  date: String!
+  createdAt: DateTime!
+}

@@ -9,8 +9,7 @@ type Mutation {
   createAsset(input: CreateAssetInput!): Asset! @authorized
   updateAsset(id: ID!, input: AssetInputUpdate!): Asset! @authorized
   deleteAsset(name: String!): Boolean! @authorized
-  addBalance(assetId: ID!, amount: Money!): Asset! @authorized
-  subtractBalance(assetId: ID!, amount: Money!): Asset! @authorized
+  mutateAsset(input: MutateAssetInput!): MutateAssetResult! @authorized
 }
 
 input CreateAssetInput {
@@ -55,4 +54,26 @@ type AssetMutationType {
   balanceAfter: Money!
   description: String
   createdAt: String!
+}
+
+input MutateAssetInput {
+  code: String!
+  assetId: ID
+  fromAssetId: ID
+  toAssetId: ID
+  amount: Money!
+  description: String
+}
+
+union MutateAssetResult = AssetSingleMutationResult | AssetTransferResult
+
+type AssetSingleMutationResult {
+  code: String!
+  asset: Asset!
+}
+
+type AssetTransferResult {
+  code: String!
+  from: Asset!
+  to: Asset!
 }
