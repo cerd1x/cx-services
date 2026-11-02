@@ -800,9 +800,8 @@ export type Payment = {
   id: Scalars['ID']['output'];
   invoiceId?: Maybe<Scalars['ID']['output']>;
   maxRetries: Scalars['Int']['output'];
-  metadata?: Maybe<Scalars['JSONObject']['output']>;
+  metadata?: Maybe<PaymentMetadata>;
   method: PaymentMethodEnum;
-  paymentMetadata?: Maybe<PaymentMetadata>;
   retryCount: Scalars['Int']['output'];
   status: PaymentStatusEnum;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -1762,9 +1761,8 @@ export type PaymentResolvers<ContextType = any, ParentType extends ResolversPare
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   invoiceId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   maxRetries?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  metadata?: Resolver<Maybe<ResolversTypes['JSONObject']>, ParentType, ContextType>;
+  metadata?: Resolver<Maybe<ResolversTypes['PaymentMetadata']>, ParentType, ContextType>;
   method?: Resolver<ResolversTypes['PaymentMethodEnum'], ParentType, ContextType>;
-  paymentMetadata?: Resolver<Maybe<ResolversTypes['PaymentMetadata']>, ParentType, ContextType>;
   retryCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['PaymentStatusEnum'], ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;

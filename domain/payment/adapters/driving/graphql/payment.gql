@@ -61,8 +61,7 @@ type Payment {
   description: String
   retryCount: Int!
   maxRetries: Int!
-  metadata: JSONObject
-  paymentMetadata: PaymentMetadata
+  metadata: PaymentMetadata
   createdAt: DateTime!
   updatedAt: DateTime
 }
