@@ -77,7 +77,7 @@ export const paymentSchema = z.object({
   description: z.string().max(500).optional(),
   retryCount: z.number().min(0).max(3).default(0),
   maxRetries: z.number().min(0).max(5).default(3),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   createdAt: z.date(),
   updatedAt: z.date().optional(),
 });
@@ -85,7 +85,19 @@ export const paymentSchema = z.object({
 export type PaymentData = z.infer<typeof paymentSchema>;
 export type PaymentUpdateData = Partial<
   Pick<PaymentData, "status" | "gatewayRef" | "description" | "metadata" | "retryCount">
->;
+> & {
+  metadata?: Record<string, any>;
+};
+
+export interface PaymentMetadata {
+  paymentType?: string;
+  assetId?: number;
+  lastError?: string;
+  nextRetryDelayMs?: number;
+  isRetry?: boolean;
+  retryAttempt?: number;
+  [key: string]: any;
+}
 
 const amountSchema = paymentSchema.shape.amount;
 const statusSchema = paymentSchema.shape.status;
@@ -104,7 +116,7 @@ export class Payment {
   description?: string;
   retryCount: number = 0;
   maxRetries: number = 3;
-  metadata?: Record<string, unknown>;
+  metadata?: PaymentMetadata;
   createdAt?: Date;
   updatedAt?: Date;
 
@@ -119,8 +131,8 @@ export class Payment {
     description?: string;
     retryCount?: number;
     maxRetries?: number;
-    metadata?: Record<string, unknown>;
-    id?: number;
+    metadata?: PaymentMetadata;
+    id?: number | ID;
     createdAt?: Date;
     updatedAt?: Date;
   }) {
@@ -135,7 +147,13 @@ export class Payment {
     if (data.retryCount !== undefined) this.retryCount = data.retryCount;
     if (data.maxRetries !== undefined) this.maxRetries = data.maxRetries;
     this.metadata = data.metadata;
-    this.id = data.id ? ID.new(data.id) : undefined;
+    if (data.id instanceof ID) {
+      this.id = data.id;
+    } else if (typeof data.id === "number") {
+      this.id = ID.new(data.id);
+    } else {
+      this.id = undefined;
+    }
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }
@@ -148,7 +166,7 @@ export class Payment {
     invoiceId?: number;
     description?: string;
     maxRetries?: number;
-    metadata?: Record<string, unknown>;
+    metadata?: PaymentMetadata;
   }): Payment {
     return new Payment({ ...data });
   }
@@ -217,6 +235,11 @@ export class Payment {
 
   validateAll(): Payment {
     return this.validateAmount().validateCurrency().validateStatus().validateMethod();
+  }
+
+  getMetadataWithKey<T = unknown>(key: string): T | undefined {
+    if (!this.metadata) return undefined;
+    return this.metadata[key] as T | undefined;
   }
 }
 

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import type {
-  PaymentData,
-  PaymentUpdateData,
+import {
+  Payment,
+  type PaymentData,
+  type PaymentUpdateData,
 } from "$services/domain/payment/core/model/payment.model";
 import { PaymentRepository } from "$services/domain/payment/core/ports/out/payment-repository.port";
 import { PaymentGateway } from "$services/domain/payment/core/ports/out/payment-gateway.port";
@@ -28,46 +29,50 @@ import { ServiceContainer } from "$services/shared/base";
 import { ID } from "$services/shared/kernel";
 
 class PaymentRepo extends PaymentRepository {
-  store: PaymentData[] = [];
+  store: Payment[] = [];
   seq = 1;
 
-  async save(payment: PaymentData): Promise<PaymentData> {
-    const row: PaymentData = { ...payment, id: this.seq++ };
+  #getId(p: Payment): number | undefined {
+    return typeof p.id === "number" ? p.id : p.id?.decode;
+  }
+
+  async save(payment: PaymentData): Promise<Payment> {
+    const row = new Payment({ ...payment, id: this.seq++ });
     this.store.push(row);
     return row;
   }
 
-  async findById(id: number, userId: ID): Promise<PaymentData | null> {
-    return this.store.find((p) => p.id === id && p.userId === userId.decode) ?? null;
+  async findById(id: number, userId: ID): Promise<Payment | null> {
+    return this.store.find((p) => this.#getId(p) === id && p.userId === userId.decode) ?? null;
   }
 
-  async findAll(userId: ID): Promise<PaymentData[]> {
+  async findAll(userId: ID): Promise<Payment[]> {
     return this.store.filter((p) => p.userId === userId.decode);
   }
 
-  async findByStatus(status: string, userId: ID): Promise<PaymentData[]> {
+  async findByStatus(status: string, userId: ID): Promise<Payment[]> {
     return this.store.filter((p) => p.userId === userId.decode && p.status === status);
   }
 
-  async findByInvoiceId(invoiceId: number, userId: ID): Promise<PaymentData[]> {
+  async findByInvoiceId(invoiceId: number, userId: ID): Promise<Payment[]> {
     return this.store.filter((p) => p.userId === userId.decode && p.invoiceId === invoiceId);
   }
 
-  async findByGatewayRef(gatewayRef: string, userId: ID): Promise<PaymentData | null> {
+  async findByGatewayRef(gatewayRef: string, userId: ID): Promise<Payment | null> {
     return (
       this.store.find((p) => p.userId === userId.decode && p.gatewayRef === gatewayRef) ?? null
     );
   }
 
-  async update(id: number, data: PaymentUpdateData, userId: ID): Promise<PaymentData> {
-    const idx = this.store.findIndex((p) => p.id === id && p.userId === userId.decode);
+  async update(id: number, data: PaymentUpdateData, userId: ID): Promise<Payment> {
+    const idx = this.store.findIndex((p) => this.#getId(p) === id && p.userId === userId.decode);
     if (idx === -1) throw new Error("payment not found");
-    this.store[idx] = { ...this.store[idx], ...data };
+    Object.assign(this.store[idx], data);
     return this.store[idx];
   }
 
   async delete(id: number, _userId: ID): Promise<void> {
-    this.store = this.store.filter((p) => p.id !== id);
+    this.store = this.store.filter((p) => this.#getId(p) !== id);
   }
 }
 
@@ -212,8 +217,9 @@ describe("ProcessPaymentUseCase — OrderProductSale settlement", () => {
     });
     expect(failed.status).toBe("failed");
 
+    const failedId = typeof failed.id === "number" ? failed.id : failed.id?.decode;
     const retried = await retryPayment.execute({
-      paymentId: ID.new(failed.id!),
+      paymentId: ID.new(failedId!),
       userId: ID.new(1),
     });
 

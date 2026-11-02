@@ -12,7 +12,7 @@ const config: CodegenConfig = {
   schema: [
     "./domain/**/*.gql",
     "./shared/infra/graphql/iso-currency.gql",
-    "scalar DateTime\nscalar Timestamp\nscalar DateTimeOrTimestamp\nscalar Money",
+    "scalar DateTime\nscalar Timestamp\nscalar DateTimeOrTimestamp\nscalar Money\nscalar JSON\nscalar JSONObject",
   ],
   generates: {
     "./shared/infra/graphql/types/types.generated.ts": {

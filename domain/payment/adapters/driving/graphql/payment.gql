@@ -42,6 +42,13 @@ enum PaymentMethodEnum {
   credit
 }
 
+type PaymentMetadata {
+  paymentType: String
+  assetId: Float
+  lastError: String
+  nextRetryDelayMs: Float
+}
+
 type Payment {
   id: ID!
   userId: ID!
@@ -54,6 +61,8 @@ type Payment {
   description: String
   retryCount: Int!
   maxRetries: Int!
+  metadata: JSONObject
+  paymentMetadata: PaymentMetadata
   createdAt: DateTime!
   updatedAt: DateTime
 }

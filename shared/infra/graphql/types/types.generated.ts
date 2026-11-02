@@ -11,6 +11,8 @@ export type Scalars = {
   Float: { input: number; output: number; }
   DateTime: { input: Date; output: Date; }
   DateTimeOrTimestamp: { input: Date; output: Date; }
+  JSON: { input: unknown; output: unknown; }
+  JSONObject: { input: unknown; output: unknown; }
   Money: { input: import('@lib/money').Money; output: import('@lib/money').Money; }
   Timestamp: { input: number; output: number; }
 };
@@ -798,11 +800,21 @@ export type Payment = {
   id: Scalars['ID']['output'];
   invoiceId?: Maybe<Scalars['ID']['output']>;
   maxRetries: Scalars['Int']['output'];
+  metadata?: Maybe<Scalars['JSONObject']['output']>;
   method: PaymentMethodEnum;
+  paymentMetadata?: Maybe<PaymentMetadata>;
   retryCount: Scalars['Int']['output'];
   status: PaymentStatusEnum;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   userId: Scalars['ID']['output'];
+};
+
+export type PaymentMetadata = {
+  __typename?: 'PaymentMetadata';
+  assetId?: Maybe<Scalars['Float']['output']>;
+  lastError?: Maybe<Scalars['String']['output']>;
+  nextRetryDelayMs?: Maybe<Scalars['Float']['output']>;
+  paymentType?: Maybe<Scalars['String']['output']>;
 };
 
 export type PaymentMethod = {
@@ -1375,6 +1387,8 @@ export type ResolversTypes = {
   InvoiceItemInput: InvoiceItemInput;
   InvoiceStatusEnum: InvoiceStatusEnum;
   IsoCurrency: IsoCurrency;
+  JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
+  JSONObject: ResolverTypeWrapper<Scalars['JSONObject']['output']>;
   MeUser: ResolverTypeWrapper<MeUser>;
   MergeResult: ResolverTypeWrapper<MergeResult>;
   Money: ResolverTypeWrapper<Scalars['Money']['output']>;
@@ -1387,6 +1401,7 @@ export type ResolversTypes = {
   PasskeyInfo: ResolverTypeWrapper<PasskeyInfo>;
   PasskeyRegistrationOptionsPayload: ResolverTypeWrapper<PasskeyRegistrationOptionsPayload>;
   Payment: ResolverTypeWrapper<Payment>;
+  PaymentMetadata: ResolverTypeWrapper<PaymentMetadata>;
   PaymentMethod: ResolverTypeWrapper<PaymentMethod>;
   PaymentMethodEnum: PaymentMethodEnum;
   PaymentMethodInput: PaymentMethodInput;
@@ -1457,6 +1472,8 @@ export type ResolversParentTypes = {
   Invoice: Invoice;
   InvoiceItem: InvoiceItem;
   InvoiceItemInput: InvoiceItemInput;
+  JSON: Scalars['JSON']['output'];
+  JSONObject: Scalars['JSONObject']['output'];
   MeUser: MeUser;
   MergeResult: MergeResult;
   Money: Scalars['Money']['output'];
@@ -1469,6 +1486,7 @@ export type ResolversParentTypes = {
   PasskeyInfo: PasskeyInfo;
   PasskeyRegistrationOptionsPayload: PasskeyRegistrationOptionsPayload;
   Payment: Payment;
+  PaymentMetadata: PaymentMetadata;
   PaymentMethod: PaymentMethod;
   PaymentMethodInput: PaymentMethodInput;
   ProcessPaymentInput: ProcessPaymentInput;
@@ -1629,6 +1647,14 @@ export type InvoiceItemResolvers<ContextType = any, ParentType extends Resolvers
   unitPrice?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };
 
+export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
+  name: 'JSON';
+}
+
+export interface JsonObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSONObject'], any> {
+  name: 'JSONObject';
+}
+
 export type MeUserResolvers<ContextType = any, ParentType extends ResolversParentTypes['MeUser'] = ResolversParentTypes['MeUser']> = {
   avatarUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1736,11 +1762,20 @@ export type PaymentResolvers<ContextType = any, ParentType extends ResolversPare
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   invoiceId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   maxRetries?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  metadata?: Resolver<Maybe<ResolversTypes['JSONObject']>, ParentType, ContextType>;
   method?: Resolver<ResolversTypes['PaymentMethodEnum'], ParentType, ContextType>;
+  paymentMetadata?: Resolver<Maybe<ResolversTypes['PaymentMetadata']>, ParentType, ContextType>;
   retryCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['PaymentStatusEnum'], ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+};
+
+export type PaymentMetadataResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaymentMetadata'] = ResolversParentTypes['PaymentMetadata']> = {
+  assetId?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  lastError?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  nextRetryDelayMs?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  paymentType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type PaymentMethodResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaymentMethod'] = ResolversParentTypes['PaymentMethod']> = {
@@ -1887,6 +1922,8 @@ export type Resolvers<ContextType = any> = {
   ImportResult?: ImportResultResolvers<ContextType>;
   Invoice?: InvoiceResolvers<ContextType>;
   InvoiceItem?: InvoiceItemResolvers<ContextType>;
+  JSON?: GraphQLScalarType;
+  JSONObject?: GraphQLScalarType;
   MeUser?: MeUserResolvers<ContextType>;
   MergeResult?: MergeResultResolvers<ContextType>;
   Money?: GraphQLScalarType;
@@ -1898,6 +1935,7 @@ export type Resolvers<ContextType = any> = {
   PasskeyInfo?: PasskeyInfoResolvers<ContextType>;
   PasskeyRegistrationOptionsPayload?: PasskeyRegistrationOptionsPayloadResolvers<ContextType>;
   Payment?: PaymentResolvers<ContextType>;
+  PaymentMetadata?: PaymentMetadataResolvers<ContextType>;
   PaymentMethod?: PaymentMethodResolvers<ContextType>;
   Product?: ProductResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

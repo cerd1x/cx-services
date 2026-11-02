@@ -1,5 +1,4 @@
 import { Payment, ProcessPaymentType } from "../model/payment.model";
-import type { PaymentData } from "../model/payment.model";
 import { PaymentRepository } from "../ports/out/payment-repository.port";
 import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { PaymentRetryExhaustedError } from "../errors/payment-error";
@@ -11,9 +10,9 @@ import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
 import { ID } from "$services/shared/kernel";
 
-export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: ID; userId: ID }> {
+export class RetryPaymentUseCase extends CoreUsecase<Payment, { paymentId: ID; userId: ID }> {
   @logMethod(logger)
-  async execute(input: { paymentId: ID; userId: ID }): Promise<PaymentData> {
+  async execute(input: { paymentId: ID; userId: ID }): Promise<Payment> {
     const paymentRepo = this.deps.get(PaymentRepository);
     const defaultGateway = this.deps.get(PaymentGateway);
     const retryPolicy = this.deps.get(RetryPolicyToken);
@@ -26,22 +25,7 @@ export class RetryPaymentUseCase extends CoreUsecase<PaymentData, { paymentId: I
       throw new PaymentRetryExhaustedError(input.paymentId.decode, existing.maxRetries);
     }
 
-    const payment = new Payment({
-      id: existing.id,
-      userId: existing.userId,
-      amount: existing.amount,
-      currency: existing.currency,
-      method: existing.method as Payment["method"],
-      status: existing.status as Payment["status"],
-      invoiceId: existing.invoiceId,
-      gatewayRef: existing.gatewayRef,
-      description: existing.description,
-      retryCount: existing.retryCount,
-      maxRetries: existing.maxRetries,
-      metadata: existing.metadata,
-      createdAt: existing.createdAt,
-      updatedAt: existing.updatedAt,
-    });
+    const payment = existing;
 
     if (!payment.canRetry() || !retryPolicy.shouldRetry(payment.retryCount)) {
       throw new PaymentRetryExhaustedError(input.paymentId.decode, retryPolicy.maxRetries);

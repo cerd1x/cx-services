@@ -9,7 +9,7 @@ import { ListInvoicesUseCase } from "./core/usecase/list_invoices.usecase";
 import { ListInvoicesByStatusUseCase } from "./core/usecase/list_invoices_by_status.usecase";
 import { IssueInvoiceUseCase } from "./core/usecase/issue_invoice.usecase";
 import { CancelInvoiceUseCase } from "./core/usecase/cancel_invoice.usecase";
-import { type PaymentData, ProcessPaymentType } from "./core/model/payment.model";
+import { Payment, type PaymentData, ProcessPaymentType } from "./core/model/payment.model";
 import { type InvoiceData, type InvoiceItem } from "./core/model/invoice.model";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
@@ -116,27 +116,27 @@ export class PaymentService {
     invoiceId?: number;
     description?: string;
     type?: ProcessPaymentType;
-  }): Promise<PaymentData> {
+  }): Promise<Payment> {
     return this.#processPayment.execute(input);
   }
 
   @logMethod(logger)
-  async getPayment(id: ID, userId: ID): Promise<PaymentData> {
+  async getPayment(id: ID, userId: ID): Promise<Payment> {
     return this.#getPayment.execute({ id, userId });
   }
 
   @logMethod(logger)
-  async listPayments(userId: ID): Promise<PaymentData[]> {
+  async listPayments(userId: ID): Promise<Payment[]> {
     return this.#listPayments.execute(userId);
   }
 
   @logMethod(logger)
-  async listPaymentsByStatus(status: string, userId: ID): Promise<PaymentData[]> {
+  async listPaymentsByStatus(status: string, userId: ID): Promise<Payment[]> {
     return this.#listPaymentsByStatus.execute({ status, userId });
   }
 
   @logMethod(logger)
-  async retryPayment(id: ID, userId: ID): Promise<PaymentData> {
+  async retryPayment(id: ID, userId: ID): Promise<Payment> {
     return this.#retryPayment.execute({ paymentId: id, userId });
   }
 

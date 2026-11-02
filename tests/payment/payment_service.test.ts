@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import type {
-  PaymentData,
-  PaymentUpdateData,
+import {
+  Payment,
+  type PaymentData,
+  type PaymentUpdateData,
 } from "$services/domain/payment/core/model/payment.model";
 import type { InvoiceData } from "$services/domain/payment/core/model/invoice.model";
 import { PaymentRepository } from "$services/domain/payment/core/ports/out/payment-repository.port";
@@ -35,46 +36,46 @@ import {
 import { ServiceContainer } from "$services/shared/base";
 
 class MockPaymentRepo extends PaymentRepository {
-  store: PaymentData[] = [];
+  store: Payment[] = [];
   seq = 1;
 
-  async save(payment: PaymentData): Promise<PaymentData> {
-    const row: PaymentData = { ...payment, id: this.seq++ };
+  async save(payment: PaymentData): Promise<Payment> {
+    const row = new Payment({ ...payment, id: this.seq++ });
     this.store.push(row);
     return row;
   }
 
-  async findById(id: number, userId: ID): Promise<PaymentData | null> {
-    return this.store.find((p) => p.id === id && p.userId === userId.decode) ?? null;
+  async findById(id: number, userId: ID): Promise<Payment | null> {
+    return this.store.find((p) => (typeof p.id === "number" ? p.id : p.id?.decode) === id && p.userId === userId.decode) ?? null;
   }
 
-  async findAll(userId: ID): Promise<PaymentData[]> {
+  async findAll(userId: ID): Promise<Payment[]> {
     return this.store.filter((p) => p.userId === userId.decode);
   }
 
-  async findByStatus(status: string, userId: ID): Promise<PaymentData[]> {
+  async findByStatus(status: string, userId: ID): Promise<Payment[]> {
     return this.store.filter((p) => p.userId === userId.decode && p.status === status);
   }
 
-  async findByInvoiceId(invoiceId: number, userId: ID): Promise<PaymentData[]> {
+  async findByInvoiceId(invoiceId: number, userId: ID): Promise<Payment[]> {
     return this.store.filter((p) => p.userId === userId.decode && p.invoiceId === invoiceId);
   }
 
-  async findByGatewayRef(gatewayRef: string, userId: ID): Promise<PaymentData | null> {
+  async findByGatewayRef(gatewayRef: string, userId: ID): Promise<Payment | null> {
     return (
       this.store.find((p) => p.userId === userId.decode && p.gatewayRef === gatewayRef) ?? null
     );
   }
 
-  async update(id: number, data: PaymentUpdateData, userId: ID): Promise<PaymentData> {
-    const idx = this.store.findIndex((p) => p.id === id && p.userId === userId.decode);
+  async update(id: number, data: PaymentUpdateData, userId: ID): Promise<Payment> {
+    const idx = this.store.findIndex((p) => (typeof p.id === "number" ? p.id : p.id?.decode) === id && p.userId === userId.decode);
     if (idx === -1) throw new Error("payment not found");
-    this.store[idx] = { ...this.store[idx], ...data };
+    Object.assign(this.store[idx], data);
     return this.store[idx];
   }
 
   async delete(id: number, _userId: ID): Promise<void> {
-    this.store = this.store.filter((p) => p.id !== id);
+    this.store = this.store.filter((p) => (typeof p.id === "number" ? p.id : p.id?.decode) !== id);
   }
 }
 
@@ -272,7 +273,7 @@ describe("PaymentService", () => {
   });
 
   describe("retryPayment", () => {
-    async function seedFailedPayment(): Promise<PaymentData> {
+    async function seedFailedPayment(): Promise<Payment> {
       gateway.failNext = true;
       return service.processPayment({
         userId: 1,
@@ -285,8 +286,9 @@ describe("PaymentService", () => {
     it("retries a failed payment to completion", async () => {
       const failed = await seedFailedPayment();
       expect(failed.status).toBe("failed");
+      const failedId = typeof failed.id === "number" ? failed.id : failed.id?.decode;
 
-      const retried = await service.retryPayment(ID.new(failed.id!), ID.new(1));
+      const retried = await service.retryPayment(ID.new(failedId!), ID.new(1));
       expect(retried.status).toBe("completed");
       expect(retried.retryCount).toBe(1);
       expect(retried.gatewayRef).toBeDefined();
@@ -294,22 +296,24 @@ describe("PaymentService", () => {
 
     it("keeps failed status when retry also declines", async () => {
       const failed = await seedFailedPayment();
+      const failedId = typeof failed.id === "number" ? failed.id : failed.id?.decode;
 
       gateway.failNext = true;
-      const retried = await service.retryPayment(ID.new(failed.id!), ID.new(1));
+      const retried = await service.retryPayment(ID.new(failedId!), ID.new(1));
       expect(retried.status).toBe("failed");
       expect(retried.retryCount).toBe(1);
     });
 
     it("throws PaymentRetryExhaustedError after maxRetries attempts", async () => {
       const failed = await seedFailedPayment();
+      const failedId = typeof failed.id === "number" ? failed.id : failed.id?.decode;
 
       for (let i = 0; i < failed.maxRetries; i++) {
         gateway.failNext = true;
-        await service.retryPayment(ID.new(failed.id!), ID.new(1));
+        await service.retryPayment(ID.new(failedId!), ID.new(1));
       }
 
-      await expect(service.retryPayment(ID.new(failed.id!), ID.new(1))).rejects.toThrow(
+      await expect(service.retryPayment(ID.new(failedId!), ID.new(1))).rejects.toThrow(
         PaymentRetryExhaustedError,
       );
     });
@@ -327,8 +331,9 @@ describe("PaymentService", () => {
         currency: "IDR",
         method: "cash",
       });
+      const okId = typeof ok.id === "number" ? ok.id : ok.id?.decode;
 
-      await expect(service.retryPayment(ID.new(ok.id!), ID.new(1))).rejects.toThrow(
+      await expect(service.retryPayment(ID.new(okId!), ID.new(1))).rejects.toThrow(
         PaymentRetryExhaustedError,
       );
     });

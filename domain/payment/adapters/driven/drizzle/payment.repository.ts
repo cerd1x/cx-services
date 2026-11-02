@@ -1,4 +1,4 @@
-import type { PaymentData } from "../../../core/model/payment.model";
+import { Payment, type PaymentData } from "../../../core/model/payment.model";
 import { paymentTable } from "$services/shared/infra/db/drizzle-schema";
 import { ID } from "$services/shared/kernel";
 import { eq, and } from "drizzle-orm";
@@ -6,7 +6,7 @@ import { getDB } from "$services/shared/infra/db";
 import type { PaymentRepository } from "../../../core/ports/out/payment-repository.port";
 
 export class PaymentRepositoryImpl implements PaymentRepository {
-  async save(payment: PaymentData): Promise<PaymentData> {
+  async save(payment: PaymentData): Promise<Payment> {
     const result = await getDB()
       .insert(paymentTable)
       .values({
@@ -28,18 +28,20 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     return this.#toPayment(result[0]);
   }
 
-  async findById(id: number, userId: ID): Promise<PaymentData | null> {
+  async findById(id: number, userId: ID): Promise<Payment | null> {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)))
+      .where(
+        and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)),
+      )
       .limit(1);
 
     if (rows.length === 0) return null;
     return this.#toPayment(rows[0]);
   }
 
-  async findAll(userId: ID): Promise<PaymentData[]> {
+  async findAll(userId: ID): Promise<Payment[]> {
     const rows = await getDB()
       .select()
       .from(paymentTable)
@@ -47,45 +49,71 @@ export class PaymentRepositoryImpl implements PaymentRepository {
     return rows.map((r) => this.#toPayment(r));
   }
 
-  async findByStatus(status: string, userId: ID): Promise<PaymentData[]> {
+  async findByStatus(status: string, userId: ID): Promise<Payment[]> {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(and(eq(paymentTable.status, status as any), eq(paymentTable.userId, userId.decode)));
+      .where(
+        and(
+          eq(paymentTable.status, status as any),
+          eq(paymentTable.userId, userId.decode),
+        ),
+      );
     return rows.map((r) => this.#toPayment(r));
   }
 
-  async findByInvoiceId(invoiceId: number, userId: ID): Promise<PaymentData[]> {
+  async findByInvoiceId(invoiceId: number, userId: ID): Promise<Payment[]> {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(and(eq(paymentTable.invoiceId, invoiceId), eq(paymentTable.userId, userId.decode)));
+      .where(
+        and(
+          eq(paymentTable.invoiceId, invoiceId),
+          eq(paymentTable.userId, userId.decode),
+        ),
+      );
     return rows.map((r) => this.#toPayment(r));
   }
 
-  async findByGatewayRef(gatewayRef: string, userId: ID): Promise<PaymentData | null> {
+  async findByGatewayRef(
+    gatewayRef: string,
+    userId: ID,
+  ): Promise<Payment | null> {
     const rows = await getDB()
       .select()
       .from(paymentTable)
-      .where(and(eq(paymentTable.gatewayRef, gatewayRef), eq(paymentTable.userId, userId.decode)))
+      .where(
+        and(
+          eq(paymentTable.gatewayRef, gatewayRef),
+          eq(paymentTable.userId, userId.decode),
+        ),
+      )
       .limit(1);
 
     if (rows.length === 0) return null;
     return this.#toPayment(rows[0]);
   }
 
-  async update(id: number, data: Partial<PaymentData>, userId: ID): Promise<PaymentData> {
+  async update(
+    id: number,
+    data: Partial<PaymentData>,
+    userId: ID,
+  ): Promise<Payment> {
     const updateData: Record<string, unknown> = {};
     if (data.status !== undefined) updateData.status = data.status;
     if (data.gatewayRef !== undefined) updateData.gatewayRef = data.gatewayRef;
-    if (data.description !== undefined) updateData.description = data.description;
+    if (data.description !== undefined)
+      updateData.description = data.description;
     if (data.retryCount !== undefined) updateData.retryCount = data.retryCount;
-    if (data.metadata !== undefined) updateData.metadata = JSON.stringify(data.metadata);
+    if (data.metadata !== undefined)
+      updateData.metadata = JSON.stringify(data.metadata);
 
     const result = await getDB()
       .update(paymentTable)
       .set(updateData)
-      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)))
+      .where(
+        and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)),
+      )
       .returning();
 
     return this.#toPayment(result[0]);
@@ -94,27 +122,31 @@ export class PaymentRepositoryImpl implements PaymentRepository {
   async delete(id: number, userId: ID): Promise<void> {
     await getDB()
       .delete(paymentTable)
-      .where(and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)));
+      .where(
+        and(eq(paymentTable.id, id), eq(paymentTable.userId, userId.decode)),
+      );
   }
 
-  #parseMetadata(raw: string | null | undefined): Record<string, unknown> | undefined {
+  #parseMetadata(
+    raw: string | null | undefined,
+  ): Record<string, any> | undefined {
     if (!raw) return undefined;
     try {
-      return JSON.parse(raw) as Record<string, unknown>;
+      return JSON.parse(raw) as Record<string, any>;
     } catch {
-      return raw as unknown as Record<string, unknown>;
+      return raw as unknown as Record<string, any>;
     }
   }
 
-  #toPayment(row: typeof paymentTable.$inferSelect): PaymentData {
-    return {
+  #toPayment(row: typeof paymentTable.$inferSelect): Payment {
+    return new Payment({
       id: row.id,
       userId: row.userId,
       invoiceId: row.invoiceId ?? undefined,
       amount: row.amount,
       currency: row.currency,
-      method: row.method as PaymentData["method"],
-      status: row.status as PaymentData["status"],
+      method: row.method as Payment["method"],
+      status: row.status as Payment["status"],
       gatewayRef: row.gatewayRef ?? undefined,
       description: row.description ?? undefined,
       retryCount: row.retryCount,
@@ -122,6 +154,6 @@ export class PaymentRepositoryImpl implements PaymentRepository {
       metadata: this.#parseMetadata(row.metadata),
       createdAt: row.createdAt,
       updatedAt: row.updatedAt ?? undefined,
-    };
+    });
   }
 }

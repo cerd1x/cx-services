@@ -139,7 +139,8 @@ describe("Payment integration", () => {
     expect(payment.status).toBe("completed");
     expect(payment.gatewayRef).toMatch(/^mock_/);
 
-    const row = await db.select().from(paymentTable).where(eq(paymentTable.id, payment.id!)).get();
+    const pid = typeof payment.id === "number" ? payment.id : payment.id?.decode;
+    const row = await db.select().from(paymentTable).where(eq(paymentTable.id, pid!)).get();
     expect(row?.status).toBe("completed");
     expect(row?.invoiceId).toBe(invoice.id);
     expect(row?.method).toBe("bank_transfer");
@@ -192,7 +193,8 @@ describe("Payment integration", () => {
     });
     expect(failed.status).toBe("failed");
 
-    const retried = await service.retryPayment(ID.new(failed.id!), ID.new(userId));
+    const failedId = typeof failed.id === "number" ? failed.id : failed.id?.decode;
+    const retried = await service.retryPayment(ID.new(failedId!), ID.new(userId));
     expect(retried.status).toBe("completed");
     expect(retried.retryCount).toBe(1);
   });
@@ -206,7 +208,8 @@ describe("Payment integration", () => {
       method: "cash",
     });
 
-    await expect(service.retryPayment(ID.new(ok.id!), ID.new(userId))).rejects.toThrow(
+    const okId = typeof ok.id === "number" ? ok.id : ok.id?.decode;
+    await expect(service.retryPayment(ID.new(okId!), ID.new(userId))).rejects.toThrow(
       PaymentRetryExhaustedError,
     );
   });

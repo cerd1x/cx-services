@@ -1,4 +1,4 @@
-import { Payment, ProcessPaymentType, type PaymentData } from "../model/payment.model";
+import { Payment, ProcessPaymentType } from "../model/payment.model";
 import { PaymentRepository } from "../ports/out/payment-repository.port";
 import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { AssetChargeGatewayToken } from "../value-objects/asset-charge-gateway.vo";
@@ -27,9 +27,9 @@ export type ProcessPaymentInput = {
   type?: ProcessPaymentType;
 };
 
-export class ProcessPaymentUseCase extends CoreUsecase<PaymentData, ProcessPaymentInput> {
+export class ProcessPaymentUseCase extends CoreUsecase<Payment, ProcessPaymentInput> {
   @logMethod(logger)
-  async execute(input: ProcessPaymentInput): Promise<PaymentData> {
+  async execute(input: ProcessPaymentInput): Promise<Payment> {
     const paymentRepo = this.deps.get(PaymentRepository);
     const defaultGateway = this.deps.get(PaymentGateway);
     const retryPolicy = this.deps.get(RetryPolicyToken);
@@ -136,7 +136,7 @@ export class ProcessPaymentUseCase extends CoreUsecase<PaymentData, ProcessPayme
     }
 
     return paymentRepo.update(
-      saved.id!,
+      typeof saved.id === "number" ? saved.id : saved.id?.decode ?? 0,
       {
         status: entity.status,
         gatewayRef: entity.gatewayRef,

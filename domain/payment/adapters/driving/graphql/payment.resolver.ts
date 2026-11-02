@@ -9,16 +9,18 @@ import type {
   PaymentMethodEnum,
 } from "$services/shared/infra/graphql/types";
 import { Money } from "@lib/money";
-import type { PaymentData } from "../../../core/model/payment.model";
+import { Payment } from "../../../core/model/payment.model";
 import type { InvoiceData } from "../../../core/model/invoice.model";
 import { ID } from "$services/shared/kernel";
 
 const toHashOrNull = (id: number | undefined, scope: (id: number) => ID): string | null =>
   id !== undefined ? scope(id).str : null;
 
-function mapPayment(data: PaymentData): GqlPayment {
+function mapPayment(data: Payment): GqlPayment {
+  const idNum = typeof data.id === "number" ? data.id : data.id?.decode;
+  const metadata = data.metadata ?? null;
   return {
-    id: data.id !== undefined ? ID.payment(data.id).str : "",
+    id: idNum !== undefined ? ID.payment(idNum).str : "",
     userId: ID.user(data.userId).str,
     invoiceId: toHashOrNull(data.invoiceId, ID.invoice),
     amount: data.amount,
@@ -29,9 +31,18 @@ function mapPayment(data: PaymentData): GqlPayment {
     description: data.description ?? null,
     retryCount: data.retryCount,
     maxRetries: data.maxRetries,
-    createdAt: data.createdAt,
+    metadata,
+    paymentMetadata: metadata
+      ? {
+          paymentType: data.getMetadataWithKey<string>("paymentType") ?? null,
+          assetId: data.getMetadataWithKey<number>("assetId") ?? null,
+          lastError: data.getMetadataWithKey<string>("lastError") ?? null,
+          nextRetryDelayMs: data.getMetadataWithKey<number>("nextRetryDelayMs") ?? null,
+        }
+      : null,
+    createdAt: data.createdAt ?? new Date(),
     updatedAt: data.updatedAt ?? null,
-  };
+  } as GqlPayment;
 }
 
 function mapInvoice(data: InvoiceData): GqlInvoice {
