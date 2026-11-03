@@ -800,7 +800,7 @@ export type Payment = {
   id: Scalars['ID']['output'];
   invoiceId?: Maybe<Scalars['ID']['output']>;
   maxRetries: Scalars['Int']['output'];
-  metadata?: Maybe<PaymentMetadata>;
+  meta?: Maybe<PaymentMeta>;
   method: PaymentMethodEnum;
   retryCount: Scalars['Int']['output'];
   status: PaymentStatusEnum;
@@ -808,8 +808,8 @@ export type Payment = {
   userId: Scalars['ID']['output'];
 };
 
-export type PaymentMetadata = {
-  __typename?: 'PaymentMetadata';
+export type PaymentMeta = {
+  __typename?: 'PaymentMeta';
   assetId?: Maybe<Scalars['Float']['output']>;
   lastError?: Maybe<Scalars['String']['output']>;
   nextRetryDelayMs?: Maybe<Scalars['Float']['output']>;
@@ -1400,7 +1400,7 @@ export type ResolversTypes = {
   PasskeyInfo: ResolverTypeWrapper<PasskeyInfo>;
   PasskeyRegistrationOptionsPayload: ResolverTypeWrapper<PasskeyRegistrationOptionsPayload>;
   Payment: ResolverTypeWrapper<Payment>;
-  PaymentMetadata: ResolverTypeWrapper<PaymentMetadata>;
+  PaymentMeta: ResolverTypeWrapper<PaymentMeta>;
   PaymentMethod: ResolverTypeWrapper<PaymentMethod>;
   PaymentMethodEnum: PaymentMethodEnum;
   PaymentMethodInput: PaymentMethodInput;
@@ -1485,7 +1485,7 @@ export type ResolversParentTypes = {
   PasskeyInfo: PasskeyInfo;
   PasskeyRegistrationOptionsPayload: PasskeyRegistrationOptionsPayload;
   Payment: Payment;
-  PaymentMetadata: PaymentMetadata;
+  PaymentMeta: PaymentMeta;
   PaymentMethod: PaymentMethod;
   PaymentMethodInput: PaymentMethodInput;
   ProcessPaymentInput: ProcessPaymentInput;
@@ -1761,7 +1761,7 @@ export type PaymentResolvers<ContextType = any, ParentType extends ResolversPare
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   invoiceId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   maxRetries?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  metadata?: Resolver<Maybe<ResolversTypes['PaymentMetadata']>, ParentType, ContextType>;
+  meta?: Resolver<Maybe<ResolversTypes['PaymentMeta']>, ParentType, ContextType>;
   method?: Resolver<ResolversTypes['PaymentMethodEnum'], ParentType, ContextType>;
   retryCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['PaymentStatusEnum'], ParentType, ContextType>;
@@ -1769,7 +1769,7 @@ export type PaymentResolvers<ContextType = any, ParentType extends ResolversPare
   userId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 };
 
-export type PaymentMetadataResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaymentMetadata'] = ResolversParentTypes['PaymentMetadata']> = {
+export type PaymentMetaResolvers<ContextType = any, ParentType extends ResolversParentTypes['PaymentMeta'] = ResolversParentTypes['PaymentMeta']> = {
   assetId?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   lastError?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   nextRetryDelayMs?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
@@ -1933,7 +1933,7 @@ export type Resolvers<ContextType = any> = {
   PasskeyInfo?: PasskeyInfoResolvers<ContextType>;
   PasskeyRegistrationOptionsPayload?: PasskeyRegistrationOptionsPayloadResolvers<ContextType>;
   Payment?: PaymentResolvers<ContextType>;
-  PaymentMetadata?: PaymentMetadataResolvers<ContextType>;
+  PaymentMeta?: PaymentMetaResolvers<ContextType>;
   PaymentMethod?: PaymentMethodResolvers<ContextType>;
   Product?: ProductResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

@@ -42,7 +42,7 @@ enum PaymentMethodEnum {
   credit
 }
 
-type PaymentMetadata {
+type PaymentMeta {
   paymentType: String
   assetId: Float
   lastError: String
@@ -61,7 +61,7 @@ type Payment {
   description: String
   retryCount: Int!
   maxRetries: Int!
-  metadata: PaymentMetadata
+  meta: PaymentMeta
   createdAt: DateTime!
   updatedAt: DateTime
 }

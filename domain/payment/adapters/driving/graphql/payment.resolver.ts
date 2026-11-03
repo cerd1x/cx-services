@@ -31,7 +31,7 @@ function mapPayment(data: Payment): GqlPayment {
     description: data.description ?? null,
     retryCount: data.retryCount,
     maxRetries: data.maxRetries,
-    metadata: metadata
+    meta: metadata
       ? {
           paymentType: data.getMetadataWithKey<string>("paymentType") ?? null,
           assetId: data.getMetadataWithKey<number>("assetId") ?? null,
