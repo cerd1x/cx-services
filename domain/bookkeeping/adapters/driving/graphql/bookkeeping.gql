@@ -1,0 +1,123 @@
+type Query {
+  """
+  Buku besar satu bulan untuk user yang sedang login. Ringkasan, saldo
+  berjalan, dan grup harian dihitung di server.
+  """
+  bookkeepingLedger(input: BookkeepingLedgerInput!): BookkeepingLedger! @authorized
+
+  """
+  Payment berstatus `failed` pada satu bulan (tab Failed).
+  """
+  bookkeepingFailedPayments(input: BookkeepingFailedPaymentsInput!): BookkeepingFailedPayments!
+    @authorized
+}
+
+"""
+Filter tipe transaksi pada buku besar.
+"""
+enum BookkeepingFilter {
+  all
+  income
+  expense
+  transfer
+  outcome
+}
+
+input BookkeepingLedgerInput {
+  """
+  Bulan pada timezone pemanggil, format `YYYY-MM` (contoh: `2026-06`).
+  """
+  month: String!
+
+  """
+  Offset timezone pemanggil dalam menit ke timur UTC. WIB = `420`.
+  Default `0` (UTC). Dipakai supaya batas bulan mengikuti waktu lokal user.
+  """
+  timezoneOffsetMinutes: Int
+
+  """
+  Filter tipe transaksi; default `all`.
+  """
+  filter: BookkeepingFilter
+}
+
+input BookkeepingFailedPaymentsInput {
+  """
+  Bulan pada timezone pemanggil, format `YYYY-MM` (contoh: `2026-06`).
+  """
+  month: String!
+
+  """
+  Offset timezone pemanggil dalam menit ke timur UTC. WIB = `420`.
+  """
+  timezoneOffsetMinutes: Int
+}
+
+type BookkeepingLedger {
+  month: String!
+  filter: BookkeepingFilter!
+
+  """
+  Ringkasan per mata uang yang muncul pada bulan/filter ini.
+  """
+  summaries: [BookkeepingSummary!]!
+
+  """
+  Transaksi dikelompokkan per tanggal kalender lokal, terbaru dulu.
+  """
+  groups: [BookkeepingDayGroup!]!
+}
+
+type BookkeepingSummary {
+  currency: String!
+  income: Money!
+  expense: Money!
+  profit: Money!
+  transactionCount: Int!
+}
+
+type BookkeepingDayGroup {
+  """
+  Tanggal kalender lokal `YYYY-MM-DD`.
+  """
+  date: String!
+  transactionCount: Int!
+  entries: [BookkeepingEntry!]!
+}
+
+type BookkeepingEntry {
+  transaction: Transaction!
+  """
+  Saldo berjalan pada titik transaksi ini, dimulai dari nol di bulan aktif.
+  """
+  runningBalance: Money!
+}
+
+type BookkeepingFailedPayments {
+  month: String!
+  payments: [BookkeepingFailedPayment!]!
+  totalCount: Int!
+
+  """
+  Jumlah payment yang masih bisa di-retry (`retryCount < maxRetries`).
+  """
+  retryableCount: Int!
+}
+
+type BookkeepingFailedPayment {
+  id: ID!
+  amount: Money!
+  method: PaymentMethodEnum!
+  status: PaymentStatusEnum!
+  gatewayRef: String
+  description: String
+  retryCount: Int!
+  maxRetries: Int!
+  canRetry: Boolean!
+  """
+  Pesan kegagalan terakhir dari gateway (`metadata.lastError`).
+  """
+  lastError: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+}

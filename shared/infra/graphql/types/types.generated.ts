@@ -115,6 +115,94 @@ export enum AssetType {
   Loan = 'loan'
 }
 
+export type BookkeepingDayGroup = {
+  __typename?: 'BookkeepingDayGroup';
+  /** Tanggal kalender lokal `YYYY-MM-DD`. */
+  date: Scalars['String']['output'];
+  entries: Array<BookkeepingEntry>;
+  transactionCount: Scalars['Int']['output'];
+};
+
+export type BookkeepingEntry = {
+  __typename?: 'BookkeepingEntry';
+  /** Saldo berjalan pada titik transaksi ini, dimulai dari nol di bulan aktif. */
+  runningBalance: Scalars['Money']['output'];
+  transaction: Transaction;
+};
+
+export type BookkeepingFailedPayment = {
+  __typename?: 'BookkeepingFailedPayment';
+  amount: Scalars['Money']['output'];
+  canRetry: Scalars['Boolean']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  gatewayRef?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  /** Pesan kegagalan terakhir dari gateway (`metadata.lastError`). */
+  lastError?: Maybe<Scalars['String']['output']>;
+  maxRetries: Scalars['Int']['output'];
+  method: PaymentMethodEnum;
+  retryCount: Scalars['Int']['output'];
+  status: PaymentStatusEnum;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type BookkeepingFailedPayments = {
+  __typename?: 'BookkeepingFailedPayments';
+  month: Scalars['String']['output'];
+  payments: Array<BookkeepingFailedPayment>;
+  /** Jumlah payment yang masih bisa di-retry (`retryCount < maxRetries`). */
+  retryableCount: Scalars['Int']['output'];
+  totalCount: Scalars['Int']['output'];
+};
+
+export type BookkeepingFailedPaymentsInput = {
+  /** Bulan pada timezone pemanggil, format `YYYY-MM` (contoh: `2026-06`). */
+  month: Scalars['String']['input'];
+  /** Offset timezone pemanggil dalam menit ke timur UTC. WIB = `420`. */
+  timezoneOffsetMinutes?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** Filter tipe transaksi pada buku besar. */
+export enum BookkeepingFilter {
+  All = 'all',
+  Expense = 'expense',
+  Income = 'income',
+  Outcome = 'outcome',
+  Transfer = 'transfer'
+}
+
+export type BookkeepingLedger = {
+  __typename?: 'BookkeepingLedger';
+  filter: BookkeepingFilter;
+  /** Transaksi dikelompokkan per tanggal kalender lokal, terbaru dulu. */
+  groups: Array<BookkeepingDayGroup>;
+  month: Scalars['String']['output'];
+  /** Ringkasan per mata uang yang muncul pada bulan/filter ini. */
+  summaries: Array<BookkeepingSummary>;
+};
+
+export type BookkeepingLedgerInput = {
+  /** Filter tipe transaksi; default `all`. */
+  filter?: InputMaybe<BookkeepingFilter>;
+  /** Bulan pada timezone pemanggil, format `YYYY-MM` (contoh: `2026-06`). */
+  month: Scalars['String']['input'];
+  /**
+   * Offset timezone pemanggil dalam menit ke timur UTC. WIB = `420`.
+   * Default `0` (UTC). Dipakai supaya batas bulan mengikuti waktu lokal user.
+   */
+  timezoneOffsetMinutes?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type BookkeepingSummary = {
+  __typename?: 'BookkeepingSummary';
+  currency: Scalars['String']['output'];
+  expense: Scalars['Money']['output'];
+  income: Scalars['Money']['output'];
+  profit: Scalars['Money']['output'];
+  transactionCount: Scalars['Int']['output'];
+};
+
 export type Contact = {
   __typename?: 'Contact';
   avatar?: Maybe<Scalars['String']['output']>;
@@ -891,6 +979,13 @@ export type Query = {
   assetById?: Maybe<Asset>;
   assetMutations: Array<AssetMutationType>;
   assets: Array<Asset>;
+  /** Payment berstatus `failed` pada satu bulan (tab Failed). */
+  bookkeepingFailedPayments: BookkeepingFailedPayments;
+  /**
+   * Buku besar satu bulan untuk user yang sedang login. Ringkasan, saldo
+   * berjalan, dan grup harian dihitung di server.
+   */
+  bookkeepingLedger: BookkeepingLedger;
   checkAuthorized: Scalars['Boolean']['output'];
   contact?: Maybe<Contact>;
   contactConnection: ContactConnection;
@@ -959,6 +1054,26 @@ export type QueryAssetByIdArgs = {
  */
 export type QueryAssetMutationsArgs = {
   assetId: Scalars['ID']['input'];
+};
+
+
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
+export type QueryBookkeepingFailedPaymentsArgs = {
+  input: BookkeepingFailedPaymentsInput;
+};
+
+
+/**
+ * Operasi lintas-user. Hanya untuk user dengan `role: admin` — field di bawah
+ * ditandai `@admin`, bukan `@authorized`, sehingga user biasa mendapat 403 dan
+ * tanpa token mendapat 401.
+ */
+export type QueryBookkeepingLedgerArgs = {
+  input: BookkeepingLedgerInput;
 };
 
 
@@ -1360,6 +1475,15 @@ export type ResolversTypes = {
   AssetSingleMutationResult: ResolverTypeWrapper<AssetSingleMutationResult>;
   AssetTransferResult: ResolverTypeWrapper<AssetTransferResult>;
   AssetType: AssetType;
+  BookkeepingDayGroup: ResolverTypeWrapper<BookkeepingDayGroup>;
+  BookkeepingEntry: ResolverTypeWrapper<BookkeepingEntry>;
+  BookkeepingFailedPayment: ResolverTypeWrapper<BookkeepingFailedPayment>;
+  BookkeepingFailedPayments: ResolverTypeWrapper<BookkeepingFailedPayments>;
+  BookkeepingFailedPaymentsInput: BookkeepingFailedPaymentsInput;
+  BookkeepingFilter: BookkeepingFilter;
+  BookkeepingLedger: ResolverTypeWrapper<BookkeepingLedger>;
+  BookkeepingLedgerInput: BookkeepingLedgerInput;
+  BookkeepingSummary: ResolverTypeWrapper<BookkeepingSummary>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Contact: ResolverTypeWrapper<Contact>;
   ContactConnection: ResolverTypeWrapper<ContactConnection>;
@@ -1447,6 +1571,14 @@ export type ResolversParentTypes = {
   AssetMutationType: AssetMutationType;
   AssetSingleMutationResult: AssetSingleMutationResult;
   AssetTransferResult: AssetTransferResult;
+  BookkeepingDayGroup: BookkeepingDayGroup;
+  BookkeepingEntry: BookkeepingEntry;
+  BookkeepingFailedPayment: BookkeepingFailedPayment;
+  BookkeepingFailedPayments: BookkeepingFailedPayments;
+  BookkeepingFailedPaymentsInput: BookkeepingFailedPaymentsInput;
+  BookkeepingLedger: BookkeepingLedger;
+  BookkeepingLedgerInput: BookkeepingLedgerInput;
+  BookkeepingSummary: BookkeepingSummary;
   Boolean: Scalars['Boolean']['output'];
   Contact: Contact;
   ContactConnection: ContactConnection;
@@ -1576,6 +1708,54 @@ export type AssetTransferResultResolvers<ContextType = any, ParentType extends R
   from?: Resolver<ResolversTypes['Asset'], ParentType, ContextType>;
   to?: Resolver<ResolversTypes['Asset'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type BookkeepingDayGroupResolvers<ContextType = any, ParentType extends ResolversParentTypes['BookkeepingDayGroup'] = ResolversParentTypes['BookkeepingDayGroup']> = {
+  date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  entries?: Resolver<Array<ResolversTypes['BookkeepingEntry']>, ParentType, ContextType>;
+  transactionCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type BookkeepingEntryResolvers<ContextType = any, ParentType extends ResolversParentTypes['BookkeepingEntry'] = ResolversParentTypes['BookkeepingEntry']> = {
+  runningBalance?: Resolver<ResolversTypes['Money'], ParentType, ContextType>;
+  transaction?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
+};
+
+export type BookkeepingFailedPaymentResolvers<ContextType = any, ParentType extends ResolversParentTypes['BookkeepingFailedPayment'] = ResolversParentTypes['BookkeepingFailedPayment']> = {
+  amount?: Resolver<ResolversTypes['Money'], ParentType, ContextType>;
+  canRetry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  gatewayRef?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lastError?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  maxRetries?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  method?: Resolver<ResolversTypes['PaymentMethodEnum'], ParentType, ContextType>;
+  retryCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['PaymentStatusEnum'], ParentType, ContextType>;
+  updatedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+};
+
+export type BookkeepingFailedPaymentsResolvers<ContextType = any, ParentType extends ResolversParentTypes['BookkeepingFailedPayments'] = ResolversParentTypes['BookkeepingFailedPayments']> = {
+  month?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  payments?: Resolver<Array<ResolversTypes['BookkeepingFailedPayment']>, ParentType, ContextType>;
+  retryableCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type BookkeepingLedgerResolvers<ContextType = any, ParentType extends ResolversParentTypes['BookkeepingLedger'] = ResolversParentTypes['BookkeepingLedger']> = {
+  filter?: Resolver<ResolversTypes['BookkeepingFilter'], ParentType, ContextType>;
+  groups?: Resolver<Array<ResolversTypes['BookkeepingDayGroup']>, ParentType, ContextType>;
+  month?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  summaries?: Resolver<Array<ResolversTypes['BookkeepingSummary']>, ParentType, ContextType>;
+};
+
+export type BookkeepingSummaryResolvers<ContextType = any, ParentType extends ResolversParentTypes['BookkeepingSummary'] = ResolversParentTypes['BookkeepingSummary']> = {
+  currency?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  expense?: Resolver<ResolversTypes['Money'], ParentType, ContextType>;
+  income?: Resolver<ResolversTypes['Money'], ParentType, ContextType>;
+  profit?: Resolver<ResolversTypes['Money'], ParentType, ContextType>;
+  transactionCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type ContactResolvers<ContextType = any, ParentType extends ResolversParentTypes['Contact'] = ResolversParentTypes['Contact']> = {
@@ -1803,6 +1983,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   assetById?: Resolver<Maybe<ResolversTypes['Asset']>, ParentType, ContextType, RequireFields<QueryAssetByIdArgs, 'id'>>;
   assetMutations?: Resolver<Array<ResolversTypes['AssetMutationType']>, ParentType, ContextType, RequireFields<QueryAssetMutationsArgs, 'assetId'>>;
   assets?: Resolver<Array<ResolversTypes['Asset']>, ParentType, ContextType>;
+  bookkeepingFailedPayments?: Resolver<ResolversTypes['BookkeepingFailedPayments'], ParentType, ContextType, RequireFields<QueryBookkeepingFailedPaymentsArgs, 'input'>>;
+  bookkeepingLedger?: Resolver<ResolversTypes['BookkeepingLedger'], ParentType, ContextType, RequireFields<QueryBookkeepingLedgerArgs, 'input'>>;
   checkAuthorized?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   contact?: Resolver<Maybe<ResolversTypes['Contact']>, ParentType, ContextType, RequireFields<QueryContactArgs, 'id'>>;
   contactConnection?: Resolver<ResolversTypes['ContactConnection'], ParentType, ContextType, Partial<QueryContactConnectionArgs>>;
@@ -1911,6 +2093,12 @@ export type Resolvers<ContextType = any> = {
   AssetMutationType?: AssetMutationTypeResolvers<ContextType>;
   AssetSingleMutationResult?: AssetSingleMutationResultResolvers<ContextType>;
   AssetTransferResult?: AssetTransferResultResolvers<ContextType>;
+  BookkeepingDayGroup?: BookkeepingDayGroupResolvers<ContextType>;
+  BookkeepingEntry?: BookkeepingEntryResolvers<ContextType>;
+  BookkeepingFailedPayment?: BookkeepingFailedPaymentResolvers<ContextType>;
+  BookkeepingFailedPayments?: BookkeepingFailedPaymentsResolvers<ContextType>;
+  BookkeepingLedger?: BookkeepingLedgerResolvers<ContextType>;
+  BookkeepingSummary?: BookkeepingSummaryResolvers<ContextType>;
   Contact?: ContactResolvers<ContextType>;
   ContactConnection?: ContactConnectionResolvers<ContextType>;
   ContactEdge?: ContactEdgeResolvers<ContextType>;

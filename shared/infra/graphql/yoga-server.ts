@@ -35,6 +35,10 @@ import {
   statisticResolvers,
 } from "$services/domain/statistic/adapters/driving/graphql/statistic.resolver";
 import {
+  bookkeepingTypeDefs,
+  bookkeepingResolvers,
+} from "$services/domain/bookkeeping/adapters/driving/graphql/bookkeeping.resolver";
+import {
   orderTypeDefs,
   orderResolvers,
 } from "$services/domain/order/adapters/driving/graphql/order.resolver";
@@ -86,6 +90,7 @@ const moduleResolvers = {
   Transactions: transactionResolvers,
   Settings: settingResolvers,
   Statistics: statisticResolvers,
+  Bookkeeping: bookkeepingResolvers,
   Orders: orderResolvers,
   Payments: paymentResolvers,
   Admin: adminResolvers,
@@ -106,6 +111,7 @@ let schema = makeExecutableSchema({
     transactionTypeDefs,
     settingTypeDefs,
     statisticTypeDefs,
+    bookkeepingTypeDefs,
     orderTypeDefs,
     paymentTypeDefs,
     adminTypeDefs,

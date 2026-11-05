@@ -8,6 +8,7 @@ import {
   transactionService,
   settingService,
   statisticService,
+  bookkeepingService,
   orderService,
   paymentService,
   apiKillswitchService,
@@ -47,6 +48,7 @@ export type YogaContext = YogaInitialContext & {
   transaction: typeof transactionService;
   setting: typeof settingService;
   statistic: typeof statisticService;
+  bookkeeping: typeof bookkeepingService;
   order: typeof orderService;
   payment: typeof paymentService;
   killswitch: typeof apiKillswitchService;
@@ -126,6 +128,7 @@ export async function createContext(
     transaction: transactionService,
     setting: settingService,
     statistic: statisticService,
+    bookkeeping: bookkeepingService,
     order: orderService,
     payment: paymentService,
     killswitch: apiKillswitchService,
