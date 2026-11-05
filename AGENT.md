@@ -218,7 +218,7 @@ Setiap module di `domain/<module>/` memiliki struktur yang **WAJIB**:
 > mengimplementasikan abstract class dari `core/ports/out/` (repository, gateway) atau
 > menjawab permintaan dari core (resolver). `core/` tidak boleh meng-import driver DB.
 
-### 9 Modules
+### 11 Modules
 
 | Module           | Entity                                     | Service Dependencies                               |
 | ---------------- | ------------------------------------------ | -------------------------------------------------- |
@@ -230,6 +230,8 @@ Setiap module di `domain/<module>/` memiliki struktur yang **WAJIB**:
 | **transactions** | Transaction (income/expense/transfer)      | transactionRepo                                    |
 | **setting**      | Setting (currency, darkMode)               | settingRepo                                        |
 | **statistic**    | StatisticData (type-only)                  | statisticRepo                                      |
+| **payment**      | Payment, Invoice                           | paymentRepo, invoiceRepo, gateway, settlement      |
+| **bookkeeping**  | BookkeepingLedger, BookkeepingFailedPayments (read model, no table) | transactionService, paymentService |
 | **order**        | Order (saga rollback)                      | orderRepo (orchestrates product/transaction/asset) |
 
 ---

@@ -26,8 +26,9 @@ cx-dompetqu ──HTTP/GraphQL──▶ cx-services
 ## Arsitektur (Hexagonal)
 
 ```
-domain/            # 9 modul bisnis: assets, auth, contacts, order, payment,
-                   # products, setting, statistic, transactions, user
+domain/            # 11 modul bisnis: assets, auth, bookkeeping, contacts,
+                   # order, payment, products, setting, statistic,
+                   # transactions, user
 │  core/           #   model, value-object, use-case, port (kontrak)
 │  adapters/       #   driving (graphql) + driven (drizzle)
 composition/       # root container / DI
@@ -60,8 +61,9 @@ bun run check          # type-check (bun check)
 
 bun run test           # semua test (unit + integrasi + e2e)
 bun run test:e2e       # hanya e2e
-bun run e2e:auth       # e2e per domain (auth, asset, contact, order, payment,
-                       #   product, setting, statistic, transaction, user)
+bun run e2e:auth       # e2e per domain (auth, asset, bookkeeping, contact,
+                       #   order, payment, product, setting, statistic,
+                       #   transaction, user)
 
 bun run db:generate    # drizzle-kit generate -> drizzle/
 bun run db:migrate     # drizzle-kit migrate

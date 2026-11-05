@@ -29,6 +29,7 @@
     "test:e2e": "bun test --parallel=4 --preload ./tests/setup.ts tests/e2e",
     "e2e:auth": "bun run scripts/test_e2e_runner.ts auth",
     "e2e:asset": "bun run scripts/test_e2e_runner.ts asset",
+    "e2e:bookkeeping": "bun run scripts/test_e2e_runner.ts bookkeeping",
     "e2e:contact": "bun run scripts/test_e2e_runner.ts contact",
     "e2e:order": "bun run scripts/test_e2e_runner.ts order",
     "e2e:payment": "bun run scripts/test_e2e_runner.ts payment",
