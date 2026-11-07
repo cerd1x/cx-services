@@ -12,7 +12,7 @@ export class RequestFormTransactionUseCase extends CoreUsecase<string, ID> {
   @logMethod(logger)
   async execute(userId: ID): Promise<string> {
     const rId = Math.floor(10000 + Math.random() * 90000).toString();
-    const hash = await PasswordUtils.hash(rId.toString());
+    const hash = await PasswordUtils.fastHash(rId.toString());
 
     RequestFormTransactionUseCase.#formIdCache.set(userId.str, hash);
 
@@ -21,7 +21,9 @@ export class RequestFormTransactionUseCase extends CoreUsecase<string, ID> {
 
   @logMethod(logger)
   validateFormTransaction(hash: string, userId: ID): void {
-    const storedHash = RequestFormTransactionUseCase.#formIdCache.get(userId.str);
+    const storedHash = RequestFormTransactionUseCase.#formIdCache.get(
+      userId.str,
+    );
 
     if (!storedHash || storedHash !== hash) {
       throw new NotFound("hash form invalid");

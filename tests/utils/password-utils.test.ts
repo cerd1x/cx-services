@@ -6,7 +6,9 @@ describe("PasswordUtils", () => {
     it("returns a hashed string with correct format", async () => {
       const hash = await PasswordUtils.hash("test1234");
 
-      expect(hash).toMatch(/^\$pbkdf2-sha256\$\d+\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+      expect(hash).toMatch(
+        /^\$argon2id\$v=\d+\$t=\d+,m=\d+,p=\d+\$[A-Za-z0-9+/=]+\$[A-Za-z0-9+/=]+$/,
+      );
     });
 
     it("produces different hashes for same password (different salt)", async () => {

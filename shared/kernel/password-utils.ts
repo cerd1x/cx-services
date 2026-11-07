@@ -74,17 +74,27 @@ async function legacyVerify(
 export class PasswordUtils {
   static async hash(password: string): Promise<string> {
     assertPassword(password);
+    const isTest = process.env.NODE_ENV === "test";
     const salt = crypto.getRandomValues(new Uint8Array(16));
+    const t = isTest ? 1 : 3;
+    const m = isTest ? 1024 : 65536;
     const derived = await argon2idAsync(password, salt, {
-      t: 3,
-      m: 65536,
+      t,
+      m,
       p: 1,
       dkLen: 32,
       version: 0x13,
     });
     const saltB64 = btoa(String.fromCharCode(...salt));
     const derivedB64 = btoa(String.fromCharCode(...derived));
-    return `$argon2id$v=19$t=3,m=65536,p=1$${saltB64}$${derivedB64}`;
+    return `$argon2id$v=19$t=${t},m=${m},p=1$${saltB64}$${derivedB64}`;
+  }
+
+  static async fastHash(token: string): Promise<string> {
+    assertPassword(token);
+    const salt = crypto.getRandomValues(new Uint8Array(PBKDF2_SALT_LENGTH));
+    const derived = await pbkdf2(token, salt, PBKDF2_ITERATIONS);
+    return `${PBKDF2_PREFIX}${PBKDF2_ITERATIONS}$${bufToHex(salt)}$${bufToHex(derived)}`;
   }
 
   static async verify(password: string, hashed: string): Promise<boolean> {
@@ -92,9 +102,13 @@ export class PasswordUtils {
     if (hashed.startsWith("$argon2id$")) {
       const parts = hashed.split("$");
       const version = Number(parts[2].split("=")[1]);
-      const [m, t, p] = parts[3]
-        .split(",")
-        .map((kv) => Number(kv.split("=")[1]));
+      const params = Object.fromEntries(
+        parts[3].split(",").map((kv) => {
+          const [k, v] = kv.split("=");
+          return [k, Number(v)];
+        }),
+      );
+      const { t, m, p } = params;
       const salt = b64decode(parts[4]);
       const expected = b64decode(parts[5]);
       const derived = await argon2idAsync(password, salt, {
