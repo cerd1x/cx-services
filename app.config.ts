@@ -9,6 +9,14 @@
 const env = process.env;
 const isProd = env.NODE_ENV === "production" || env.NODE_ENV === "prod";
 
+function requireEnv(key: string): string {
+  const value = env[key];
+  if (!value && isProd) {
+    throw new Error(`Missing required env in production: ${key}`);
+  }
+  return value ?? "";
+}
+
 function toList(value: string | undefined): string[] {
   return (value ?? "")
     .split(",")
@@ -28,7 +36,7 @@ export const appConfigs = {
     /** Path GraphQL yang dilayani worker ini. */
     api: env.GQL_PATH ?? "/graphql",
     version: "1.0.0",
-    secretKey: env.SECRET_KEY ?? "",
+    secretKey: requireEnv("SECRET_KEY"),
     /** Origin web yang diizinkan oleh CORS (dipisah koma). */
     origin: env.ORIGIN ?? "",
     sessionConstant: "__sst__",
@@ -89,7 +97,7 @@ export const appConfigs = {
    * ENV: KILLSWITCH_ADMIN_TOKEN
    */
   killswitch: {
-    adminToken: env.KILLSWITCH_ADMIN_TOKEN ?? "",
+    adminToken: requireEnv("KILLSWITCH_ADMIN_TOKEN"),
   },
   // OAuth Gemini — dipakai klien desktop (cx-dompetqu), tidak dipakai worker.
   geminiOAuth: {

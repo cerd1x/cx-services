@@ -3,6 +3,11 @@ import { User } from "../../../../user/core/model/user.model";
 import typeDefs from "./auth.gql?raw";
 import type { Resolvers } from "$services/shared/infra/graphql/types";
 import { appConfigs } from "$config";
+import type {
+  AuthenticationResponseJSON,
+  RegistrationResponseJSON,
+} from "@simplewebauthn/server";
+import { z } from "zod";
 
 const RP_NAME = "cxapp";
 
@@ -12,10 +17,44 @@ function getRpContext(request: Request): { rpID: string; origin: string } {
   return { rpID: url.hostname, origin };
 }
 
-function parseJsonObject<T>(raw: string): T {
+// Zod schemas for WebAuthn JSON structures
+const authenticationResponseSchema = z.object({
+  id: z.string(),
+  rawId: z.string(),
+  response: z.object({
+    clientDataJSON: z.string(),
+    authenticatorData: z.string(),
+    signature: z.string(),
+    userHandle: z.string().optional(),
+  }),
+  type: z.literal("public-key"),
+  clientExtensionResults: z.record(z.string(), z.unknown()).optional(),
+  authenticatorAttachment: z.string().optional(),
+});
+
+const attestationResponseSchema = z.object({
+  id: z.string(),
+  rawId: z.string(),
+  response: z.object({
+    clientDataJSON: z.string(),
+    attestationObject: z.string(),
+    transports: z.array(z.string()).optional(),
+  }),
+  type: z.literal("public-key"),
+  clientExtensionResults: z.record(z.string(), z.unknown()).optional(),
+  authenticatorAttachment: z.string().optional(),
+});
+
+function parseJsonObject<T>(raw: string, schema: z.ZodType<T>): T {
   try {
-    return JSON.parse(raw) as T;
-  } catch {
+    const parsed = JSON.parse(raw);
+    const result = schema.safeParse(parsed);
+    if (!result.success) {
+      throw new Error(`Invalid JSON structure: ${result.error.message}`);
+    }
+    return result.data;
+  } catch (error) {
+    if (error instanceof Error) throw error;
     throw new Error("Invalid JSON payload");
   }
 }
@@ -33,7 +72,11 @@ const resolvers: Resolvers<YogaContext> = {
       };
     },
     checkAuthorized: (_parent, _args, { userAuth }) => userAuth !== null,
-    passkeyRegistrationOptions: async (_parent, _args, { auth, userAuth, request }) => {
+    passkeyRegistrationOptions: async (
+      _parent,
+      _args,
+      { auth, userAuth, request },
+    ) => {
       if (!userAuth) throw new Error("Unauthorized");
       const { rpID } = getRpContext(request);
       const result = await auth.passkeyRegistrationOptions({
@@ -96,7 +139,10 @@ const resolvers: Resolvers<YogaContext> = {
     },
 
     signIn: async (_parent, args, { auth, cookie }) => {
-      const result = await auth.signIn(args.input.username, args.input.password);
+      const result = await auth.signIn(
+        args.input.username,
+        args.input.password,
+      );
 
       cookie[appConfigs.cookie.sessionKey]?.set({
         value: result.session,
@@ -123,7 +169,10 @@ const resolvers: Resolvers<YogaContext> = {
       const result = await auth.signInWithPassKey({
         challenge: args.input.challenge,
         credentialId: args.input.credentialId,
-        assertionResponse: parseJsonObject(args.input.assertionResponse),
+        assertionResponse: parseJsonObject(
+          args.input.assertionResponse,
+          authenticationResponseSchema,
+        ) as unknown as AuthenticationResponseJSON,
         origin,
         rpID,
       });
@@ -154,7 +203,10 @@ const resolvers: Resolvers<YogaContext> = {
       await auth.registerPasskey({
         userId: userAuth.id.decode,
         challenge: args.input.challenge,
-        attestationResponse: parseJsonObject(args.input.attestationResponse),
+        attestationResponse: parseJsonObject(
+          args.input.attestationResponse,
+          attestationResponseSchema,
+        ) as unknown as RegistrationResponseJSON,
         origin,
         rpID,
         deviceName: args.input.deviceName ?? undefined,

@@ -3,8 +3,17 @@ import { Elysia, status, type Context } from "elysia";
 import { cors } from "@elysia/cors";
 import { rateLimit } from "elysia-rate-limit";
 import { openapi } from "@elysia/openapi";
-import { betaReportEmailer, betaReportStore, isBetaReportAdmin } from "./shared/infra/beta-report";
-import type { BetaReportFile, BetaReportMeta, BetaReportPayload } from "./shared/infra/beta-report";
+import {
+  betaReportEmailer,
+  betaReportStore,
+  isBetaReportAdmin,
+} from "./shared/infra/beta-report";
+import { constantTimeEqual } from "./shared/kernel/password-utils";
+import type {
+  BetaReportFile,
+  BetaReportMeta,
+  BetaReportPayload,
+} from "./shared/infra/beta-report";
 import { appConfigs, corsOrigins } from "./app.config";
 import { apiKillswitchService } from "./composition/root.container";
 import { staticPlugin } from "@elysia/static";
@@ -81,14 +90,24 @@ function isBetaReportAdminRequest(request: Request): boolean {
  * token yang bisa berbeda sifat. Operasional: `KILLSWITCH_ADMIN_TOKEN` di-set,
  * kalau tidak token kosong membuat semua request ditolak (fail-closed) —
  * penting, karena endpoint ini bisa mematikan API produksi.
+ *
+ * Gunakan constantTimeEqual untuk mencegah timing attack.
  */
 function isKillswitchAdminRequest(request: Request): boolean {
   const token = appConfigs.killswitch.adminToken;
   if (!token) return false;
-  return request.headers.get("x-admin-token") === token;
+  const provided = request.headers.get("x-admin-token") ?? "";
+  if (provided.length !== token.length) return false;
+  return constantTimeEqual(
+    new TextEncoder().encode(provided),
+    new TextEncoder().encode(token),
+  );
 }
 
-function resolveBetaReportKey(id: string | undefined, items: BetaReportMeta[]): string | null {
+function resolveBetaReportKey(
+  id: string | undefined,
+  items: BetaReportMeta[],
+): string | null {
   if (!id) return null;
   if (id.includes("/")) return id;
   return items.find((m) => m.id === id)?.key ?? null;
@@ -144,7 +163,10 @@ function createApp() {
           },
           tags: [
             { name: "Health", description: "Health check endpoints" },
-            { name: "BetaReport", description: "Beta report ingestion and management" },
+            {
+              name: "BetaReport",
+              description: "Beta report ingestion and management",
+            },
             { name: "Admin", description: "Administrative endpoints" },
             { name: "GraphQL", description: "GraphQL API endpoint" },
           ],
@@ -188,7 +210,9 @@ function createApp() {
         },
       }),
     )
-    .onError("global", RateLimitExceededError, () => status(429, { error: "Too many requests" }))
+    .onError("global", RateLimitExceededError, () =>
+      status(429, { error: "Too many requests" }),
+    )
     .get(
       "/",
       {
@@ -270,7 +294,10 @@ function createApp() {
           set.status = 401;
           return { error: "Unauthorized" };
         }
-        const key = resolveBetaReportKey(params?.id, await betaReportStore.list());
+        const key = resolveBetaReportKey(
+          params?.id,
+          await betaReportStore.list(),
+        );
         if (!key) {
           set.status = 404;
           return { error: "Not found" };
@@ -343,7 +370,8 @@ function createApp() {
         detail: {
           tags: ["Admin"],
           summary: "List disabled GraphQL operations",
-          description: "List all operations currently disabled by kill switch (admin only)",
+          description:
+            "List all operations currently disabled by kill switch (admin only)",
         },
       },
       async ({ request, set }: Context) => {
@@ -378,7 +406,10 @@ function createApp() {
           return { error: "Unauthorized" };
         }
         const { reason } = (body ?? {}) as { reason?: string };
-        const entry = await apiKillswitchService.disableOperation(params?.operation, reason);
+        const entry = await apiKillswitchService.disableOperation(
+          params?.operation,
+          reason,
+        );
         return {
           status: "disabled",
           operation: entry.operation,
@@ -393,7 +424,8 @@ function createApp() {
         detail: {
           tags: ["Admin"],
           summary: "Enable GraphQL operation",
-          description: "Re-enable a previously disabled GraphQL operation (admin only)",
+          description:
+            "Re-enable a previously disabled GraphQL operation (admin only)",
         },
       },
       async ({ params, request, set }: Context) => {
@@ -401,7 +433,9 @@ function createApp() {
           set.status = 401;
           return { error: "Unauthorized" };
         }
-        const result = await apiKillswitchService.enableOperation(params?.operation);
+        const result = await apiKillswitchService.enableOperation(
+          params?.operation,
+        );
         return { status: "enabled", ...result };
       },
     )
