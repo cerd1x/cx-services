@@ -40,7 +40,7 @@ export class BookkeepingSourceAdapter implements BookkeepingSource {
 
       return {
         id: order.id!.decode,
-        type: "income",
+        type: order.productId !== undefined ? "income" : "expense",
         status: order.status,
         paymentStatus: order.paymentStatus,
         paymentMethod: {

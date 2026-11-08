@@ -17,7 +17,12 @@ type LedgerDto = {
       transactionCount: number;
       entries: Array<{
         runningBalance: string;
-        transaction: { id: string; type: string; amount: string; paymentStatus: string };
+        transaction: {
+          id: string;
+          type: string;
+          amount: string;
+          paymentStatus: string;
+        };
       }>;
     }>;
   };
@@ -26,38 +31,81 @@ type LedgerDto = {
 describe("bookkeeping e2e (GraphQL over HTTP)", () => {
   e2eLifecycle();
 
-  async function createTransaction(
+  async function createProduct(
     session: string,
-    user: { id: string },
-    input: Record<string, unknown>,
+    input: { name: string; price: number; capital?: number; stock?: number },
   ) {
     const result = await gql(
-      `mutation($input: CreateTransactionInput!) {
-        createTransaction(input: $input) { id }
+      `mutation($input: CreateProductInput!) {
+        createProduct(input: $input) { id }
       }`,
-      { input: { customerId: user.id, ...input } },
+      { input: { stock: 10, ...input } },
       authHeaders(session),
     );
     expect(result.errors).toBeUndefined();
-    return result.data as { createTransaction: { id: string } };
+    return result.data as { createProduct: { id: string } };
+  }
+
+  async function createOrder(
+    session: string,
+    input: { type: "income" | "expense"; amount: string; capital?: string },
+  ) {
+    if (input.type === "income") {
+      const product = await createProduct(session, {
+        name: `Product ${Date.now()}_${Math.random()}`,
+        price: Number(input.amount.replace(/\D/g, "")),
+        capital: Number((input.capital ?? "0").replace(/\D/g, "")),
+      });
+
+      const result = await gql(
+        `mutation($input: CreateOrderProductSaleInput!) {
+          createOrderProductSale(input: $input) { id }
+        }`,
+        {
+          input: {
+            productId: product.createProduct.id,
+            itemCount: 1,
+            price: input.amount,
+            paymentStatus: "unpaid",
+            description: "Sales",
+          },
+        },
+        authHeaders(session),
+      );
+      expect(result.errors).toBeUndefined();
+      return result.data as { createOrderProductSale: { id: string } };
+    }
+
+    const result = await gql(
+      `mutation($input: CreateOrderExpenseInput!) {
+        createOrderExpense(input: $input) { id }
+      }`,
+      {
+        input: {
+          price: input.amount,
+          itemCount: 1,
+          paymentStatus: "unpaid",
+          description: "Operational",
+        },
+      },
+      authHeaders(session),
+    );
+    expect(result.errors).toBeUndefined();
+    return result.data as { createOrderExpense: { id: string } };
   }
 
   it("mengembalikan ringkasan, grup harian, dan saldo berjalan", async () => {
-    const { session, user } = await signUpUser();
+    const { session } = await signUpUser();
 
-    await createTransaction(session, user, {
+    await createOrder(session, {
       type: "income",
       amount: "IDR 100000",
       capital: "IDR 60000",
-      date: "2026-06-05T10:00:00.000Z",
-      category: "Sales",
     });
-    await createTransaction(session, user, {
+    await createOrder(session, {
       type: "expense",
       amount: "IDR 40000",
       capital: "IDR 40000",
-      date: "2026-06-06T10:00:00.000Z",
-      category: "Operational",
     });
 
     const { data, errors } = await gql<LedgerDto>(
@@ -76,13 +124,13 @@ describe("bookkeeping e2e (GraphQL over HTTP)", () => {
           }
         }
       }`,
-      { input: { month: "2026-06", timezoneOffsetMinutes: 0 } },
+      { input: { month: "2026-11", timezoneOffsetMinutes: 0 } },
       authHeaders(session),
     );
 
     expect(errors).toBeUndefined();
     const ledger = data!.bookkeepingLedger;
-    expect(ledger.month).toBe("2026-06");
+    expect(ledger.month).toBe("2026-11");
     expect(ledger.filter).toBe("all");
     expect(ledger.summaries).toEqual([
       {
@@ -94,28 +142,29 @@ describe("bookkeeping e2e (GraphQL over HTTP)", () => {
       },
     ]);
 
-    // Terbaru dulu; saldo berjalan mengikuti urutan transaksi terlama.
-    expect(ledger.groups.map((group) => group.date)).toEqual(["2026-06-06", "2026-06-05"]);
+    expect(ledger.groups).toHaveLength(1);
+    expect(ledger.groups[0]!.date).toBe("2026-11-08");
+    expect(ledger.groups[0]!.entries).toHaveLength(2);
     expect(ledger.groups[0]!.entries[0]!.runningBalance).toBe("IDR 60000");
-    expect(ledger.groups[1]!.entries[0]!.runningBalance).toBe("IDR 100000");
+    expect(ledger.groups[0]!.entries[1]!.runningBalance).toBe("IDR 100000");
     expect(ledger.groups[0]!.entries[0]!.transaction.type).toBe("expense");
-    expect(ledger.groups[1]!.entries[0]!.transaction.paymentStatus).toBe("unpaid");
+    expect(ledger.groups[0]!.entries[1]!.transaction.paymentStatus).toBe(
+      "unpaid",
+    );
   });
 
   it("menyaring ledger berdasarkan tipe transaksi", async () => {
-    const { session, user } = await signUpUser();
+    const { session } = await signUpUser();
 
-    await createTransaction(session, user, {
+    await createOrder(session, {
       type: "income",
       amount: "IDR 100000",
       capital: "IDR 60000",
-      date: "2026-06-05T10:00:00.000Z",
     });
-    await createTransaction(session, user, {
+    await createOrder(session, {
       type: "expense",
       amount: "IDR 40000",
       capital: "IDR 40000",
-      date: "2026-06-06T10:00:00.000Z",
     });
 
     const { data, errors } = await gql<LedgerDto>(
@@ -126,7 +175,7 @@ describe("bookkeeping e2e (GraphQL over HTTP)", () => {
           groups { entries { transaction { type } runningBalance } }
         }
       }`,
-      { input: { month: "2026-06", filter: "expense" } },
+      { input: { month: "2026-11", filter: "expense" } },
       authHeaders(session),
     );
 
