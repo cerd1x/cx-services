@@ -82,6 +82,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
 
     let order = Order.new({
       userId: data.userId,
+      productId: data.productId.decode,
       price: appliedPrice,
       itemCount: data.itemCount,
       description,

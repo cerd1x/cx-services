@@ -16,6 +16,7 @@ import { Money } from "@lib/money";
 import { paymentService, type PaymentService } from "$services/domain/payment";
 import { OrderRepositoryImpl } from "./adapters/driven/drizzle/order.repository";
 import { OrderRepository } from "./core/ports/out/order-repository.port";
+import type { OrderWithProduct } from "./core/ports/out/order-repository.port";
 import { PaymentServiceCtx } from "./core/usecase/payment_service.ctx";
 
 export class OrderService {
@@ -159,7 +160,7 @@ export class OrderService {
     start: Date,
     end: Date,
     userId: ID,
-  ): Promise<OrderType[]> {
+  ): Promise<OrderWithProduct[]> {
     return this.#ordersByDateRange.execute({ start, end, userId });
   }
 

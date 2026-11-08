@@ -1,0 +1,1 @@
+ALTER TABLE "order" ADD COLUMN "product_id" INTEGER REFERENCES "product"("id") ON DELETE SET NULL;

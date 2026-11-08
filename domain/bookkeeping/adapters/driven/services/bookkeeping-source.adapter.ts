@@ -1,6 +1,6 @@
 import { findCurrency, Money } from "@lib/money";
 import type { ID } from "$services/shared/kernel";
-import { TransactionService } from "$services/domain/transactions";
+import { OrderService } from "$services/domain/order";
 import { PaymentService } from "$services/domain/payment";
 import type {
   BookkeepingPaymentData,
@@ -22,30 +22,40 @@ export class BookkeepingSourceAdapter implements BookkeepingSource {
     start: Date,
     endExclusive: Date,
   ): Promise<BookkeepingTransactionData[]> {
-    const transactions =
-      await TransactionService.getInstance().transactionsByDateRange(
-        start,
-        endExclusive,
-        userId,
-      );
+    const orders = await OrderService.getInstance().ordersByDateRange(
+      start,
+      endExclusive,
+      userId,
+    );
 
-    return transactions.map((tx) => ({
-      id: tx.id!.decode,
-      type: tx.type,
-      status: tx.status,
-      paymentStatus: tx.paymentStatus,
-      paymentMethod: {
-        type: tx.paymentMethod.type,
-        assetId: tx.paymentMethod.assetId,
-      },
-      customerId: tx.customerId,
-      amount: tx.amount,
-      capital: tx.capital,
-      description: tx.description,
-      category: tx.category,
-      createdAt: tx.createdAt!,
-      updatedAt: tx.updatedAt,
-    }));
+    return orders.map((order) => {
+      const productCapital = order.productCapital;
+      const capital =
+        productCapital !== undefined
+          ? Money.fromNumber(
+              productCapital,
+              order.totalAmount.currency,
+            ).multiply(order.itemCount)
+          : Money.zero(order.totalAmount.currency);
+
+      return {
+        id: order.id!.decode,
+        type: "income",
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        paymentMethod: {
+          type: order.paymentMethod,
+          assetId: undefined,
+        },
+        customerId: order.customerId,
+        amount: order.totalAmount,
+        capital,
+        description: order.description,
+        category: "Order",
+        createdAt: order.createdAt!,
+        updatedAt: order.updatedAt,
+      };
+    });
   }
 
   async listFailedPayments(

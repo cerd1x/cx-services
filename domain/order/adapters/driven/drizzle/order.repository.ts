@@ -2,8 +2,12 @@ import { eq, and, between } from "drizzle-orm";
 import { Money, findCurrency } from "@lib/money";
 import { getDB } from "$services/shared/infra/db";
 import { orderTable } from "$services/shared/infra/db/drizzle-schema";
+import { productTable } from "$services/shared/infra/db/drizzle-schema/product.schema";
 import { Order } from "../../../core/model/order.model";
-import { OrderRepository } from "../../../core/ports/out/order-repository.port";
+import {
+  OrderRepository,
+  OrderWithProduct,
+} from "../../../core/ports/out/order-repository.port";
 
 export class OrderRepositoryImpl implements OrderRepository {
   async save(order: Order): Promise<Order> {
@@ -11,6 +15,7 @@ export class OrderRepositoryImpl implements OrderRepository {
       .insert(orderTable)
       .values({
         userId: order.userId!,
+        productId: order.productId ?? null,
         status: order.status,
         paymentMethod: order.paymentMethod as
           | "cash"
@@ -32,6 +37,7 @@ export class OrderRepositoryImpl implements OrderRepository {
     return new Order({
       id: result[0].id,
       userId: result[0].userId ?? undefined,
+      productId: result[0].productId ?? undefined,
       status: result[0].status as "pending" | "success" | "cancelled",
       paymentMethod: result[0].paymentMethod ?? "cash",
       price: this.#priceFromRow(result[0]),
@@ -69,10 +75,14 @@ export class OrderRepositoryImpl implements OrderRepository {
     start: Date,
     end: Date,
     userId: number,
-  ): Promise<Order[]> {
+  ): Promise<OrderWithProduct[]> {
     const rows = await getDB()
-      .select()
+      .select({
+        order: orderTable,
+        productCapital: productTable.capital,
+      })
       .from(orderTable)
+      .leftJoin(productTable, eq(orderTable.productId, productTable.id))
       .where(
         and(
           eq(orderTable.userId, userId),
@@ -80,7 +90,11 @@ export class OrderRepositoryImpl implements OrderRepository {
         ),
       );
 
-    return rows.map((r) => this.#toOrder(r));
+    return rows.map((r) => {
+      const order = this.#toOrder(r.order) as OrderWithProduct;
+      order.productCapital = r.productCapital ?? undefined;
+      return order;
+    });
   }
 
   async update(order: Order, userId: number): Promise<Order> {
@@ -121,6 +135,7 @@ export class OrderRepositoryImpl implements OrderRepository {
     return new Order({
       id: row.id,
       userId: row.userId ?? undefined,
+      productId: row.productId ?? undefined,
       status: row.status as "pending" | "success" | "cancelled",
       paymentMethod: row.paymentMethod ?? "cash",
       price: this.#priceFromRow(row),

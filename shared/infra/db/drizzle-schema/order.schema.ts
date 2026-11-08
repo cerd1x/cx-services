@@ -1,12 +1,16 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { userTable } from "./user.schema";
+import { productTable } from "./product.schema";
 
 export const orderTable = sqliteTable("order", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id")
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
+  productId: integer("product_id").references(() => productTable.id, {
+    onDelete: "set null",
+  }),
   status: text("status", { enum: ["pending", "success", "cancelled"] })
     .notNull()
     .default("pending"),

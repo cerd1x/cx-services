@@ -1,5 +1,7 @@
-import { OrderRepository } from "../ports/out/order-repository.port";
-import type { Order as OrderType } from "../model/order.model";
+import {
+  OrderRepository,
+  OrderWithProduct,
+} from "../ports/out/order-repository.port";
 import { ID } from "$services/shared/kernel";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
@@ -11,10 +13,17 @@ export type OrdersByDateRangeInput = {
   userId: ID;
 };
 
-export class OrdersByDateRangeUseCase extends CoreUsecase<OrderType[], OrdersByDateRangeInput> {
+export class OrdersByDateRangeUseCase extends CoreUsecase<
+  OrderWithProduct[],
+  OrdersByDateRangeInput
+> {
   @logMethod(logger)
-  async execute(input: OrdersByDateRangeInput): Promise<OrderType[]> {
+  async execute(input: OrdersByDateRangeInput): Promise<OrderWithProduct[]> {
     const orderRepo = this.deps.get(OrderRepository);
-    return orderRepo.findAllByDateRange(input.start, input.end, input.userId.decode);
+    return orderRepo.findAllByDateRange(
+      input.start,
+      input.end,
+      input.userId.decode,
+    );
   }
 }

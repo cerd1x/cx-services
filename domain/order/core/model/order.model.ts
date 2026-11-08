@@ -22,6 +22,7 @@ const priceSchema = z.custom<Money>(
 export const orderSchema = z.object({
   id: z.number().optional(),
   userId: z.number().optional(),
+  productId: z.number().optional(),
   status: z.enum(["pending", "success", "cancelled"]).default("pending"),
   paymentMethod: z
     .enum([
@@ -61,6 +62,7 @@ const descriptionSchema = orderSchema.shape.description;
 export class Order {
   id?: ID;
   userId?: number;
+  productId?: number;
   status: OrderStatus = "pending";
   paymentMethod: string = "cash";
   price!: Money;
@@ -78,6 +80,7 @@ export class Order {
     paymentStatus?: "unpaid" | "partial" | "paid";
     itemCount: number;
     userId?: number;
+    productId?: number;
     status?: OrderStatus;
     paymentMethod?: string;
     description?: string;
@@ -89,6 +92,7 @@ export class Order {
     this.price = data.price;
     this.itemCount = data.itemCount;
     this.userId = data.userId;
+    this.productId = data.productId;
     this.paidAmount = data.paidAmount ?? Money.zero(this.price.currency);
     if (data.status) this.status = data.status;
     if (data.paymentMethod) this.paymentMethod = data.paymentMethod;
@@ -146,6 +150,7 @@ export class Order {
     paymentStatus?: "unpaid" | "partial" | "paid";
     itemCount: number;
     userId?: number;
+    productId?: number;
     status?: OrderStatus;
     paymentMethod?: string;
     description?: string;
