@@ -30,16 +30,22 @@ export class GetBookkeepingLedgerUseCase extends CoreUsecase<
 
     const filter = bookkeepingFilterSchema.safeParse(input.filter ?? "all");
     if (!filter.success) {
-      throw new ValidationError(filter.error.issues.map((issue) => issue.message).join(", "));
+      throw new ValidationError(
+        filter.error.issues.map((issue) => issue.message).join(", "),
+      );
     }
 
     const source = this.deps.get(BookkeepingSource);
-    const transactions = await source.listTransactions(
+    const transactions = await source.listOrders(
       input.userId,
       period.start,
       period.endExclusive,
     );
 
-    return BookkeepingLedger.build({ period, filter: filter.data, transactions });
+    return BookkeepingLedger.build({
+      period,
+      filter: filter.data,
+      transactions,
+    });
   }
 }

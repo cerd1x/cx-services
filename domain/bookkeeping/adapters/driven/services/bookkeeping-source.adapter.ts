@@ -17,16 +17,17 @@ import { logger } from "../../../core/value-objects/logger";
  * container tidak menimbulkan circular import.
  */
 export class BookkeepingSourceAdapter implements BookkeepingSource {
-  async listTransactions(
+  async listOrders(
     userId: ID,
     start: Date,
     endExclusive: Date,
   ): Promise<BookkeepingTransactionData[]> {
-    const transactions = await TransactionService.getInstance().transactionsByDateRange(
-      start,
-      endExclusive,
-      userId,
-    );
+    const transactions =
+      await TransactionService.getInstance().transactionsByDateRange(
+        start,
+        endExclusive,
+        userId,
+      );
 
     return transactions.map((tx) => ({
       id: tx.id!.decode,
@@ -52,7 +53,10 @@ export class BookkeepingSourceAdapter implements BookkeepingSource {
     start: Date,
     endExclusive: Date,
   ): Promise<BookkeepingPaymentData[]> {
-    const payments = await PaymentService.getInstance().listPaymentsByStatus("failed", userId);
+    const payments = await PaymentService.getInstance().listPaymentsByStatus(
+      "failed",
+      userId,
+    );
 
     return payments.flatMap((payment) => {
       const id = payment.id?.decode;

@@ -28,7 +28,7 @@ function tx(
 
 describe("BookkeepingService", () => {
   const source = {
-    listTransactions: mock(),
+    listOrders: mock(),
     listFailedPayments: mock(),
   };
 
@@ -39,12 +39,12 @@ describe("BookkeepingService", () => {
   });
 
   afterEach(() => {
-    source.listTransactions.mockClear();
+    source.listOrders.mockClear();
     source.listFailedPayments.mockClear();
   });
 
   it("meneruskan batas bulan timezone ke sumber data", async () => {
-    source.listTransactions.mockResolvedValue([
+    source.listOrders.mockResolvedValue([
       tx(1, {
         type: "income",
         amount: Money.fromNumber(100_000, iso.IDR),
@@ -58,7 +58,7 @@ describe("BookkeepingService", () => {
       timezoneOffsetMinutes: 420,
     });
 
-    expect(source.listTransactions).toHaveBeenCalledWith(
+    expect(source.listOrders).toHaveBeenCalledWith(
       userId,
       new Date("2026-05-31T17:00:00.000Z"),
       new Date("2026-06-30T17:00:00.000Z"),
@@ -69,7 +69,7 @@ describe("BookkeepingService", () => {
   });
 
   it("meneruskan filter tipe transaksi", async () => {
-    source.listTransactions.mockResolvedValue([
+    source.listOrders.mockResolvedValue([
       tx(1, {
         type: "income",
         amount: Money.fromNumber(100_000, iso.IDR),
@@ -97,7 +97,7 @@ describe("BookkeepingService", () => {
     await expect(
       BookkeepingService.getInstance().getLedger({ userId, month: "2026-13" }),
     ).rejects.toThrow(ValidationError);
-    expect(source.listTransactions).not.toHaveBeenCalled();
+    expect(source.listOrders).not.toHaveBeenCalled();
   });
 
   it("mengambil payment gagal pada periode yang diminta", async () => {

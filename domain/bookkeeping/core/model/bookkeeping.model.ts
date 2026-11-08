@@ -9,13 +9,21 @@ import { z } from "zod";
  * `TransactionType` di modul transactions juga memuat nilai tersebut, walau
  * chip-nya belum dipakai di cx-dompetqu.
  */
-export const BOOKKEEPING_FILTERS = ["all", "income", "expense", "transfer", "outcome"] as const;
+export const BOOKKEEPING_FILTERS = [
+  "all",
+  "income",
+  "expense",
+  "transfer",
+  "outcome",
+] as const;
 
 export type BookkeepingFilter = (typeof BOOKKEEPING_FILTERS)[number];
 
 export const bookkeepingFilterSchema = z.enum(BOOKKEEPING_FILTERS);
 
-const monthSchema = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must use YYYY-MM format");
+const monthSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must use YYYY-MM format");
 
 const timezoneOffsetSchema = z
   .number()
@@ -104,7 +112,8 @@ function validationMessage(error: z.ZodError): string {
 
 function currencyOf(money: Money) {
   const currency = findCurrency(money.currency.code);
-  if (!currency) throw new ValidationError(`Unknown currency: ${money.currency.code}`);
+  if (!currency)
+    throw new ValidationError(`Unknown currency: ${money.currency.code}`);
   return currency;
 }
 
@@ -130,12 +139,15 @@ export class BookkeepingPeriod {
     const offsetMs = data.timezoneOffsetMinutes * 60_000;
 
     this.#start = new Date(Date.UTC(year!, monthIndex, 1) - offsetMs);
-    this.#endExclusive = new Date(Date.UTC(year!, monthIndex + 1, 1) - offsetMs);
+    this.#endExclusive = new Date(
+      Date.UTC(year!, monthIndex + 1, 1) - offsetMs,
+    );
   }
 
   static from(input: BookkeepingPeriodInput): BookkeepingPeriod {
     const result = bookkeepingPeriodSchema.safeParse(input);
-    if (!result.success) throw new ValidationError(validationMessage(result.error));
+    if (!result.success)
+      throw new ValidationError(validationMessage(result.error));
     return new BookkeepingPeriod(result.data);
   }
 
@@ -164,16 +176,24 @@ export class BookkeepingPeriod {
 
   /** Tanggal kalender lokal (`YYYY-MM-DD`) untuk pengelompokan harian. */
   localDateKey(date: Date): string {
-    const shifted = new Date(date.getTime() + this.#timezoneOffsetMinutes * 60_000);
+    const shifted = new Date(
+      date.getTime() + this.#timezoneOffsetMinutes * 60_000,
+    );
     return shifted.toISOString().slice(0, 10);
   }
 }
 
-function compareAscending(a: BookkeepingTransactionData, b: BookkeepingTransactionData): number {
+function compareAscending(
+  a: BookkeepingTransactionData,
+  b: BookkeepingTransactionData,
+): number {
   return a.createdAt.getTime() - b.createdAt.getTime() || a.id - b.id;
 }
 
-function compareDescending(a: BookkeepingTransactionData, b: BookkeepingTransactionData): number {
+function compareDescending(
+  a: BookkeepingTransactionData,
+  b: BookkeepingTransactionData,
+): number {
   return b.createdAt.getTime() - a.createdAt.getTime() || b.id - a.id;
 }
 
@@ -210,7 +230,8 @@ export class BookkeepingLedger {
   }): BookkeepingLedger {
     const { period, filter, transactions } = input;
     const inPeriod = transactions.filter((tx) => period.contains(tx.createdAt));
-    const filtered = filter === "all" ? inPeriod : inPeriod.filter((tx) => tx.type === filter);
+    const filtered =
+      filter === "all" ? inPeriod : inPeriod.filter((tx) => tx.type === filter);
 
     const balances = new Map<number, Money>();
     const runningByCurrency = new Map<string, Money>();
@@ -239,7 +260,8 @@ export class BookkeepingLedger {
         transactionCount: 0,
       };
       if (tx.type === "income") summary.income = summary.income.add(tx.amount);
-      if (tx.type === "expense") summary.expense = summary.expense.add(tx.amount);
+      if (tx.type === "expense")
+        summary.expense = summary.expense.add(tx.amount);
       summary.transactionCount += 1;
       summaries.set(code, summary);
     }
@@ -250,7 +272,8 @@ export class BookkeepingLedger {
       const entries = groups.get(date) ?? [];
       entries.push({
         transaction: tx,
-        runningBalance: balances.get(tx.id) ?? Money.zero(currencyOf(tx.amount)),
+        runningBalance:
+          balances.get(tx.id) ?? Money.zero(currencyOf(tx.amount)),
       });
       groups.set(date, entries);
     }
@@ -317,14 +340,22 @@ export class BookkeepingFailedPayments {
     payments: BookkeepingPaymentData[];
   }): BookkeepingFailedPayments {
     const payments = input.payments
-      .filter((payment) => payment.status === "failed" && input.period.contains(payment.createdAt))
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id - a.id);
+      .filter(
+        (payment) =>
+          payment.status === "failed" &&
+          input.period.contains(payment.createdAt),
+      )
+      .sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id - a.id,
+      );
 
     return new BookkeepingFailedPayments({
       month: input.period.month,
       payments,
       totalCount: payments.length,
-      retryableCount: payments.filter((payment) => payment.retryCount < payment.maxRetries).length,
+      retryableCount: payments.filter(
+        (payment) => payment.retryCount < payment.maxRetries,
+      ).length,
     });
   }
 

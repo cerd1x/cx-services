@@ -8,11 +8,11 @@ import type {
  * Outbound port sumber data buku besar.
  *
  * Bookkeeping tidak punya tabel sendiri. Adapter produksi menerjemahkan
- * kontrak ini ke service modul transactions (dan payment untuk tab Failed);
+ * kontrak ini ke service modul order (dan payment untuk tab Failed);
  * use case hanya melihat data yang sudah dinormalisasi model bookkeeping.
  */
 export abstract class BookkeepingSource {
-  abstract listTransactions(
+  abstract listOrders(
     userId: ID,
     start: Date,
     endExclusive: Date,
