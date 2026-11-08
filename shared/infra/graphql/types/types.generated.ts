@@ -258,8 +258,10 @@ export type CreateOrderExpenseInput = {
   customerId?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   itemCount: Scalars['Int']['input'];
+  paidAmount?: InputMaybe<Scalars['Money']['input']>;
   payWithAssetId?: InputMaybe<Scalars['ID']['input']>;
   paymentMethod?: InputMaybe<PaymentMethodType>;
+  paymentStatus?: InputMaybe<OrderPaymentStatus>;
   price: Scalars['Money']['input'];
 };
 
@@ -267,7 +269,9 @@ export type CreateOrderInput = {
   customerId?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   itemCount: Scalars['Int']['input'];
+  paidAmount?: InputMaybe<Scalars['Money']['input']>;
   paymentMethod?: InputMaybe<PaymentMethodType>;
+  paymentStatus?: InputMaybe<OrderPaymentStatus>;
   price: Scalars['Money']['input'];
 };
 
@@ -844,12 +848,20 @@ export type Order = {
   description?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   itemCount: Scalars['Int']['output'];
+  paidAmount: Scalars['Money']['output'];
   paymentMethod: PaymentMethodType;
+  paymentStatus: OrderPaymentStatus;
   price: Scalars['Money']['output'];
   status: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
 };
+
+export enum OrderPaymentStatus {
+  Paid = 'paid',
+  Partial = 'partial',
+  Unpaid = 'unpaid'
+}
 
 export type PageInfo = {
   __typename?: 'PageInfo';
@@ -1335,6 +1347,7 @@ export type UpdateOrderInput = {
   customerId?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   paymentMethod?: InputMaybe<PaymentMethodType>;
+  paymentStatus?: InputMaybe<OrderPaymentStatus>;
   status?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1519,6 +1532,7 @@ export type ResolversTypes = {
   MutateAssetResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['MutateAssetResult']>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   Order: ResolverTypeWrapper<Order>;
+  OrderPaymentStatus: OrderPaymentStatus;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   PasskeyAuthenticationOptionsPayload: ResolverTypeWrapper<PasskeyAuthenticationOptionsPayload>;
   PasskeyInfo: ResolverTypeWrapper<PasskeyInfo>;
@@ -1902,7 +1916,9 @@ export type OrderResolvers<ContextType = any, ParentType extends ResolversParent
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   itemCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  paidAmount?: Resolver<ResolversTypes['Money'], ParentType, ContextType>;
   paymentMethod?: Resolver<ResolversTypes['PaymentMethodType'], ParentType, ContextType>;
+  paymentStatus?: Resolver<ResolversTypes['OrderPaymentStatus'], ParentType, ContextType>;
   price?: Resolver<ResolversTypes['Money'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;

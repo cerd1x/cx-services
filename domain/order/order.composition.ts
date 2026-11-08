@@ -107,6 +107,8 @@ export class OrderService {
     price: Money;
     itemCount: number;
     paymentMethod?: string;
+    paymentStatus?: "unpaid" | "partial" | "paid";
+    paidAmount?: Money;
     customerId?: number;
     description?: string;
     payWithAssetId?: number;
@@ -134,6 +136,8 @@ export class OrderService {
     price: Money;
     itemCount: number;
     paymentMethod?: string;
+    paymentStatus?: "unpaid" | "partial" | "paid";
+    paidAmount?: Money;
     description?: string;
     customerId?: number;
   }): Promise<OrderType> {
@@ -151,7 +155,11 @@ export class OrderService {
   }
 
   @logMethod(logger)
-  async ordersByDateRange(start: Date, end: Date, userId: ID): Promise<OrderType[]> {
+  async ordersByDateRange(
+    start: Date,
+    end: Date,
+    userId: ID,
+  ): Promise<OrderType[]> {
     return this.#ordersByDateRange.execute({ start, end, userId });
   }
 
@@ -161,6 +169,8 @@ export class OrderService {
     data: {
       status?: "pending" | "success" | "cancelled";
       paymentMethod?: string;
+      paymentStatus?: "unpaid" | "partial" | "paid";
+      paidAmount?: Money;
       description?: string;
       customerId?: number;
     },
@@ -180,18 +190,27 @@ export type OrderAdapters = {
   payment: PaymentService;
 };
 
-export function createOrderService({ orderRepo, payment }: OrderAdapters): OrderService {
+export function createOrderService({
+  orderRepo,
+  payment,
+}: OrderAdapters): OrderService {
   const container = new ServiceContainer()
     .set(OrderRepository, orderRepo)
     .set(PaymentServiceCtx, payment as unknown as PaymentServiceCtx);
 
-  const createOrderProductSale = new CreateOrderProductSaleUseCase().setContext(container);
-  const createOrderExpense = new CreateOrderExpenseUseCase().setContext(container);
+  const createOrderProductSale = new CreateOrderProductSaleUseCase().setContext(
+    container,
+  );
+  const createOrderExpense = new CreateOrderExpenseUseCase().setContext(
+    container,
+  );
   const createOrderLoan = new CreateOrderLoanUseCase().setContext(container);
   const createOrder = new CreateOrderUseCase().setContext(container);
   const orderById = new OrderByIdUseCase().setContext(container);
   const listOrders = new ListOrdersUseCase().setContext(container);
-  const ordersByDateRange = new OrdersByDateRangeUseCase().setContext(container);
+  const ordersByDateRange = new OrdersByDateRangeUseCase().setContext(
+    container,
+  );
   const updateOrder = new UpdateOrderUseCase().setContext(container);
   const deleteOrder = new DeleteOrderUseCase().setContext(container);
 

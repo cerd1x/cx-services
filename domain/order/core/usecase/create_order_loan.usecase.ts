@@ -8,7 +8,11 @@ import { AssetService } from "$services/domain/assets";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
-import { assertItemCount, assertMoney, assertOptionalPositiveInt } from "./order_input.validator";
+import {
+  assertItemCount,
+  assertMoney,
+  assertOptionalPositiveInt,
+} from "./order_input.validator";
 import { logger } from "../value-objects/logger";
 
 export type CreateOrderLoanInput = {
@@ -20,9 +24,13 @@ export type CreateOrderLoanInput = {
   description?: string;
   payWithAssetId?: number;
   paymentStatus?: "paid" | "unpaid";
+  paidAmount?: Money;
 };
 
-export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLoanInput> {
+export class CreateOrderLoanUseCase extends CoreUsecase<
+  OrderType,
+  CreateOrderLoanInput
+> {
   @logMethod(logger)
   async execute(input: CreateOrderLoanInput): Promise<OrderType> {
     const orderRepo = this.deps.get(OrderRepository);
@@ -41,23 +49,25 @@ export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLo
     let assetMutated = false;
 
     try {
-      const createdTx = await TransactionService.getInstance().createTransaction({
-        userId: data.userId,
-        type: "expense",
-        amount,
-        capital,
-        createdAt: new Date(),
-        description:
-          data.description ?? `Loan: ${totalAmount.toNumber()} ${totalAmount.currency.code}`,
-        category: "Loan",
-        paymentMethod: data.paymentMethod
-          ? { type: data.paymentMethod as PaymentMethodType }
-          : { type: "cash" },
-        customerId: data.customerId,
-        status: "success",
-        paymentStatus: data.paymentStatus,
-        payWithAssetId: data.payWithAssetId,
-      });
+      const createdTx =
+        await TransactionService.getInstance().createTransaction({
+          userId: data.userId,
+          type: "expense",
+          amount,
+          capital,
+          createdAt: new Date(),
+          description:
+            data.description ??
+            `Loan: ${totalAmount.toNumber()} ${totalAmount.currency.code}`,
+          category: "Loan",
+          paymentMethod: data.paymentMethod
+            ? { type: data.paymentMethod as PaymentMethodType }
+            : { type: "cash" },
+          customerId: data.customerId,
+          status: "success",
+          paymentStatus: data.paymentStatus,
+          payWithAssetId: data.payWithAssetId,
+        });
       savedTxId = createdTx.id ?? null;
 
       if (data.payWithAssetId) {
@@ -77,6 +87,8 @@ export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLo
         price: data.price,
         itemCount: data.itemCount,
         paymentMethod: data.paymentMethod,
+        paymentStatus: data.paymentStatus,
+        paidAmount: data.paidAmount,
         description: data.description,
         customerId: data.customerId,
         status: "success",
@@ -92,7 +104,10 @@ export class CreateOrderLoanUseCase extends CoreUsecase<OrderType, CreateOrderLo
     } catch (error) {
       if (savedTxId) {
         try {
-          await TransactionService.getInstance().deleteTransaction(savedTxId, ID.new(data.userId));
+          await TransactionService.getInstance().deleteTransaction(
+            savedTxId,
+            ID.new(data.userId),
+          );
         } catch {
           /* ignore rollback error */
         }

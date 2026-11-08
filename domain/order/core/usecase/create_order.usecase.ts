@@ -11,16 +11,25 @@ export type CreateOrderInput = {
   price: Money;
   itemCount: number;
   paymentMethod?: string;
+  paymentStatus?: "unpaid" | "partial" | "paid";
+  paidAmount?: Money;
   description?: string;
   customerId?: number;
 };
 
-export class CreateOrderUseCase extends CoreUsecase<OrderType, CreateOrderInput> {
+export class CreateOrderUseCase extends CoreUsecase<
+  OrderType,
+  CreateOrderInput
+> {
   @logMethod(logger)
   async execute(input: CreateOrderInput): Promise<OrderType> {
     const orderRepo = this.deps.get(OrderRepository);
 
-    let order = Order.new({ ...input }).validateAll();
+    let order = Order.new({ ...input });
+    if (!input.paidAmount && order.paymentStatus === "paid") {
+      order.paidAmount = order.totalAmount;
+    }
+    order = order.validateAll();
     order = await orderRepo.save(order);
 
     if (!order.id) {

@@ -11,17 +11,30 @@ export const orderTable = sqliteTable("order", {
     .notNull()
     .default("pending"),
   paymentMethod: text("payment_method", {
-    enum: ["cash", "bank_transfer", "ewallet", "credit_card", "debit_card", "credit"],
+    enum: [
+      "cash",
+      "bank_transfer",
+      "ewallet",
+      "credit_card",
+      "debit_card",
+      "credit",
+    ],
   })
     .notNull()
     .default("cash"),
   totalAmount: real("total_amount").notNull(),
   currency: text("currency").notNull().default("IDR"),
+  paymentStatus: text("payment_status", { enum: ["unpaid", "partial", "paid"] })
+    .notNull()
+    .default("unpaid"),
+  paidAmount: real("paid_amount").notNull().default(0),
   itemCount: integer("item_count").notNull(),
   description: text("description"),
   customerId: integer("customer_id"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$onUpdate(() => sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$onUpdate(
+    () => sql`(unixepoch())`,
+  ),
 });

@@ -5,14 +5,24 @@ import type {
   Resolvers,
   Order as GqlOrder,
   PaymentMethodType,
+  OrderPaymentStatus,
 } from "$services/shared/infra/graphql/types";
 import type { Order as OrderEntity } from "../../../core/model/order.model";
 
 const isValidPaymentMethodType = (type: string): boolean => {
-  return ["cash", "bank_transfer", "ewallet", "credit_card", "debit_card", "credit"].includes(type);
+  return [
+    "cash",
+    "bank_transfer",
+    "ewallet",
+    "credit_card",
+    "debit_card",
+    "credit",
+  ].includes(type);
 };
 
-const mapPaymentMethod = (input: PaymentMethodType | null | undefined): string | undefined => {
+const mapPaymentMethod = (
+  input: PaymentMethodType | null | undefined,
+): string | undefined => {
   if (!input) return undefined;
   return isValidPaymentMethodType(input) ? input : undefined;
 };
@@ -23,9 +33,14 @@ const mapOrder = (order: OrderEntity): GqlOrder => ({
   status: order.status,
   paymentMethod: order.paymentMethod as PaymentMethodType,
   price: order.totalAmount,
+  paymentStatus: order.paymentStatus as OrderPaymentStatus,
+  paidAmount: order.paidAmount,
   itemCount: order.itemCount,
   description: order.description,
-  customerId: order.customerId !== undefined ? ID.contact(order.customerId).str : undefined,
+  customerId:
+    order.customerId !== undefined
+      ? ID.contact(order.customerId).str
+      : undefined,
   createdAt: order.createdAt,
   updatedAt: order.updatedAt,
 });
@@ -48,8 +63,12 @@ const resolvers: Resolvers<YogaContext> = {
         price: args.input.price,
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
+        paymentStatus: args.input.paymentStatus ?? undefined,
+        paidAmount: args.input.paidAmount ?? undefined,
         description: args.input.description ?? undefined,
-        customerId: args.input.customerId ? ID.new(args.input.customerId).decode : undefined,
+        customerId: args.input.customerId
+          ? ID.new(args.input.customerId).decode
+          : undefined,
       });
       return mapOrder(result);
     },
@@ -57,10 +76,15 @@ const resolvers: Resolvers<YogaContext> = {
       const result = await order.updateOrder(
         ID.new(args.id),
         {
-          status: (args.input.status as "pending" | "success" | "cancelled") ?? undefined,
+          status:
+            (args.input.status as "pending" | "success" | "cancelled") ??
+            undefined,
           paymentMethod: mapPaymentMethod(args.input.paymentMethod),
+          paymentStatus: args.input.paymentStatus ?? undefined,
           description: args.input.description ?? undefined,
-          customerId: args.input.customerId ? ID.new(args.input.customerId).decode : undefined,
+          customerId: args.input.customerId
+            ? ID.new(args.input.customerId).decode
+            : undefined,
         },
         userAuth!.id,
       );
@@ -73,7 +97,9 @@ const resolvers: Resolvers<YogaContext> = {
         itemCount: args.input.itemCount,
         price: args.input.price,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
-        customerId: args.input.customerId ? ID.new(args.input.customerId).decode : undefined,
+        customerId: args.input.customerId
+          ? ID.new(args.input.customerId).decode
+          : undefined,
         description: args.input.description ?? undefined,
         payWithAssetId: args.input.payWithAssetId
           ? ID.new(args.input.payWithAssetId).decode
@@ -88,7 +114,11 @@ const resolvers: Resolvers<YogaContext> = {
         price: args.input.price,
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
-        customerId: args.input.customerId ? ID.new(args.input.customerId).decode : undefined,
+        paymentStatus: args.input.paymentStatus ?? undefined,
+        paidAmount: args.input.paidAmount ?? undefined,
+        customerId: args.input.customerId
+          ? ID.new(args.input.customerId).decode
+          : undefined,
         description: args.input.description ?? undefined,
         payWithAssetId: args.input.payWithAssetId
           ? ID.new(args.input.payWithAssetId).decode
@@ -102,7 +132,9 @@ const resolvers: Resolvers<YogaContext> = {
         price: args.input.price,
         itemCount: args.input.itemCount,
         paymentMethod: mapPaymentMethod(args.input.paymentMethod),
-        customerId: args.input.customerId ? ID.new(args.input.customerId).decode : undefined,
+        customerId: args.input.customerId
+          ? ID.new(args.input.customerId).decode
+          : undefined,
         description: args.input.description ?? undefined,
         payWithAssetId: args.input.payWithAssetId
           ? ID.new(args.input.payWithAssetId).decode

@@ -12,7 +12,10 @@ import { CoreUsecase } from "$services/shared/base";
 import { ValidationError } from "$services/shared/kernel/errors/service-error";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
-import { assertItemCount, assertOptionalPositiveInt } from "./order_input.validator";
+import {
+  assertItemCount,
+  assertOptionalPositiveInt,
+} from "./order_input.validator";
 
 export type CreateOrderProductSaleInput = {
   userId: number;
@@ -20,10 +23,11 @@ export type CreateOrderProductSaleInput = {
   itemCount: number;
   price: Money;
   paymentMethod?: string;
+  paymentStatus?: "paid" | "unpaid";
+  paidAmount?: Money;
   customerId?: number;
   description?: string;
   payWithAssetId?: number;
-  paymentStatus?: "paid" | "unpaid";
 };
 
 export class CreateOrderProductSaleUseCase extends CoreUsecase<
@@ -42,7 +46,10 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       throw new ValidationError("price must be a positive finite number");
     }
 
-    const product = await ProductService.getInstance().product(data.productId, data.userId);
+    const product = await ProductService.getInstance().product(
+      data.productId,
+      data.userId,
+    );
 
     if (product.userId !== data.userId) {
       throw new Error("Product does not belong to this user");
@@ -65,10 +72,12 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       );
     }
 
-    const capital = Money.fromNumber(capitalPerItem, appliedPrice.currency).multiply(
-      data.itemCount,
-    );
-    const description = data.description ?? `Sale: ${product.name} x${data.itemCount}`;
+    const capital = Money.fromNumber(
+      capitalPerItem,
+      appliedPrice.currency,
+    ).multiply(data.itemCount);
+    const description =
+      data.description ?? `Sale: ${product.name} x${data.itemCount}`;
     const paymentMethod = data.paymentMethod ?? "cash";
 
     let order = Order.new({
@@ -77,6 +86,8 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       itemCount: data.itemCount,
       description,
       paymentMethod,
+      paymentStatus: data.paymentStatus,
+      paidAmount: data.paidAmount,
       customerId: data.customerId,
       status: "pending",
     }).validateAll();
@@ -90,7 +101,9 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
     let stockDeducted = false;
 
     try {
-      const paymentService = this.deps.get(PaymentServiceCtx) as unknown as PaymentService;
+      const paymentService = this.deps.get(
+        PaymentServiceCtx,
+      ) as unknown as PaymentService;
       const invoice = await paymentService.createInvoice({
         userId: data.userId,
         customerId: data.customerId,
@@ -113,6 +126,7 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
         assetId: data.payWithAssetId,
         invoiceId: invoice.id,
         description,
+        metadata: { orderId: order.id!.decode },
         // Tanpa asset tujuan tidak ada dana yang bisa di-charge/settle.
         type: data.payWithAssetId
           ? ProcessPaymentType.orderProductSale
@@ -150,6 +164,13 @@ export class CreateOrderProductSaleUseCase extends CoreUsecase<
       });
 
       order.status = "success";
+      order.paymentStatus = data.paymentStatus ?? "paid";
+      if (
+        !order.paidAmount ||
+        order.paidAmount.equals(Money.zero(order.price.currency))
+      ) {
+        order.paidAmount = order.totalAmount;
+      }
       order = await orderRepo.update(order, data.userId);
 
       return order;

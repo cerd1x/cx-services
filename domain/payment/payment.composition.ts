@@ -9,7 +9,11 @@ import { ListInvoicesUseCase } from "./core/usecase/list_invoices.usecase";
 import { ListInvoicesByStatusUseCase } from "./core/usecase/list_invoices_by_status.usecase";
 import { IssueInvoiceUseCase } from "./core/usecase/issue_invoice.usecase";
 import { CancelInvoiceUseCase } from "./core/usecase/cancel_invoice.usecase";
-import { Payment, type PaymentData, ProcessPaymentType } from "./core/model/payment.model";
+import {
+  Payment,
+  type PaymentData,
+  ProcessPaymentType,
+} from "./core/model/payment.model";
 import { type InvoiceData, type InvoiceItem } from "./core/model/invoice.model";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "./core/value-objects/logger";
@@ -21,7 +25,10 @@ import { MockPaymentGateway } from "./adapters/driven/payment-gateway/mock-gatew
 import { AssetPaymentGateway } from "./adapters/driven/payment-gateway/asset-gateway.adapter";
 import { LazyAssetMutator } from "./adapters/driven/payment-gateway/lazy-asset-mutator";
 import { AssetSettlementAdapter } from "./adapters/driven/settlement/asset-settlement.adapter";
-import { RetryPolicy, RetryPolicyToken } from "./core/value-objects/retry-policy.vo";
+import {
+  RetryPolicy,
+  RetryPolicyToken,
+} from "./core/value-objects/retry-policy.vo";
 import { AssetChargeGatewayToken } from "./core/value-objects/asset-charge-gateway.vo";
 import { PaymentSettlementPort } from "./core/ports/out/payment-settlement.port";
 import { PaymentRepository } from "./core/ports/out/payment-repository.port";
@@ -115,6 +122,7 @@ export class PaymentService {
     assetId?: number;
     invoiceId?: number;
     description?: string;
+    metadata?: Record<string, unknown>;
     type?: ProcessPaymentType;
   }): Promise<Payment> {
     return this.#processPayment.execute(input);
@@ -164,7 +172,10 @@ export class PaymentService {
   }
 
   @logMethod(logger)
-  async listInvoicesByStatus(status: string, userId: ID): Promise<InvoiceData[]> {
+  async listInvoicesByStatus(
+    status: string,
+    userId: ID,
+  ): Promise<InvoiceData[]> {
     return this.#listInvoicesByStatus.execute({ status, userId });
   }
 
@@ -212,12 +223,16 @@ export function createPaymentService({
   const createInvoice = new CreateInvoiceUseCase().setContext(container);
   const getInvoice = new GetInvoiceUseCase().setContext(container);
   const listInvoices = new ListInvoicesUseCase().setContext(container);
-  const listInvoicesByStatus = new ListInvoicesByStatusUseCase().setContext(container);
+  const listInvoicesByStatus = new ListInvoicesByStatusUseCase().setContext(
+    container,
+  );
   const issueInvoice = new IssueInvoiceUseCase().setContext(container);
   const cancelInvoice = new CancelInvoiceUseCase().setContext(container);
   const getPayment = new GetPaymentUseCase().setContext(container);
   const listPayments = new ListPaymentsUseCase().setContext(container);
-  const listPaymentsByStatus = new ListPaymentsByStatusUseCase().setContext(container);
+  const listPaymentsByStatus = new ListPaymentsByStatusUseCase().setContext(
+    container,
+  );
 
   return PaymentService.init(
     processPayment,

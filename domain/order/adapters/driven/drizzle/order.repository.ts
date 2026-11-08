@@ -13,9 +13,16 @@ export class OrderRepositoryImpl implements OrderRepository {
         userId: order.userId!,
         status: order.status,
         paymentMethod: order.paymentMethod as
-          "cash" | "bank_transfer" | "ewallet" | "credit_card" | "debit_card" | "credit",
+          | "cash"
+          | "bank_transfer"
+          | "ewallet"
+          | "credit_card"
+          | "debit_card"
+          | "credit",
         totalAmount: order.totalAmount.toNumber(),
         currency: order.currency,
+        paymentStatus: order.paymentStatus,
+        paidAmount: order.paidAmount.toNumber(),
         itemCount: order.itemCount,
         description: order.description ?? null,
         customerId: order.customerId ?? null,
@@ -28,6 +35,8 @@ export class OrderRepositoryImpl implements OrderRepository {
       status: result[0].status as "pending" | "success" | "cancelled",
       paymentMethod: result[0].paymentMethod ?? "cash",
       price: this.#priceFromRow(result[0]),
+      paidAmount: this.#paidAmountFromRow(result[0]),
+      paymentStatus: result[0].paymentStatus as "unpaid" | "partial" | "paid",
       itemCount: result[0].itemCount,
       description: result[0].description ?? undefined,
       customerId: result[0].customerId ?? undefined,
@@ -48,16 +57,28 @@ export class OrderRepositoryImpl implements OrderRepository {
   }
 
   async findAll(userId: number): Promise<Order[]> {
-    const rows = await getDB().select().from(orderTable).where(eq(orderTable.userId, userId));
+    const rows = await getDB()
+      .select()
+      .from(orderTable)
+      .where(eq(orderTable.userId, userId));
 
     return rows.map((r) => this.#toOrder(r));
   }
 
-  async findAllByDateRange(start: Date, end: Date, userId: number): Promise<Order[]> {
+  async findAllByDateRange(
+    start: Date,
+    end: Date,
+    userId: number,
+  ): Promise<Order[]> {
     const rows = await getDB()
       .select()
       .from(orderTable)
-      .where(and(eq(orderTable.userId, userId), between(orderTable.createdAt, start, end)));
+      .where(
+        and(
+          eq(orderTable.userId, userId),
+          between(orderTable.createdAt, start, end),
+        ),
+      );
 
     return rows.map((r) => this.#toOrder(r));
   }
@@ -68,14 +89,23 @@ export class OrderRepositoryImpl implements OrderRepository {
       .set({
         status: order.status,
         paymentMethod: order.paymentMethod as
-          "cash" | "bank_transfer" | "ewallet" | "credit_card" | "debit_card" | "credit",
+          | "cash"
+          | "bank_transfer"
+          | "ewallet"
+          | "credit_card"
+          | "debit_card"
+          | "credit",
         totalAmount: order.totalAmount.toNumber(),
         currency: order.currency,
+        paymentStatus: order.paymentStatus,
+        paidAmount: order.paidAmount.toNumber(),
         itemCount: order.itemCount,
         description: order.description ?? null,
         customerId: order.customerId ?? null,
       })
-      .where(and(eq(orderTable.id, order.id!.decode), eq(orderTable.userId, userId)))
+      .where(
+        and(eq(orderTable.id, order.id!.decode), eq(orderTable.userId, userId)),
+      )
       .returning();
 
     return this.#toOrder(result[0]);
@@ -94,6 +124,8 @@ export class OrderRepositoryImpl implements OrderRepository {
       status: row.status as "pending" | "success" | "cancelled",
       paymentMethod: row.paymentMethod ?? "cash",
       price: this.#priceFromRow(row),
+      paidAmount: this.#paidAmountFromRow(row),
+      paymentStatus: row.paymentStatus as "unpaid" | "partial" | "paid",
       itemCount: row.itemCount,
       description: row.description ?? undefined,
       customerId: row.customerId ?? undefined,
@@ -107,5 +139,13 @@ export class OrderRepositoryImpl implements OrderRepository {
       throw new Error(`Unknown currency: ${row.currency}`);
     }
     return Money.fromNumber(row.totalAmount / row.itemCount, currency);
+  }
+
+  #paidAmountFromRow(row: typeof orderTable.$inferSelect): Money {
+    const currency = findCurrency(row.currency.toUpperCase());
+    if (!currency) {
+      throw new Error(`Unknown currency: ${row.currency}`);
+    }
+    return Money.fromNumber(row.paidAmount, currency);
   }
 }

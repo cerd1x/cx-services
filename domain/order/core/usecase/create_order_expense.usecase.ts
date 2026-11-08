@@ -8,7 +8,11 @@ import { AssetService } from "$services/domain/assets";
 import type { PaymentMethodType } from "../../../transactions/core/model/transaction.model";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
-import { assertItemCount, assertMoney, assertOptionalPositiveInt } from "./order_input.validator";
+import {
+  assertItemCount,
+  assertMoney,
+  assertOptionalPositiveInt,
+} from "./order_input.validator";
 import { logger } from "../value-objects/logger";
 
 export type CreateOrderExpenseInput = {
@@ -16,12 +20,17 @@ export type CreateOrderExpenseInput = {
   price: Money;
   itemCount: number;
   paymentMethod?: string;
+  paymentStatus?: "unpaid" | "partial" | "paid";
+  paidAmount?: Money;
   customerId?: number;
   description?: string;
   payWithAssetId?: number;
 };
 
-export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrderExpenseInput> {
+export class CreateOrderExpenseUseCase extends CoreUsecase<
+  OrderType,
+  CreateOrderExpenseInput
+> {
   @logMethod(logger)
   async execute(input: CreateOrderExpenseInput): Promise<OrderType> {
     const orderRepo = this.deps.get(OrderRepository);
@@ -40,22 +49,24 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
     let assetMutated = false;
 
     try {
-      const createdTx = await TransactionService.getInstance().createTransaction({
-        userId: data.userId,
-        type: "expense",
-        amount,
-        capital,
-        createdAt: new Date(),
-        description:
-          data.description ?? `Expense: ${totalAmount.toNumber()} ${totalAmount.currency.code}`,
-        category: "Expense",
-        paymentMethod: data.paymentMethod
-          ? { type: data.paymentMethod as PaymentMethodType }
-          : { type: "cash" },
-        customerId: data.customerId,
-        status: "success",
-        payWithAssetId: data.payWithAssetId,
-      });
+      const createdTx =
+        await TransactionService.getInstance().createTransaction({
+          userId: data.userId,
+          type: "expense",
+          amount,
+          capital,
+          createdAt: new Date(),
+          description:
+            data.description ??
+            `Expense: ${totalAmount.toNumber()} ${totalAmount.currency.code}`,
+          category: "Expense",
+          paymentMethod: data.paymentMethod
+            ? { type: data.paymentMethod as PaymentMethodType }
+            : { type: "cash" },
+          customerId: data.customerId,
+          status: "success",
+          payWithAssetId: data.payWithAssetId,
+        });
       savedTxId = createdTx.id ?? null;
 
       if (data.payWithAssetId) {
@@ -75,6 +86,8 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
         price: data.price,
         itemCount: data.itemCount,
         paymentMethod: data.paymentMethod,
+        paymentStatus: data.paymentStatus,
+        paidAmount: data.paidAmount,
         description: data.description,
         customerId: data.customerId,
         status: "success",
@@ -90,7 +103,10 @@ export class CreateOrderExpenseUseCase extends CoreUsecase<OrderType, CreateOrde
     } catch (error) {
       if (savedTxId) {
         try {
-          await TransactionService.getInstance().deleteTransaction(savedTxId, ID.new(data.userId));
+          await TransactionService.getInstance().deleteTransaction(
+            savedTxId,
+            ID.new(data.userId),
+          );
         } catch {
           /* ignore rollback error */
         }

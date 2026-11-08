@@ -4,31 +4,46 @@ import { PaymentGateway } from "../ports/out/payment-gateway.port";
 import { PaymentRetryExhaustedError } from "../errors/payment-error";
 import { RetryPolicyToken } from "../value-objects/retry-policy.vo";
 import { AssetChargeGatewayToken } from "../value-objects/asset-charge-gateway.vo";
-import { refundCharge, settleOrderProductSale } from "./payment_settlement.helper";
+import {
+  refundCharge,
+  settleOrderProductSale,
+} from "./payment_settlement.helper";
 import { CoreUsecase } from "$services/shared/base";
 import { logMethod } from "$services/shared/infra/decorators/logger-decorator";
 import { logger } from "../value-objects/logger";
 import { ID } from "$services/shared/kernel";
 
-export class RetryPaymentUseCase extends CoreUsecase<Payment, { paymentId: ID; userId: ID }> {
+export class RetryPaymentUseCase extends CoreUsecase<
+  Payment,
+  { paymentId: ID; userId: ID }
+> {
   @logMethod(logger)
   async execute(input: { paymentId: ID; userId: ID }): Promise<Payment> {
     const paymentRepo = this.deps.get(PaymentRepository);
     const defaultGateway = this.deps.get(PaymentGateway);
     const retryPolicy = this.deps.get(RetryPolicyToken);
 
-    const existing = await paymentRepo.findById(input.paymentId.decode, input.userId);
+    const existing = await paymentRepo.findById(
+      input.paymentId.decode,
+      input.userId,
+    );
     if (!existing) {
       throw new PaymentRetryExhaustedError(input.paymentId.decode, 0);
     }
     if (!existing.id) {
-      throw new PaymentRetryExhaustedError(input.paymentId.decode, existing.maxRetries);
+      throw new PaymentRetryExhaustedError(
+        input.paymentId.decode,
+        existing.maxRetries,
+      );
     }
 
     const payment = existing;
 
     if (!payment.canRetry() || !retryPolicy.shouldRetry(payment.retryCount)) {
-      throw new PaymentRetryExhaustedError(input.paymentId.decode, retryPolicy.maxRetries);
+      throw new PaymentRetryExhaustedError(
+        input.paymentId.decode,
+        retryPolicy.maxRetries,
+      );
     }
 
     payment.incrementRetry();
@@ -45,7 +60,9 @@ export class RetryPaymentUseCase extends CoreUsecase<Payment, { paymentId: ID; u
         ? ProcessPaymentType.orderProductSale
         : ProcessPaymentType.general;
     const assetId =
-      typeof payment.metadata?.assetId === "number" ? payment.metadata.assetId : undefined;
+      typeof payment.metadata?.assetId === "number"
+        ? payment.metadata.assetId
+        : undefined;
     const gateway =
       assetId !== undefined && this.deps.has(AssetChargeGatewayToken)
         ? this.deps.get(AssetChargeGatewayToken)
@@ -74,6 +91,26 @@ export class RetryPaymentUseCase extends CoreUsecase<Payment, { paymentId: ID; u
             await settleOrderProductSale(this.deps, payment);
           }
           payment.transitionTo("completed");
+
+          const orderId = payment.metadata?.orderId;
+          if (typeof orderId === "number") {
+            try {
+              // Import dinamis untuk memecah siklus order ⇄ payment: modul order
+              // sudah meng-import `paymentService` di top-level, jadi referensi ke
+              // `OrderService` harus di-resolve saat runtime, bukan saat module load.
+              const { OrderService } = await import("$services/domain/order");
+              await OrderService.getInstance().updateOrder(
+                ID.order(orderId),
+                { status: "success" },
+                ID.user(payment.userId),
+              );
+            } catch (orderError) {
+              logger.error(
+                `Failed to mark order ${orderId} as success:`,
+                orderError,
+              );
+            }
+          }
         } catch (error) {
           await refundCharge(gateway, gatewayResponse.gatewayRef);
           throw error;
@@ -90,7 +127,8 @@ export class RetryPaymentUseCase extends CoreUsecase<Payment, { paymentId: ID; u
       payment.transitionTo("failed");
       payment.metadata = {
         ...payment.metadata,
-        lastError: error instanceof Error ? error.message : "Unknown gateway error",
+        lastError:
+          error instanceof Error ? error.message : "Unknown gateway error",
         nextRetryDelayMs: retryPolicy.getNextRetryDelay(payment.retryCount),
       };
     }
