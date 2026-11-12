@@ -96,6 +96,11 @@ dan `vars` non-rahasia.
 Skema Drizzle: `shared/infra/db/drizzle-schema/*.schema.ts`
 Migrasi: `drizzle/` (drizzle-kit) dan `migrations/` (SQL mentah, arsip).
 
+> Migrasi baru **wajib** dibuat lewat `bun run db:generate` sehingga masuk ke
+> `drizzle/<timestamp>_<name>/migration.sql`. Wrangler hanya membaca folder
+> `drizzle/` (lihat `migrations_pattern` di `wrangler.jsonc`); file di
+> `migrations/` tidak ikut diterapkan dan hanya arsip historis.
+
 ```bash
 bun run db:generate     # generate SQL baru
 wrangler d1 migrations apply cxapp-db --remote   # terapkan ke D1 production
